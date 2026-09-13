@@ -8,7 +8,8 @@ export type ActiveView =
   | 'procurement' 
   | 'history' 
   | 'notifications' 
-  | 'profile';
+  | 'profile'
+  | 'auth';
 
 export interface LocationCoordinates {
   lat: number;

@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Emblem } from './Emblem';
-import { Bell, Menu, ChevronDown, UserCheck } from 'lucide-react';
+import { Bell, Menu, ChevronDown, UserCheck, LogOut, LogIn, ShieldCheck } from 'lucide-react';
 
 interface GovernmentHeaderProps {
   onOpenSidebar: () => void;
@@ -14,16 +14,23 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
     activeView, 
     setActiveView, 
     language, 
-    setLanguage 
+    setLanguage,
+    isLoggedIn,
+    logout
   } = useApp();
 
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
   return (
-    <header className="w-full bg-[#FFFFFF] border-b border-[#CBD8D1] sticky top-0 z-30">
+    <header className="w-full bg-[#FFFFFF] border-b border-[#CBD8D1] sticky top-0 z-30 shadow-xs">
       {/* Official Top National Identity Stripe */}
       <div className="w-full bg-[#063B2A] text-[#FFFFFF] text-[11px] py-1 px-4 sm:px-6">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between">
-          <span className="font-medium tracking-wide">
-            भारत सरकार | Government of India
+          <span className="font-medium tracking-wide flex items-center gap-2">
+            <span>भारत सरकार | Government of India</span>
+            <span className="hidden lg:inline text-[#A3D99D] text-[10px] bg-[#075E43] px-2 py-0.5 rounded border border-[#16845F]">
+              FastAPI Grid Connected
+            </span>
           </span>
           <div className="flex items-center gap-3">
             <span className="hidden md:inline text-[#CBD8D1]">
@@ -53,8 +60,8 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
       {/* Main Official Header Area */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-2.5 sm:py-3">
         <div className="flex items-center justify-between gap-3">
-          {/* Left: Mobile Toggle + Emblem + Ministry + Portal Identity */}
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          {/* Left: Mobile Toggle + Emblem + User Sprout Logo + Portal Identity */}
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
             {/* Mobile Menu Button */}
             <button
               onClick={onOpenSidebar}
@@ -67,12 +74,22 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
             {/* Emblem Area */}
             <div 
               onClick={() => setActiveView('dashboard')}
-              className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group flex-shrink-0"
+              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group flex-shrink-0"
             >
               <div className="text-[#063B2A] flex-shrink-0">
-                <Emblem className="w-8 h-10 sm:w-9 sm:h-11" />
+                <Emblem className="w-7 h-9 sm:w-8 sm:h-10" />
               </div>
-              <div className="border-l border-[#CBD8D1] pl-2.5 sm:pl-3 hidden sm:block leading-tight">
+
+              {/* Seedling / Sprout Brand Logo */}
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-[10px] overflow-hidden border border-[#CBD8D1] shadow-xs flex-shrink-0 bg-[#075E43]">
+                <img 
+                  src="/logo.png" 
+                  alt="KRAYAM Seedling Logo" 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+
+              <div className="border-l border-[#CBD8D1] pl-2 sm:pl-2.5 hidden sm:block leading-tight">
                 <div className="text-[11px] font-semibold text-[#17231F] font-['Noto_Sans_Devanagari']">
                   भारत सरकार
                 </div>
@@ -111,7 +128,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
           </div>
 
           {/* Right: Notification Bell & Farmer Identity Block */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 relative">
             {/* Notification Bell */}
             <button
               onClick={() => setActiveView('notifications')}
@@ -131,29 +148,87 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
               )}
             </button>
 
-            {/* Farmer Identity Badge in Header */}
-            {farmer && (
+            {/* Farmer Identity Badge or Login/Register Button */}
+            {isLoggedIn && farmer ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className={`flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-[6px] border transition-colors text-left ${
+                    isUserMenuOpen || activeView === 'profile'
+                      ? 'bg-[#E7F3EC] border-[#075E43]'
+                      : 'bg-[#FFFFFF] border-[#CBD8D1] hover:bg-[#F3F9F5]'
+                  }`}
+                  title="Farmer Account Options"
+                >
+                  <div className="w-7 h-7 rounded-full bg-[#063B2A] text-[#E7F3EC] flex items-center justify-center text-xs font-bold flex-shrink-0">
+                    <UserCheck className="w-4 h-4 text-[#E7F3EC]" />
+                  </div>
+                  <div className="hidden sm:block leading-tight">
+                    <div className="text-xs font-bold text-[#17231F] truncate max-w-[130px]">
+                      {farmer.fullName}
+                    </div>
+                    <div className="text-[10px] font-mono text-[#66736D]">
+                      {farmer.farmerId}
+                    </div>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#66736D]" />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-1 w-56 bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-3 py-2 border-b border-[#EDF3EF]">
+                      <div className="text-xs font-bold text-[#17231F]">{farmer.fullName}</div>
+                      <div className="text-[10px] text-[#66736D] font-mono">{farmer.farmerId}</div>
+                      <div className="text-[10px] text-[#075E43] font-medium mt-0.5">
+                        {farmer.location.village}, {farmer.location.district}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setActiveView('profile');
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs text-[#17231F] hover:bg-[#F5F8F6] flex items-center gap-2"
+                    >
+                      <ShieldCheck className="w-4 h-4 text-[#075E43]" />
+                      <span>View Full Profile & Land</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveView('auth');
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs text-[#17231F] hover:bg-[#F5F8F6] flex items-center gap-2"
+                    >
+                      <LogIn className="w-4 h-4 text-[#075E43]" />
+                      <span>Switch Account / Register</span>
+                    </button>
+
+                    <div className="border-t border-[#EDF3EF] my-1" />
+
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs text-[#DC2626] hover:bg-[#FEF2F2] flex items-center gap-2 font-medium"
+                    >
+                      <LogOut className="w-4 h-4 text-[#DC2626]" />
+                      <span>Sign Out (लॉग आउट)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
               <button
-                onClick={() => setActiveView('profile')}
-                className={`flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-[6px] border transition-colors text-left ${
-                  activeView === 'profile'
-                    ? 'bg-[#E7F3EC] border-[#075E43]'
-                    : 'bg-[#FFFFFF] border-[#CBD8D1] hover:bg-[#F3F9F5]'
-                }`}
-                title="View Farmer Profile"
+                onClick={() => setActiveView('auth')}
+                className="h-9 px-3 sm:px-4 rounded-[6px] bg-[#075E43] hover:bg-[#063B2A] text-[#FFFFFF] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
               >
-                <div className="w-7 h-7 rounded-full bg-[#063B2A] text-[#E7F3EC] flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  <UserCheck className="w-4 h-4 text-[#E7F3EC]" />
-                </div>
-                <div className="hidden sm:block leading-tight">
-                  <div className="text-xs font-bold text-[#17231F] truncate max-w-[150px]">
-                    {farmer.fullName}
-                  </div>
-                  <div className="text-[10px] font-mono text-[#66736D]">
-                    {farmer.farmerId}
-                  </div>
-                </div>
-                <ChevronDown className="w-3.5 h-3.5 text-[#66736D] hidden sm:block" />
+                <LogIn className="w-4 h-4" />
+                <span>Login / Register</span>
               </button>
             )}
           </div>

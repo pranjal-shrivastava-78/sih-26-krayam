@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
+import { SplashScreen } from './components/common/SplashScreen';
+import { AuthPage } from './components/auth/AuthPage';
 import { AnnouncementBanner } from './components/layout/AnnouncementBanner';
 import { GovernmentHeader } from './components/layout/GovernmentHeader';
 import { Breadcrumb } from './components/layout/Breadcrumb';
@@ -19,9 +21,20 @@ import { SettingsModal } from './components/modals/SettingsModal';
 import { AuthModal } from './components/account/AuthModal';
 
 const MainAppContent: React.FC = () => {
-  const { activeView } = useApp();
+  const { activeView, isLoggedIn } = useApp();
+  const [showSplash, setShowSplash] = useState(true);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Initial startup: show user's seedling logo for ~1400 milliseconds
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} durationMs={1400} />;
+  }
+
+  // If user is not logged in or active view is auth, render dedicated Registration/Login Page
+  if (!isLoggedIn || activeView === 'auth') {
+    return <AuthPage onSuccess={() => {}} />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col font-['Inter'] antialiased bg-[#F5F8F6] text-[#17231F]">

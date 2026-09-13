@@ -16,7 +16,9 @@ import {
   ShieldCheck,
   User,
   ExternalLink,
-  Globe
+  Globe,
+  LogOut,
+  LogIn
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -33,7 +35,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     setIsHelpModalOpen, 
     setIsSettingsModalOpen,
     language,
-    setLanguage
+    setLanguage,
+    isLoggedIn,
+    logout
   } = useApp();
 
   // All 7 Services for Desktop
@@ -251,6 +255,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           </button>
 
+          {isLoggedIn ? (
+            <button
+              onClick={() => logout()}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] text-xs text-[#FCA5A5] hover:bg-[#7F1D1D]/30 transition-colors text-left"
+            >
+              <LogOut className="w-4 h-4 text-[#FCA5A5]" />
+              <div className="leading-tight">
+                <div>Sign Out</div>
+                <div className="text-[10px] text-[#FCA5A5]/80 font-['Noto_Sans_Devanagari']">लॉग आउट करें</div>
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={() => setActiveView('auth')}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] text-xs text-[#A3D99D] hover:bg-[#075E43] transition-colors text-left"
+            >
+              <LogIn className="w-4 h-4 text-[#A3D99D]" />
+              <div className="leading-tight">
+                <div>Login / Register</div>
+                <div className="text-[10px] text-[#A3D99D]/80 font-['Noto_Sans_Devanagari']">लॉग इन / पंजीकरण</div>
+              </div>
+            </button>
+          )}
+
           <div className="pt-2 border-t border-[#0B4734]/60 flex items-center justify-between text-[10px] text-[#CBD8D1] px-3">
             <span>Official Portal</span>
             <span className="font-mono">v2.4.0</span>
@@ -430,6 +458,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <Settings className="w-3.5 h-3.5" />
                   <span>Settings</span>
                 </button>
+              </div>
+
+              {/* Mobile Auth Button */}
+              <div className="pt-1">
+                {isLoggedIn ? (
+                  <button
+                    onClick={() => {
+                      logout();
+                      onClose();
+                    }}
+                    className="w-full h-9 px-2.5 rounded-[6px] bg-[#7F1D1D]/40 hover:bg-[#7F1D1D]/70 text-[#FCA5A5] text-xs font-semibold flex items-center justify-center gap-1.5 border border-[#EF4444]/40"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out (लॉग आउट)</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setActiveView('auth');
+                      onClose();
+                    }}
+                    className="w-full h-9 px-2.5 rounded-[6px] bg-[#075E43] hover:bg-[#0B6B4F] text-[#A3D99D] text-xs font-semibold flex items-center justify-center gap-1.5 border border-[#16845F]"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    <span>Login / Register (लॉग इन)</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

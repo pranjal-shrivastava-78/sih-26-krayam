@@ -11,11 +11,13 @@ import {
   Building2,
   CreditCard,
   Phone,
-  CheckCircle2
+  CheckCircle2,
+  LogOut,
+  LogIn
 } from 'lucide-react';
 
 export const ProfileView: React.FC = () => {
-  const { farmer, updateProfile } = useApp();
+  const { farmer, updateProfile, logout, setActiveView } = useApp();
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -70,13 +72,33 @@ export const ProfileView: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          className="h-10 px-4 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-xs font-semibold text-[#17231F] flex items-center gap-1.5 transition-colors self-start sm:self-auto"
-        >
-          <Edit3 className="w-3.5 h-3.5 text-[#075E43]" />
-          <span>{isEditing ? 'Cancel Edit' : 'Edit Information'}</span>
-        </button>
+        <div className="flex items-center flex-wrap gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="h-10 px-4 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-xs font-semibold text-[#17231F] flex items-center gap-1.5 transition-colors"
+          >
+            <Edit3 className="w-3.5 h-3.5 text-[#075E43]" />
+            <span>{isEditing ? 'Cancel Edit' : 'Edit Information'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveView('auth')}
+            className="h-10 px-3.5 rounded-[6px] bg-[#F3F9F5] border border-[#CBD8D1] hover:bg-[#E7F3EC] text-xs font-semibold text-[#075E43] flex items-center gap-1.5 transition-colors"
+            title="Switch or Register Another Account"
+          >
+            <LogIn className="w-3.5 h-3.5 text-[#075E43]" />
+            <span className="hidden sm:inline">Switch Account</span>
+          </button>
+
+          <button
+            onClick={() => logout()}
+            className="h-10 px-3.5 rounded-[6px] bg-[#FEF2F2] border border-[#FECACA] hover:bg-[#FEE2E2] text-xs font-semibold text-[#DC2626] flex items-center gap-1.5 transition-colors"
+            title="Sign Out"
+          >
+            <LogOut className="w-3.5 h-3.5 text-[#DC2626]" />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </div>
 
       {/* Section 7: Farmer Official Identity Block */}
