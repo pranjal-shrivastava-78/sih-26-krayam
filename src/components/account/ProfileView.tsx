@@ -58,7 +58,7 @@ export const ProfileView: React.FC = () => {
   if (!farmer) return null;
 
   return (
-    <div className="max-w-[1440px] mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+    <div className="space-y-6 w-full">
       {/* Page Header */}
       <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

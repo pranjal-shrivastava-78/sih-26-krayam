@@ -14,30 +14,65 @@ interface MobileBottomNavProps {
 }
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMore }) => {
-  const { activeView, setActiveView } = useApp();
+  const { activeView, setActiveView, unreadCount } = useApp();
+
+  // Secondary views are accessed via "More"
+  const isMoreActive = ['centres', 'procurement', 'notifications', 'profile'].includes(activeView);
 
   const navItems: {
     id: ActiveView | 'more';
     label: string;
     labelHi: string;
     icon: React.ElementType;
+    isActive: boolean;
+    badge?: number;
   }[] = [
-    { id: 'dashboard', label: 'Home', labelHi: 'होम', icon: Home },
-    { id: 'booking', label: 'Book', labelHi: 'बुक', icon: CalendarPlus },
-    { id: 'tracking', label: 'Queue', labelHi: 'कतार', icon: Activity },
-    { id: 'history', label: 'History', labelHi: 'इतिहास', icon: History },
-    { id: 'more', label: 'More', labelHi: 'अधिक', icon: Menu },
+    { 
+      id: 'dashboard', 
+      label: 'Home', 
+      labelHi: 'होम', 
+      icon: Home, 
+      isActive: activeView === 'dashboard' 
+    },
+    { 
+      id: 'booking', 
+      label: 'Book', 
+      labelHi: 'बुक', 
+      icon: CalendarPlus, 
+      isActive: activeView === 'booking' 
+    },
+    { 
+      id: 'tracking', 
+      label: 'Queue', 
+      labelHi: 'कतार', 
+      icon: Activity, 
+      isActive: activeView === 'tracking' 
+    },
+    { 
+      id: 'history', 
+      label: 'History', 
+      labelHi: 'इतिहास', 
+      icon: History, 
+      isActive: activeView === 'history' 
+    },
+    { 
+      id: 'more', 
+      label: isMoreActive ? 'More ★' : 'More', 
+      labelHi: 'अधिक', 
+      icon: Menu, 
+      isActive: isMoreActive,
+      badge: unreadCount 
+    },
   ];
 
   return (
     <nav 
       aria-label="Mobile Bottom Navigation" 
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] border-t border-[#CBD8D1] shadow-[0_-2px_6px_rgba(0,0,0,0.06)] lg:hidden pb-safe"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] border-t border-[#CBD8D1] shadow-[0_-2px_10px_rgba(0,0,0,0.08)] lg:hidden pb-safe"
     >
-      <div className="grid grid-cols-5 h-15 max-w-lg mx-auto items-center">
+      <div className="grid grid-cols-5 h-16 max-w-lg mx-auto items-center">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeView === item.id;
 
           const handleClick = () => {
             if (item.id === 'more') {
@@ -51,14 +86,36 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMore }) 
             <button
               key={item.id}
               onClick={handleClick}
-              className={`flex flex-col items-center justify-center py-2 transition-colors ${
-                isActive 
-                  ? 'text-[#063B2A] font-bold bg-[#E7F3EC]' 
+              className={`flex flex-col items-center justify-center h-full relative transition-colors ${
+                item.isActive 
+                  ? 'text-[#063B2A]' 
                   : 'text-[#66736D] hover:text-[#17231F]'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-[#063B2A]' : 'text-[#66736D]'}`} />
-              <span className="text-[11px] mt-0.5 leading-none">
+              {/* Top active indicator bar */}
+              {item.isActive && (
+                <span className="absolute top-0 left-3 right-3 h-[3px] bg-[#063B2A] rounded-b" />
+              )}
+
+              {/* Icon with subtle rounded background when active */}
+              <div className="relative">
+                <div className={`p-1 rounded-[4px] transition-colors ${
+                  item.isActive ? 'bg-[#E7F3EC] text-[#063B2A]' : 'text-[#66736D]'
+                }`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span className="absolute -top-1 -right-1.5 bg-[#D97706] text-[#FFFFFF] text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+
+              {/* Label */}
+              <span className={`text-[11px] mt-1 leading-none ${
+                item.isActive ? 'font-bold text-[#063B2A]' : 'font-medium text-[#66736D]'
+              }`}>
                 {item.label}
               </span>
             </button>

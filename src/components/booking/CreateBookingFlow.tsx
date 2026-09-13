@@ -73,7 +73,7 @@ export const CreateBookingFlow: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-[1440px] mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+    <div className="space-y-6 w-full">
       
       {/* Existing Active Booking Banner */}
       {activeBooking && (

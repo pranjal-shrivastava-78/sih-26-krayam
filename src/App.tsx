@@ -28,24 +28,24 @@ const MainAppContent: React.FC = () => {
       {/* Official Government Announcement Strip */}
       <AnnouncementBanner />
 
-      {/* Main Government Header (Section 5) */}
+      {/* Main Government Header (Section 5: Spans full width across top) */}
       <GovernmentHeader onOpenSidebar={() => setIsSidebarOpen(true)} />
 
-      {/* Main Layout Area: Left Sidebar (288px) + Right Viewport */}
-      <div className="flex flex-1 relative">
-        {/* Government Dark Green Sidebar (Section 6 & 7) */}
+      {/* Main 2-Column Body Layout: Sidebar on Left + Content Viewport on Right */}
+      <div className="flex-1 flex min-w-0 w-full relative">
+        {/* Government Dark Green Sidebar (Section 6 & 7: 280px on desktop, drawer on mobile) */}
         <Sidebar 
           isOpen={isSidebarOpen} 
           onClose={() => setIsSidebarOpen(false)} 
         />
 
-        {/* Content Column (Offset by 288px / w-72 on large screens) */}
-        <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all">
+        {/* Content Column (Proper spacing between sidebar and content) */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-[#F5F8F6]">
           {/* Breadcrumb Strip immediately below header (Section 8) */}
           <Breadcrumb />
 
-          {/* Main Viewport Container */}
-          <main className="flex-1 w-full pb-20 lg:pb-8">
+          {/* Main Viewport Container with proper 24px-32px padding and safe mobile bottom margin */}
+          <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6 pb-28 lg:pb-12 max-w-[1440px]">
             {activeView === 'dashboard' && <DashboardView />}
             {activeView === 'tracking' && <QueueTrackerView />}
             {activeView === 'booking' && <CreateBookingFlow />}
@@ -56,8 +56,10 @@ const MainAppContent: React.FC = () => {
             {activeView === 'profile' && <ProfileView />}
           </main>
 
-          {/* Official Government Footer (Section 38) */}
-          <GovernmentFooter />
+          {/* Official Government Footer (Offset on mobile so bottom nav does not overlap) */}
+          <div className="mb-16 lg:mb-0">
+            <GovernmentFooter />
+          </div>
         </div>
       </div>
 
