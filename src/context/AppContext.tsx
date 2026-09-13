@@ -9,7 +9,11 @@ import {
   ProcurementRecord, 
   PaymentRecord, 
   AppNotification, 
-  SlotTimeWindow
+  SlotTimeWindow,
+  UserRole,
+  OperatorProfile,
+  OperatorView,
+  SyncOperation
 } from '../types';
 import { 
   INITIAL_CROPS, 
@@ -18,7 +22,9 @@ import {
   INITIAL_BOOKINGS, 
   INITIAL_PROCUREMENTS, 
   INITIAL_PAYMENTS, 
-  INITIAL_NOTIFICATIONS 
+  INITIAL_NOTIFICATIONS,
+  INITIAL_OPERATOR_PROFILE,
+  INITIAL_OPERATOR_QUEUE
 } from '../data/mockData';
 import { translations, TranslationStrings } from '../i18n/translations';
 
@@ -30,6 +36,13 @@ interface AppContextType {
   // Auth & Profile
   farmer: FarmerProfile | null;
   isLoggedIn: boolean;
+  userRole: UserRole;
+  setUserRole: (role: UserRole) => void;
+  switchRole: (role: UserRole) => void;
+  operator: OperatorProfile | null;
+  operatorLogin: (operatorId: string, centreId?: string) => boolean;
+  operatorActiveTab: OperatorView;
+  setOperatorActiveTab: (tab: OperatorView) => void;
   login: (farmerIdOrMobile: string) => boolean;
   register: (profileData: {
     fullName: string;
@@ -70,6 +83,33 @@ interface AppContextType {
   procurements: ProcurementRecord[];
   payments: PaymentRecord[];
 
+  // Operator Actions & Queue Floor
+  operatorCheckIn: (bookingId: string) => void;
+  operatorCallNext: () => Booking | null;
+  operatorStartProcessing: (bookingId: string) => void;
+  operatorMarkNoShow: (bookingId: string) => void;
+  operatorCompleteProcurement: (data: {
+    bookingId: string;
+    grossWeight: number;
+    tareWeight: number;
+    netWeight: number;
+    moisturePercent: number;
+    qualityGrade: 'Grade A' | 'Grade B' | 'Standard';
+    deductions?: number;
+    deductionReason?: string;
+  }) => ProcurementRecord;
+  operatorConfirmPayment: (paymentId: string) => void;
+  operatorCancelBooking: (bookingId: string, reason: string) => void;
+  operatorRescheduleBooking: (bookingId: string, newDate: string, newSlot: SlotTimeWindow) => void;
+
+  // Offline Synchronization Mode
+  isOffline: boolean;
+  setIsOffline: (offline: boolean) => void;
+  toggleOfflineMode: () => void;
+  syncQueue: SyncOperation[];
+  lastSyncTime: string;
+  syncOfflineQueue: () => Promise<void>;
+
   // Notifications
   notifications: AppNotification[];
   unreadCount: number;
@@ -85,6 +125,12 @@ interface AppContextType {
   setIsHelpModalOpen: (open: boolean) => void;
   isSettingsModalOpen: boolean;
   setIsSettingsModalOpen: (open: boolean) => void;
+  isTcModalOpen: boolean;
+  setIsTcModalOpen: (open: boolean) => void;
+  isPrivacyModalOpen: boolean;
+  setIsPrivacyModalOpen: (open: boolean) => void;
+  isCookieModalOpen: boolean;
+  setIsCookieModalOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -94,6 +140,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [language, setLanguageState] = useState<Language>(() => {
     return (localStorage.getItem('kisan_lang') as Language) || 'en';
   });
+
+  const [userRole, setUserRoleState] = useState<UserRole>(() => {
+    return (localStorage.getItem('kisan_role') as UserRole) || 'farmer';
+  });
+
+  const [operator, setOperator] = useState<OperatorProfile | null>(() => {
+    const saved = localStorage.getItem('kisan_operator');
+    return saved ? JSON.parse(saved) : INITIAL_OPERATOR_PROFILE;
+  });
+
+  const [operatorActiveTab, setOperatorActiveTab] = useState<OperatorView>('dashboard');
+  const [isOffline, setIsOfflineState] = useState<boolean>(false);
+  const [syncQueue, setSyncQueue] = useState<SyncOperation[]>(() => {
+    const saved = localStorage.getItem('kisan_sync_queue');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [lastSyncTime, setLastSyncTime] = useState<string>('Today, 11:30 AM');
 
   const [farmer, setFarmer] = useState<FarmerProfile | null>(() => {
     const saved = localStorage.getItem('kisan_farmer');
@@ -106,7 +169,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [bookings, setBookings] = useState<Booking[]>(() => {
     const saved = localStorage.getItem('kisan_bookings');
-    return saved ? JSON.parse(saved) : INITIAL_BOOKINGS;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed) && parsed.length >= 4) return parsed;
+      } catch (e) {}
+    }
+    return INITIAL_OPERATOR_QUEUE;
   });
 
   const [procurements, setProcurements] = useState<ProcurementRecord[]>(() => {
@@ -114,7 +183,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_PROCUREMENTS;
   });
 
-  const [payments] = useState<PaymentRecord[]>(() => {
+  const [payments, setPayments] = useState<PaymentRecord[]>(() => {
     const saved = localStorage.getItem('kisan_payments');
     return saved ? JSON.parse(saved) : INITIAL_PAYMENTS;
   });
@@ -130,6 +199,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
   const [isHelpModalOpen, setIsHelpModalOpen] = useState<boolean>(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
+  const [isTcModalOpen, setIsTcModalOpen] = useState<boolean>(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
+  const [isCookieModalOpen, setIsCookieModalOpen] = useState<boolean>(false);
 
   // Persistence effects
   useEffect(() => {
@@ -167,6 +239,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const login = (farmerIdOrMobile: string): boolean => {
+    // Strictly set user role to farmer for complete role isolation
+    setUserRoleState('farmer');
+    localStorage.setItem('kisan_role', 'farmer');
+
     // Allows logging in with existing farmer ID or mobile, or restores default
     if (farmer && (farmer.farmerId.toLowerCase() === farmerIdOrMobile.trim().toLowerCase() || farmer.mobileNumber.includes(farmerIdOrMobile.trim()))) {
       setIsLoggedIn(true);
@@ -191,6 +267,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     landHoldingAcres?: number;
     coordinates?: { lat: number; lng: number };
   }): FarmerProfile => {
+    setUserRoleState('farmer');
+    localStorage.setItem('kisan_role', 'farmer');
+
     const randomIdNum = Math.floor(1000 + Math.random() * 9000);
     const newFarmer: FarmerProfile = {
       farmerId: `FID-2026-${randomIdNum}`,
@@ -445,6 +524,215 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  // --- OPERATOR FUNCTIONS & OFFLINE LOGIC ---
+  const setUserRole = (role: UserRole) => {
+    setUserRoleState(role);
+    localStorage.setItem('kisan_role', role);
+  };
+
+  const switchRole = (role: UserRole) => {
+    setUserRole(role);
+  };
+
+  const operatorLogin = (operatorId: string, centreId?: string): boolean => {
+    const assignedCentre = centres.find(c => c.id === centreId) || centres[0];
+    const opProfile: OperatorProfile = {
+      operatorId: operatorId.trim() || 'OP-SAMRALA-01',
+      name: 'Sh. Rajesh Kumar',
+      designation: 'Mandi Secretary & Procurement Supervisor',
+      centreId: assignedCentre.id,
+      centreName: assignedCentre.name,
+      mobile: '+91 1628 234190',
+      shift: 'Day Shift (08:00 AM - 06:00 PM)'
+    };
+    setOperator(opProfile);
+    localStorage.setItem('kisan_operator', JSON.stringify(opProfile));
+    setUserRole('operator');
+    setIsLoggedIn(true);
+    return true;
+  };
+
+  const setIsOffline = (offline: boolean) => {
+    setIsOfflineState(offline);
+  };
+
+  const toggleOfflineMode = () => {
+    setIsOfflineState(prev => !prev);
+  };
+
+  const logSyncOp = (actionType: SyncOperation['actionType'], bookingId: string, details: string, payload?: any) => {
+    const op: SyncOperation = {
+      id: `SYNC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      actionType,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      bookingId,
+      details,
+      payload,
+      status: isOffline ? 'PENDING' : 'SYNCED'
+    };
+    setSyncQueue(prev => {
+      const updated = [op, ...prev];
+      localStorage.setItem('kisan_sync_queue', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const syncOfflineQueue = async () => {
+    await new Promise(r => setTimeout(r, 700));
+    setSyncQueue(prev => {
+      const updated = prev.map(op => ({ ...op, status: 'SYNCED' as const }));
+      localStorage.setItem('kisan_sync_queue', JSON.stringify(updated));
+      return updated;
+    });
+    setLastSyncTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (Just now)');
+    setIsOfflineState(false);
+  };
+
+  const operatorCheckIn = (bookingId: string) => {
+    setBookings(prev => prev.map(b => {
+      if (b.id === bookingId) {
+        return { ...b, status: 'CHECKED_IN' as const, queuePosition: 2, farmersAhead: 1, estimatedWaitMinutes: 15 };
+      }
+      return b;
+    }));
+    logSyncOp('CHECK_IN', bookingId, `Gate check-in recorded for booking ${bookingId}`);
+  };
+
+  const operatorCallNext = (): Booking | null => {
+    const nextCandidate = bookings.find(b => b.status === 'IN_QUEUE' || b.status === 'CHECKED_IN');
+    if (nextCandidate) {
+      setBookings(prev => prev.map(b => {
+        if (b.id === nextCandidate.id) {
+          return { ...b, status: 'TURN_APPROACHING' as const, queuePosition: 1, farmersAhead: 0, estimatedWaitMinutes: 3 };
+        }
+        return b;
+      }));
+      logSyncOp('CALL_NEXT', nextCandidate.id, `Called next farmer: ${nextCandidate.farmerName} (${nextCandidate.id})`);
+      return nextCandidate;
+    }
+    return null;
+  };
+
+  const operatorStartProcessing = (bookingId: string) => {
+    setBookings(prev => prev.map(b => {
+      if (b.id === bookingId) {
+        return { ...b, status: 'PROCESSING' as const, queuePosition: 0, farmersAhead: 0, estimatedWaitMinutes: 0 };
+      }
+      return b;
+    }));
+    logSyncOp('START_PROCESSING', bookingId, `Procurement weighing started for ${bookingId}`);
+  };
+
+  const operatorMarkNoShow = (bookingId: string) => {
+    setBookings(prev => prev.map(b => {
+      if (b.id === bookingId) {
+        return { ...b, status: 'NO_SHOW' as const, queuePosition: 0, farmersAhead: 0, estimatedWaitMinutes: 0 };
+      }
+      return b;
+    }));
+    logSyncOp('MARK_NO_SHOW', bookingId, `Marked farmer as NO-SHOW for slot ${bookingId}`);
+  };
+
+  const operatorCompleteProcurement = (data: {
+    bookingId: string;
+    grossWeight: number;
+    tareWeight: number;
+    netWeight: number;
+    moisturePercent: number;
+    qualityGrade: 'Grade A' | 'Grade B' | 'Standard';
+    deductions?: number;
+    deductionReason?: string;
+  }): ProcurementRecord => {
+    const booking = bookings.find(b => b.id === data.bookingId);
+    const msp = 2275; // Default MSP for wheat
+    const grossAmt = Math.round(data.netWeight * msp);
+    const netAmt = Math.round(grossAmt - (data.deductions || 0));
+
+    const newRecord: ProcurementRecord = {
+      id: `PRC-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      bookingId: data.bookingId,
+      farmerId: booking?.farmerId || 'MP-2024-7842',
+      cropName: booking?.cropName || 'Wheat (गेहूं)',
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      centreName: operator?.centreName || 'Samrala Main Grain Mandi & Procurement Hub',
+      bookedQuantity: booking?.quantityQuintals || 65,
+      acceptedQuantity: data.netWeight,
+      grossWeight: data.grossWeight,
+      tareWeight: data.tareWeight,
+      netWeight: data.netWeight,
+      mspRate: msp,
+      grossAmount: grossAmt,
+      deductions: data.deductions || 0,
+      deductionReason: data.deductionReason || 'Standard grain verified',
+      qualityGrade: data.qualityGrade,
+      procurementStatus: 'Accepted',
+      paymentStatus: 'Pending',
+      paymentAmount: netAmt
+    };
+
+    setProcurements(prev => [newRecord, ...prev]);
+
+    // Create payment entry
+    const newPayment: PaymentRecord = {
+      id: `PAY-2026-${Math.floor(10000 + Math.random() * 90000)}`,
+      transactionId: `TXN-DBT-${Date.now().toString().slice(-6)}`,
+      procurementId: newRecord.id,
+      bookingId: data.bookingId,
+      farmerId: newRecord.farmerId,
+      cropName: newRecord.cropName,
+      amount: netAmt,
+      date: newRecord.date,
+      paymentStatus: 'Pending',
+      bankAccountMasked: 'Punjab National Bank (A/C: *******4891)'
+    };
+    setPayments(prev => [newPayment, ...prev]);
+
+    // Mark booking completed
+    setBookings(prev => prev.map(b => b.id === data.bookingId ? { ...b, status: 'COMPLETED' as const } : b));
+
+    logSyncOp('COMPLETE_PROCUREMENT', data.bookingId, `Accepted ${data.netWeight} Qtl produce for ${data.bookingId}`, newRecord);
+    return newRecord;
+  };
+
+  const operatorConfirmPayment = (paymentId: string) => {
+    const utr = `PFMS${Date.now().toString().slice(-12)}`;
+    setPayments(prev => prev.map(p => {
+      if (p.id === paymentId) {
+        return { ...p, paymentStatus: 'Credited' as const, utrNumber: utr };
+      }
+      return p;
+    }));
+
+    // Also update procurements if mapped
+    setProcurements(prev => prev.map(pr => {
+      return { ...pr, paymentStatus: 'Credited' as const };
+    }));
+
+    logSyncOp('CONFIRM_PAYMENT', paymentId, `PFMS Direct Benefit Transfer confirmed with UTR ${utr}`);
+  };
+
+  const operatorCancelBooking = (bookingId: string, reason: string) => {
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'CANCELLED' as const } : b));
+    logSyncOp('CANCEL_BOOKING', bookingId, `Cancelled booking ${bookingId}. Reason: ${reason}`);
+  };
+
+  const operatorRescheduleBooking = (bookingId: string, newDate: string, newSlot: SlotTimeWindow) => {
+    setBookings(prev => prev.map(b => {
+      if (b.id === bookingId) {
+        return {
+          ...b,
+          expectedDate: newDate,
+          slot: newSlot,
+          status: 'RESCHEDULED' as const,
+          isRescheduled: true,
+          rescheduleCount: (b.rescheduleCount || 0) + 1
+        };
+      }
+      return b;
+    }));
+    logSyncOp('RESCHEDULE', bookingId, `Rescheduled booking ${bookingId} to ${newDate} (${newSlot})`);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -453,6 +741,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         t,
         farmer,
         isLoggedIn,
+        userRole,
+        setUserRole,
+        switchRole,
+        operator,
+        operatorLogin,
+        operatorActiveTab,
+        setOperatorActiveTab,
         login,
         register,
         logout,
@@ -470,6 +765,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         advanceQueue,
         procurements,
         payments,
+        operatorCheckIn,
+        operatorCallNext,
+        operatorStartProcessing,
+        operatorMarkNoShow,
+        operatorCompleteProcurement,
+        operatorConfirmPayment,
+        operatorCancelBooking,
+        operatorRescheduleBooking,
+        isOffline,
+        setIsOffline,
+        toggleOfflineMode,
+        syncQueue,
+        lastSyncTime,
+        syncOfflineQueue,
         notifications,
         unreadCount,
         markNotificationAsRead,
@@ -479,7 +788,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isHelpModalOpen,
         setIsHelpModalOpen,
         isSettingsModalOpen,
-        setIsSettingsModalOpen
+        setIsSettingsModalOpen,
+        isTcModalOpen,
+        setIsTcModalOpen,
+        isPrivacyModalOpen,
+        setIsPrivacyModalOpen,
+        isCookieModalOpen,
+        setIsCookieModalOpen
       }}
     >
       {children}

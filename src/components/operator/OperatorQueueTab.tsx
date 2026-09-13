@@ -1,0 +1,316 @@
+import React, { useState } from 'react';
+import { useApp } from '../../context/AppContext';
+import { getOperatorText } from '../../i18n/operatorTranslations';
+import { 
+  Users, 
+  Clock, 
+  PhoneCall, 
+  CheckCircle2, 
+  UserPlus, 
+  UserX, 
+  Play, 
+  Check, 
+  Scale, 
+  AlertCircle,
+  Truck
+} from 'lucide-react';
+
+export const OperatorQueueTab: React.FC = () => {
+  const { 
+    bookings, 
+    operatorCheckIn, 
+    operatorCallNext, 
+    operatorStartProcessing, 
+    operatorMarkNoShow, 
+    setOperatorActiveTab, 
+    language 
+  } = useApp();
+
+  const ot = getOperatorText(language);
+
+  // Filter tabs: All | Waiting | Processing | Completed | No Show
+  const [filter, setFilter] = useState<'ALL' | 'WAITING' | 'PROCESSING' | 'COMPLETED' | 'NO_SHOW'>('ALL');
+  const [checkInModalOpen, setCheckInModalOpen] = useState(false);
+  const [checkInBookingId, setCheckInBookingId] = useState('');
+  const [announcementMsg, setAnnouncementMsg] = useState<string | null>(null);
+
+  const filteredBookings = bookings.filter(b => {
+    if (filter === 'ALL') return true;
+    if (filter === 'WAITING') return b.status === 'IN_QUEUE' || b.status === 'CHECKED_IN' || b.status === 'TURN_APPROACHING' || b.status === 'CONFIRMED';
+    if (filter === 'PROCESSING') return b.status === 'PROCESSING' || b.status === 'WEIGHING' || b.status === 'QUALITY_CHECK';
+    if (filter === 'COMPLETED') return b.status === 'COMPLETED';
+    if (filter === 'NO_SHOW') return b.status === 'NO_SHOW';
+    return true;
+  });
+
+  const handleCallNext = () => {
+    const nextFarmer = operatorCallNext();
+    if (nextFarmer) {
+      setAnnouncementMsg(`📢 ${ot.callingFarmerNotice}: ${nextFarmer.farmerName} (${nextFarmer.id})`);
+      setTimeout(() => setAnnouncementMsg(null), 5000);
+    } else {
+      setAnnouncementMsg('No waiting farmers in queue.');
+      setTimeout(() => setAnnouncementMsg(null), 3000);
+    }
+  };
+
+  const handleManualCheckIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!checkInBookingId.trim()) return;
+    operatorCheckIn(checkInBookingId.trim());
+    setCheckInBookingId('');
+    setCheckInModalOpen(false);
+    setAnnouncementMsg(`✅ ${checkInBookingId} — ${ot.checkInFarmerBtn}`);
+    setTimeout(() => setAnnouncementMsg(null), 4000);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Call Next and Check-in Action Buttons */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-4">
+        <div>
+          <h2 className="text-base font-bold text-[#17231F] flex items-center gap-2">
+            <Truck className="w-5 h-5 text-[#075E43]" />
+            <span>{ot.liveQueueTitle}</span>
+          </h2>
+          <p className="text-xs text-[#66736D] mt-0.5">
+            {ot.liveQueueSubtitle}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setCheckInModalOpen(true)}
+            className="flex-1 sm:flex-initial bg-[#EDF3EF] hover:bg-[#CBD8D1] text-[#063B2A] text-xs font-bold px-3.5 py-2 rounded-[6px] border border-[#CBD8D1] transition-colors flex items-center justify-center gap-1.5"
+          >
+            <UserPlus className="w-4 h-4 text-[#075E43]" />
+            <span>{ot.checkInFarmerBtn}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCallNext}
+            className="flex-1 sm:flex-initial bg-[#063B2A] hover:bg-[#075E43] text-[#FFFFFF] text-xs font-bold px-4 py-2 rounded-[6px] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+          >
+            <PhoneCall className="w-4 h-4 text-[#85E1A9]" />
+            <span>{ot.callNextFarmerBtn}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Audio Announcement Simulation */}
+      {announcementMsg && (
+        <div className="bg-[#063B2A] text-[#85E1A9] border border-[#16803C] px-4 py-3 rounded-[8px] flex items-center justify-between text-xs font-semibold shadow-md animate-fade-in">
+          <div className="flex items-center gap-2">
+            <PhoneCall className="w-4 h-4 text-[#85E1A9] animate-bounce" />
+            <span>{announcementMsg}</span>
+          </div>
+          <button onClick={() => setAnnouncementMsg(null)} className="text-white hover:text-[#85E1A9]">
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 border-b border-[#CBD8D1] pb-2 overflow-x-auto text-xs font-bold text-[#66736D]">
+        <button
+          onClick={() => setFilter('ALL')}
+          className={`px-3 py-1.5 rounded-[4px] transition-colors ${filter === 'ALL' ? 'bg-[#063B2A] text-white' : 'hover:bg-[#EDF3EF]'}`}
+        >
+          {ot.filterAll} ({bookings.length})
+        </button>
+        <button
+          onClick={() => setFilter('WAITING')}
+          className={`px-3 py-1.5 rounded-[4px] transition-colors ${filter === 'WAITING' ? 'bg-[#063B2A] text-white' : 'hover:bg-[#EDF3EF]'}`}
+        >
+          {ot.filterWaiting} ({bookings.filter(b => b.status === 'IN_QUEUE' || b.status === 'CHECKED_IN' || b.status === 'TURN_APPROACHING').length})
+        </button>
+        <button
+          onClick={() => setFilter('PROCESSING')}
+          className={`px-3 py-1.5 rounded-[4px] transition-colors ${filter === 'PROCESSING' ? 'bg-[#063B2A] text-white' : 'hover:bg-[#EDF3EF]'}`}
+        >
+          {ot.filterProcessing} ({bookings.filter(b => b.status === 'PROCESSING').length})
+        </button>
+        <button
+          onClick={() => setFilter('COMPLETED')}
+          className={`px-3 py-1.5 rounded-[4px] transition-colors ${filter === 'COMPLETED' ? 'bg-[#063B2A] text-white' : 'hover:bg-[#EDF3EF]'}`}
+        >
+          {ot.filterCompleted} ({bookings.filter(b => b.status === 'COMPLETED').length})
+        </button>
+        <button
+          onClick={() => setFilter('NO_SHOW')}
+          className={`px-3 py-1.5 rounded-[4px] transition-colors ${filter === 'NO_SHOW' ? 'bg-[#063B2A] text-white' : 'hover:bg-[#EDF3EF]'}`}
+        >
+          {ot.filterNoShow} ({bookings.filter(b => b.status === 'NO_SHOW').length})
+        </button>
+      </div>
+
+      {/* Live Queue Cards / Board */}
+      <div className="space-y-3">
+        {filteredBookings.map((b, idx) => (
+          <div
+            key={b.id}
+            className={`bg-[#FFFFFF] border rounded-[8px] p-4 shadow-sm transition-all ${
+              b.status === 'TURN_APPROACHING' 
+                ? 'border-[#EA8A0A] bg-[#FFFDF5]' 
+                : b.status === 'PROCESSING' 
+                ? 'border-[#175CD3] bg-[#F5F8FF]' 
+                : 'border-[#CBD8D1]'
+            }`}
+          >
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              {/* Left Column: Token + Farmer Details */}
+              <div className="flex items-start gap-3">
+                <div className={`w-12 h-12 rounded-[8px] flex flex-col items-center justify-center font-mono font-bold shrink-0 ${
+                  b.status === 'TURN_APPROACHING'
+                    ? 'bg-[#EA8A0A] text-white'
+                    : b.status === 'PROCESSING'
+                    ? 'bg-[#175CD3] text-white'
+                    : b.status === 'COMPLETED'
+                    ? 'bg-[#16803C] text-white'
+                    : b.status === 'NO_SHOW'
+                    ? 'bg-[#B42318] text-white'
+                    : 'bg-[#EDF3EF] text-[#063B2A] border border-[#CBD8D1]'
+                }`}>
+                  <span className="text-[10px] uppercase font-normal">POS</span>
+                  <span className="text-base leading-none">#{b.queuePosition || idx + 1}</span>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-sm text-[#17231F]">{b.farmerName}</span>
+                    <span className="text-xs font-mono font-bold text-[#075E43] bg-[#E7F3EC] px-2 py-0.5 rounded">
+                      {b.id}
+                    </span>
+                    <span className="text-xs text-[#66736D] font-mono">
+                      (FID: {b.farmerId})
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-xs text-[#66736D] mt-1.5 flex-wrap">
+                    <span>📱 {b.farmerMobile}</span>
+                    <span>🌾 {b.cropName} ({b.quantityQuintals} Qtl)</span>
+                    <span>⏰ Slot: {b.slot.split(' ')[0]}</span>
+                    <span>📍 {b.centreLocation}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status and Action Buttons */}
+              <div className="flex items-center gap-2 self-end lg:self-center flex-wrap">
+                <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider ${
+                  b.status === 'PROCESSING'
+                    ? 'bg-[#175CD3]/15 text-[#175CD3]'
+                    : b.status === 'TURN_APPROACHING'
+                    ? 'bg-[#EA8A0A]/15 text-[#B45309]'
+                    : b.status === 'COMPLETED'
+                    ? 'bg-[#16803C]/15 text-[#16803C]'
+                    : b.status === 'NO_SHOW'
+                    ? 'bg-[#B42318]/15 text-[#B42318]'
+                    : 'bg-[#063B2A]/10 text-[#063B2A]'
+                }`}>
+                  {b.status}
+                </span>
+
+                {/* State-dependent Operator Actions */}
+                {b.status !== 'PROCESSING' && b.status !== 'COMPLETED' && b.status !== 'NO_SHOW' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => operatorStartProcessing(b.id)}
+                      className="bg-[#075E43] hover:bg-[#063B2A] text-white text-xs font-bold px-3 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm"
+                    >
+                      <Play className="w-3.5 h-3.5" />
+                      <span>{ot.startProcessingBtn}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => operatorMarkNoShow(b.id)}
+                      className="bg-[#FFF5F5] hover:bg-[#FEE4E2] text-[#B42318] text-xs font-semibold px-2.5 py-1.5 rounded-[6px] border border-[#F0C2C2] transition-colors flex items-center gap-1"
+                    >
+                      <UserX className="w-3.5 h-3.5" />
+                      <span>{ot.markNoShowBtn}</span>
+                    </button>
+                  </>
+                )}
+
+                {b.status === 'PROCESSING' && (
+                  <button
+                    type="button"
+                    onClick={() => setOperatorActiveTab('procurement')}
+                    className="bg-[#175CD3] hover:bg-[#154fb8] text-white text-xs font-bold px-3.5 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm"
+                  >
+                    <Scale className="w-3.5 h-3.5" />
+                    <span>{ot.tabProcurement}</span>
+                  </button>
+                )}
+
+                {b.status === 'COMPLETED' && (
+                  <span className="text-xs font-bold text-[#16803C] flex items-center gap-1 bg-[#E7F3EC] px-2.5 py-1 rounded-[6px]">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> J-Form Done
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {filteredBookings.length === 0 && (
+          <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-8 text-center text-xs text-[#66736D]">
+            No farmers found in this queue category.
+          </div>
+        )}
+      </div>
+
+      {/* Manual Check-in Modal */}
+      {checkInModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-[10px] border border-[#CBD8D1] max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#CBD8D1] pb-3">
+              <h3 className="font-bold text-sm text-[#17231F] flex items-center gap-2">
+                <UserPlus className="w-4 h-4 text-[#075E43]" />
+                <span>{ot.gateCheckIn}</span>
+              </h3>
+              <button onClick={() => setCheckInModalOpen(false)} className="text-gray-400 hover:text-black">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleManualCheckIn} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-[#17231F] mb-1">
+                  Enter Booking Token ID or Farmer Mobile Number
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={checkInBookingId}
+                  onChange={(e) => setCheckInBookingId(e.target.value)}
+                  placeholder="e.g. BK-2026-9482 or 9876543210"
+                  className="w-full bg-white border border-[#CBD8D1] rounded-[6px] p-2 text-xs font-mono focus:outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#CBD8D1]">
+                <button
+                  type="button"
+                  onClick={() => setCheckInModalOpen(false)}
+                  className="px-3 py-1.5 rounded-[6px] border border-[#CBD8D1] text-xs font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-[#063B2A] text-white px-4 py-1.5 rounded-[6px] text-xs font-bold"
+                >
+                  {ot.checkInFarmerBtn}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

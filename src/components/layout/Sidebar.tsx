@@ -18,7 +18,8 @@ import {
   ExternalLink,
   Globe,
   LogOut,
-  LogIn
+  LogIn,
+  Briefcase
 } from 'lucide-react';
 import { TranslationStrings } from '../../i18n/translations';
 import { LanguageDropdown } from '../common/LanguageDropdown';
@@ -36,6 +37,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     unreadCount, 
     setIsHelpModalOpen, 
     setIsSettingsModalOpen,
+    setIsTcModalOpen,
+    setIsPrivacyModalOpen,
     t,
     isLoggedIn,
     logout
@@ -237,8 +240,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </button>
           )}
 
-          <div className="pt-2 border-t border-[#0B4734]/60 flex items-center justify-between text-[10px] text-[#CBD8D1] px-3">
-            <span>Official Portal</span>
+          {/* Legal Links: Terms & Conditions and Privacy Policy */}
+          <div className="pt-2 border-t border-[#0B4734]/60 flex items-center justify-between text-[11px] text-[#CBD8D1] px-1">
+            <button
+              type="button"
+              onClick={() => setIsTcModalOpen(true)}
+              className="hover:text-white underline transition-colors"
+            >
+              Terms & Conditions
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => setIsPrivacyModalOpen(true)}
+              className="hover:text-white underline transition-colors"
+            >
+              Privacy Policy
+            </button>
+          </div>
+
+          <div className="pt-1 flex items-center justify-between text-[10px] text-[#CBD8D1]/80 px-1">
+            <span>Krayam Platform</span>
             <span className="font-mono">v2.4.0</span>
           </div>
         </div>
@@ -429,6 +451,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <span>Login / Register (लॉग इन)</span>
                   </button>
                 )}
+              </div>
+
+              {/* Mobile Legal Links */}
+              <div className="pt-2 border-t border-[#0B4734] flex items-center justify-center gap-3 text-[11px] text-[#CBD8D1]">
+                <button
+                  type="button"
+                  onClick={() => { setIsTcModalOpen(true); onClose(); }}
+                  className="hover:text-white underline transition-colors"
+                >
+                  Terms & Conditions
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  onClick={() => { setIsPrivacyModalOpen(true); onClose(); }}
+                  className="hover:text-white underline transition-colors"
+                >
+                  Privacy Policy
+                </button>
               </div>
             </div>
           </div>

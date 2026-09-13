@@ -100,9 +100,14 @@ export interface TimeSlot {
 export type BookingStatus = 
   | 'CONFIRMED' 
   | 'IN_QUEUE' 
+  | 'CHECKED_IN'
   | 'TURN_APPROACHING' 
   | 'PROCESSING' 
+  | 'WEIGHING'
+  | 'QUALITY_CHECK'
+  | 'PAYMENT_PENDING'
   | 'COMPLETED' 
+  | 'NO_SHOW'
   | 'CANCELLED' 
   | 'RESCHEDULED';
 
@@ -184,4 +189,54 @@ export interface AppNotification {
   read: boolean;
   referenceId?: string;
   priority?: 'normal' | 'urgent';
+}
+
+export type UserRole = 'farmer' | 'operator';
+
+export type OperatorView = 
+  | 'dashboard' 
+  | 'bookings' 
+  | 'queue' 
+  | 'procurement' 
+  | 'payments' 
+  | 'analytics' 
+  | 'ai_insights' 
+  | 'offline';
+
+export interface OperatorProfile {
+  operatorId: string;
+  name: string;
+  designation: string;
+  centreId: string;
+  centreName: string;
+  mobile: string;
+  shift: string;
+}
+
+export interface SyncOperation {
+  id: string;
+  actionType: 
+    | 'CHECK_IN' 
+    | 'CALL_NEXT' 
+    | 'START_PROCESSING' 
+    | 'COMPLETE_PROCUREMENT' 
+    | 'CONFIRM_PAYMENT' 
+    | 'MARK_NO_SHOW' 
+    | 'CANCEL_BOOKING' 
+    | 'RESCHEDULE';
+  timestamp: string;
+  bookingId: string;
+  details: string;
+  payload?: any;
+  status: 'PENDING' | 'SYNCED' | 'FAILED';
+}
+
+export interface AiCenterInsight {
+  predictedWaitMins: number;
+  expectedArrivalsToday: number;
+  expectedCenterLoadPct: number;
+  highLoadWarnings: string[];
+  suggestedLoadDistribution: string;
+  slotRecommendations: { slot: string; recommendation: string; loadLevel: string }[];
+  anomalies: { id: string; type: string; message: string; severity: 'low' | 'medium' | 'high' }[];
 }
