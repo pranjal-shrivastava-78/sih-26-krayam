@@ -163,9 +163,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_FARMER_PROFILE;
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    return localStorage.getItem('kisan_auth') !== 'false';
-  });
+  // When opening website, always firstly land on login page
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  // Clear legacy persistent auth flag so fresh site visits always start at login
+  useEffect(() => {
+    localStorage.removeItem('kisan_auth');
+  }, []);
 
   const [bookings, setBookings] = useState<Booking[]>(() => {
     const saved = localStorage.getItem('kisan_bookings');
@@ -214,9 +218,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [farmer]);
 
-  useEffect(() => {
-    localStorage.setItem('kisan_auth', String(isLoggedIn));
-  }, [isLoggedIn]);
+  // Do not persist auth status to localStorage so visits start at login page
 
   useEffect(() => {
     localStorage.setItem('kisan_bookings', JSON.stringify(bookings));
@@ -306,6 +308,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = () => {
     setIsLoggedIn(false);
+    localStorage.removeItem('kisan_auth');
+    setActiveView('dashboard');
   };
 
   const updateProfile = (data: Partial<FarmerProfile>) => {
