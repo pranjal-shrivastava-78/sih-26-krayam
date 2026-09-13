@@ -1,0 +1,138 @@
+import React, { useState } from 'react';
+import { useApp } from '../../context/AppContext';
+import { Language } from '../../types';
+import { X, Globe, Bell, Eye, Check } from 'lucide-react';
+
+export const SettingsModal: React.FC = () => {
+  const { 
+    isSettingsModalOpen, 
+    setIsSettingsModalOpen, 
+    language, 
+    setLanguage 
+  } = useApp();
+
+  const [smsTokenAlert, setSmsTokenAlert] = useState(true);
+  const [smsQueueAlert, setSmsQueueAlert] = useState(true);
+  const [smsPaymentAlert, setSmsPaymentAlert] = useState(true);
+
+  if (!isSettingsModalOpen) return null;
+
+  const languages: { code: Language; label: string; nativeName: string }[] = [
+    { code: 'en', label: 'English', nativeName: 'English' },
+    { code: 'hi', label: 'Hindi', nativeName: 'हिंदी' },
+    { code: 'pa', label: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ' },
+    { code: 'mr', label: 'Marathi', nativeName: 'मराठी' },
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-[#063B2A]/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] max-w-lg w-full shadow-gov-dropdown">
+        {/* Header */}
+        <div className="bg-[#EDF3EF] px-5 py-3.5 border-b border-[#CBD8D1] flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-bold text-[#17231F]">
+              Portal Settings / सेटिंग्स
+            </h3>
+            <p className="text-xs text-[#66736D]">
+              Preferences, alerts, and bilingual options
+            </p>
+          </div>
+          <button
+            onClick={() => setIsSettingsModalOpen(false)}
+            className="p-1 rounded text-[#66736D] hover:text-[#17231F] hover:bg-[#CBD8D1]/40"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Language Selection */}
+          <div>
+            <div className="flex items-center gap-2 mb-2 text-xs uppercase font-bold tracking-wider text-[#17231F]">
+              <Globe className="w-4 h-4 text-[#075E43]" />
+              <span>Language Preference / भाषा चुनें</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {languages.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => setLanguage(l.code)}
+                  className={`p-3 rounded-[6px] border text-left flex items-center justify-between transition-colors ${
+                    language === l.code
+                      ? 'border-[#075E43] bg-[#E7F3EC] font-bold text-[#063B2A]'
+                      : 'border-[#CBD8D1] bg-[#FFFFFF] hover:bg-[#F3F9F5] text-[#17231F]'
+                  }`}
+                >
+                  <div>
+                    <div className="text-xs">{l.label}</div>
+                    <div className="text-sm font-semibold">{l.nativeName}</div>
+                  </div>
+                  {language === l.code && (
+                    <Check className="w-4 h-4 text-[#075E43]" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* SMS & Mandi Telemetry Alerts */}
+          <div>
+            <div className="flex items-center gap-2 mb-2 text-xs uppercase font-bold tracking-wider text-[#17231F]">
+              <Bell className="w-4 h-4 text-[#075E43]" />
+              <span>SMS & Gateway Alerts / एसएमएस अलर्ट</span>
+            </div>
+            <div className="space-y-2 text-xs">
+              <label className="flex items-center justify-between p-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF]">
+                <div>
+                  <div className="font-semibold text-[#17231F]">Token Generation & Slot Confirmation</div>
+                  <div className="text-[#66736D] text-[11px]">Instant SMS upon reserving mandi slot</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={smsTokenAlert}
+                  onChange={(e) => setSmsTokenAlert(e.target.checked)}
+                  className="w-4 h-4 text-[#075E43] focus:ring-[#075E43] rounded"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF]">
+                <div>
+                  <div className="font-semibold text-[#17231F]">Weighbridge Turn Approaching Alert</div>
+                  <div className="text-[#66736D] text-[11px]">SMS & Sound signal when 2 vehicles remain ahead</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={smsQueueAlert}
+                  onChange={(e) => setSmsQueueAlert(e.target.checked)}
+                  className="w-4 h-4 text-[#075E43] focus:ring-[#075E43] rounded"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF]">
+                <div>
+                  <div className="font-semibold text-[#17231F]">Direct Benefit Transfer (DBT) SMS</div>
+                  <div className="text-[#66736D] text-[11px]">Bank UTR confirmation upon treasury release</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={smsPaymentAlert}
+                  onChange={(e) => setSmsPaymentAlert(e.target.checked)}
+                  className="w-4 h-4 text-[#075E43] focus:ring-[#075E43] rounded"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#EDF3EF] px-5 py-3 border-t border-[#CBD8D1] flex justify-end">
+          <button
+            onClick={() => setIsSettingsModalOpen(false)}
+            className="h-10 px-5 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-xs"
+          >
+            Save & Close / सहेजें
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

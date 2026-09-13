@@ -1,0 +1,175 @@
+export type Language = 'en' | 'hi' | 'pa' | 'mr';
+
+export type ActiveView = 
+  | 'dashboard' 
+  | 'tracking' 
+  | 'booking' 
+  | 'centres' 
+  | 'procurement' 
+  | 'history' 
+  | 'notifications' 
+  | 'profile';
+
+export interface LocationCoordinates {
+  lat: number;
+  lng: number;
+}
+
+export interface VillageLocation {
+  village: string;
+  tehsil: string; // Mandal / Tehsil
+  district: string;
+  state: string;
+  pincode: string;
+  coordinates?: LocationCoordinates;
+}
+
+export interface FarmerProfile {
+  farmerId: string;
+  fullName: string;
+  mobileNumber: string;
+  location: VillageLocation;
+  landHoldingAcres?: number;
+  registeredDate: string;
+  bankAccountMasked?: string;
+}
+
+export interface CropInfo {
+  id: string;
+  name: string;
+  hindiName: string;
+  punjabiName: string;
+  marathiName: string;
+  mspPerQuintal: number; // Minimum Support Price in INR
+  season: 'Kharif' | 'Rabi' | 'Zaid';
+  unit: string;
+}
+
+export type QueueLoadLevel = 'Low' | 'Moderate' | 'High';
+
+export interface ProcurementCentre {
+  id: string;
+  name: string;
+  officerInCharge: string;
+  contactNumber: string;
+  location: {
+    address: string;
+    village: string;
+    district: string;
+    state: string;
+    coordinates: LocationCoordinates;
+  };
+  distanceKm: number;
+  acceptedCropIds: string[];
+  operatingHours: {
+    opens: string;
+    closes: string;
+    lunchBreak: string;
+    days: string;
+  };
+  currentQueue: {
+    activeVehicles: number;
+    loadLevel: QueueLoadLevel;
+    estimatedWaitMins: number;
+  };
+  availableSlots?: number;
+}
+
+export type SlotTimeWindow = 'Morning (08:00 AM - 11:30 AM)' | 'Midday (11:30 AM - 02:30 PM)' | 'Afternoon (02:30 PM - 05:30 PM)';
+
+export interface TimeSlot {
+  id: string;
+  timeWindow: SlotTimeWindow;
+  availableCapacityQuintals: number;
+  maxCapacityQuintals: number;
+  isAvailable: boolean;
+}
+
+export type BookingStatus = 
+  | 'CONFIRMED' 
+  | 'IN_QUEUE' 
+  | 'TURN_APPROACHING' 
+  | 'PROCESSING' 
+  | 'COMPLETED' 
+  | 'CANCELLED' 
+  | 'RESCHEDULED';
+
+export interface Booking {
+  id: string; // e.g. BK-2026-9481
+  farmerId: string;
+  farmerName: string;
+  farmerMobile: string;
+  cropId: string;
+  cropName: string;
+  quantityQuintals: number;
+  expectedDate: string; // YYYY-MM-DD
+  centreId: string;
+  centreName: string;
+  centreLocation: string;
+  slot: SlotTimeWindow;
+  status: BookingStatus;
+  createdAt: string;
+  queuePosition?: number;
+  farmersAhead?: number;
+  estimatedWaitMinutes?: number;
+  isRescheduled?: boolean;
+  rescheduleCount?: number;
+}
+
+export type ProcurementStatus = 'Scheduled' | 'Weighed' | 'Quality Graded' | 'Accepted' | 'Rejected';
+
+export type PaymentStatus = 'Pending' | 'Processing' | 'Credited' | 'Failed';
+
+export interface ProcurementRecord {
+  id: string;
+  bookingId: string;
+  farmerId: string;
+  cropName: string;
+  date: string;
+  centreName: string;
+  bookedQuantity: number;
+  acceptedQuantity: number;
+  grossWeight?: number;
+  tareWeight?: number;
+  netWeight?: number;
+  mspRate?: number;
+  grossAmount?: number;
+  deductions?: number;
+  deductionReason?: string;
+  qualityGrade: 'Grade A' | 'Grade B' | 'Standard';
+  procurementStatus: ProcurementStatus;
+  paymentStatus: PaymentStatus;
+  paymentAmount: number;
+}
+
+export interface PaymentRecord {
+  id: string;
+  transactionId: string;
+  procurementId: string;
+  bookingId: string;
+  farmerId: string;
+  cropName: string;
+  amount: number;
+  date: string;
+  paymentStatus: PaymentStatus;
+  bankAccountMasked: string;
+  utrNumber?: string;
+}
+
+export type NotificationType = 
+  | 'BOOKING' 
+  | 'QUEUE' 
+  | 'PROCUREMENT' 
+  | 'PAYMENT' 
+  | 'ANNOUNCEMENT';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  referenceId?: string;
+  priority?: 'normal' | 'urgent';
+}
