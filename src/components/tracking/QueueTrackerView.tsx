@@ -17,7 +17,8 @@ export const QueueTrackerView: React.FC = () => {
     activeBooking, 
     cancelBooking, 
     advanceQueue, 
-    setActiveView 
+    setActiveView,
+    t
   } = useApp();
 
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
@@ -31,16 +32,16 @@ export const QueueTrackerView: React.FC = () => {
             <CalendarPlus className="w-6 h-6" />
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[#17231F]">
-            No Active Procurement Booking
+            {t('noActiveBooking')}
           </h2>
           <p className="text-sm text-[#66736D] mt-2 mb-6 leading-relaxed">
-            You currently do not have an active mandi token. Reserve a slot at your designated district procurement hub to initiate live queue tracking and automated DBT disbursement.
+            {t('rescheduleNotice')}
           </p>
           <button
             onClick={() => setActiveView('booking')}
             className="inline-flex items-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
           >
-            <span>Book a Procurement Slot</span>
+            <span>{t('bookSlotAction')}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -202,23 +203,23 @@ export const QueueTrackerView: React.FC = () => {
           {/* Farmers Ahead */}
           <div className="py-2 sm:py-0">
             <div className="text-xs uppercase font-bold tracking-wider text-[#66736D]">
-              Farmers Ahead / आगे किसान
+              {t('farmersAhead')}
             </div>
             <div className="text-3xl sm:text-4xl font-bold text-[#063B2A] font-mono mt-1">
               {farmersAhead}
             </div>
             <div className="text-xs text-[#66736D] mt-1">
-              Vehicles ahead in line
+              {t('people')}
             </div>
           </div>
 
           {/* Estimated Waiting Time */}
           <div className="py-2 sm:py-0">
             <div className="text-xs uppercase font-bold tracking-wider text-[#66736D]">
-              Waiting Time / अनुमानित प्रतीक्षा समय
+              {t('estimatedWaitTime')}
             </div>
             <div className="text-3xl sm:text-4xl font-bold text-[#063B2A] mt-1">
-              ~{waitMinutes} minutes
+              ~{waitMinutes} {t('minutesAbbr')}
             </div>
             <div className="text-xs text-[#66736D] mt-1">
               Average weighbridge pace

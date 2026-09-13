@@ -14,7 +14,7 @@ interface MobileBottomNavProps {
 }
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMore }) => {
-  const { activeView, setActiveView, unreadCount } = useApp();
+  const { activeView, setActiveView, unreadCount, t } = useApp();
 
   // Secondary views are accessed via "More"
   const isMoreActive = ['centres', 'procurement', 'notifications', 'profile'].includes(activeView);
@@ -22,43 +22,37 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ onOpenMore }) 
   const navItems: {
     id: ActiveView | 'more';
     label: string;
-    labelHi: string;
     icon: React.ElementType;
     isActive: boolean;
     badge?: number;
   }[] = [
     { 
       id: 'dashboard', 
-      label: 'Home', 
-      labelHi: 'होम', 
+      label: t('navDashboard'), 
       icon: Home, 
       isActive: activeView === 'dashboard' 
     },
     { 
       id: 'booking', 
-      label: 'Book', 
-      labelHi: 'बुक', 
+      label: t('navBooking'), 
       icon: CalendarPlus, 
       isActive: activeView === 'booking' 
     },
     { 
       id: 'tracking', 
-      label: 'Queue', 
-      labelHi: 'कतार', 
+      label: t('navTracking'), 
       icon: Activity, 
       isActive: activeView === 'tracking' 
     },
     { 
       id: 'history', 
-      label: 'History', 
-      labelHi: 'इतिहास', 
+      label: t('navHistory'), 
       icon: History, 
       isActive: activeView === 'history' 
     },
     { 
       id: 'more', 
-      label: isMoreActive ? 'More ★' : 'More', 
-      labelHi: 'अधिक', 
+      label: isMoreActive ? '★' : t('action'), 
       icon: Menu, 
       isActive: isMoreActive,
       badge: unreadCount 

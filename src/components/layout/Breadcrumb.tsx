@@ -5,30 +5,32 @@ import { ChevronRight, Home } from 'lucide-react';
 export const Breadcrumb: React.FC = () => {
   const { activeView, setActiveView, t } = useApp();
 
-  const getViewData = () => {
+  const getViewTitle = (): string => {
     switch (activeView) {
       case 'dashboard':
-        return { en: 'Dashboard', hi: 'मुख्य पृष्ठ' };
+        return t('navDashboard');
       case 'tracking':
-        return { en: 'Queue Track', hi: 'कतार की स्थिति' };
+        return t('navTracking');
       case 'booking':
-        return { en: 'Book Slot', hi: 'स्लॉट बुक करें' };
+        return t('navBooking');
       case 'centres':
-        return { en: 'Centres', hi: 'क्रय केंद्र' };
+        return t('navCentres');
       case 'procurement':
-        return { en: 'Procurement & DBT', hi: 'तौल एवं भुगतान' };
+        return t('navProcurement');
       case 'history':
-        return { en: 'Transaction History', hi: 'गतिविधि एवं लेन-देन' };
+        return t('navHistory');
       case 'notifications':
-        return { en: 'Alerts & Notices', hi: 'सूचनाएं एवं अलर्ट' };
+        return t('navNotifications');
       case 'profile':
-        return { en: 'Farmer Profile', hi: 'किसान विवरण' };
+        return t('navProfile');
+      case 'auth':
+        return `${t('login')} / ${t('register')}`;
       default:
-        return { en: 'Home', hi: 'होम' };
+        return t('navDashboard');
     }
   };
 
-  const current = getViewData();
+  const currentTitle = getViewTitle();
 
   return (
     <nav aria-label="Breadcrumb" className="w-full bg-[#EDF3EF] border-b border-[#CBD8D1] py-2 px-4 sm:px-6">
@@ -46,7 +48,7 @@ export const Breadcrumb: React.FC = () => {
           <>
             <ChevronRight className="w-3.5 h-3.5 text-[#66736D] flex-shrink-0" />
             <span className="font-semibold text-[#17231F]">
-              {current.en} <span className="font-normal text-[#34443D] font-['Noto_Sans_Devanagari']">({current.hi})</span>
+              {currentTitle}
             </span>
           </>
         )}

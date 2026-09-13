@@ -20,6 +20,8 @@ import {
   LogOut,
   LogIn
 } from 'lucide-react';
+import { TranslationStrings } from '../../i18n/translations';
+import { LanguageDropdown } from '../common/LanguageDropdown';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -34,8 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     unreadCount, 
     setIsHelpModalOpen, 
     setIsSettingsModalOpen,
-    language,
-    setLanguage,
+    t,
     isLoggedIn,
     logout
   } = useApp();
@@ -44,60 +45,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const desktopServices: {
     id: ActiveView;
     titleEn: string;
-    titleHi: string;
+    titleKey: keyof TranslationStrings;
     icon: React.ElementType;
     badge?: number;
   }[] = [
-    { 
-      id: 'dashboard', 
-      titleEn: 'Dashboard', 
-      titleHi: 'मुख्य पृष्ठ', 
-      icon: LayoutDashboard 
-    },
-    { 
-      id: 'tracking', 
-      titleEn: 'Queue Track', 
-      titleHi: 'कतार की स्थिति', 
-      icon: Activity 
-    },
-    { 
-      id: 'booking', 
-      titleEn: 'Book Slot', 
-      titleHi: 'स्लॉट बुक करें', 
-      icon: CalendarPlus 
-    },
-    { 
-      id: 'centres', 
-      titleEn: 'Centres', 
-      titleHi: 'क्रय केंद्र', 
-      icon: MapPin 
-    },
-    { 
-      id: 'procurement', 
-      titleEn: 'Procurement & DBT', 
-      titleHi: 'तौल एवं भुगतान', 
-      icon: IndianRupee 
-    },
-    { 
-      id: 'history', 
-      titleEn: 'History', 
-      titleHi: 'गतिविधि एवं लेन-देन', 
-      icon: History 
-    },
-    { 
-      id: 'notifications', 
-      titleEn: 'Alerts', 
-      titleHi: 'सूचनाएं', 
-      icon: Bell,
-      badge: unreadCount 
-    },
+    { id: 'dashboard', titleEn: 'Dashboard', titleKey: 'navDashboard', icon: LayoutDashboard },
+    { id: 'tracking', titleEn: 'Queue Track', titleKey: 'navTracking', icon: Activity },
+    { id: 'booking', titleEn: 'Book Slot', titleKey: 'navBooking', icon: CalendarPlus },
+    { id: 'centres', titleEn: 'Centres', titleKey: 'navCentres', icon: MapPin },
+    { id: 'procurement', titleEn: 'Procurement & DBT', titleKey: 'navProcurement', icon: IndianRupee },
+    { id: 'history', titleEn: 'History', titleKey: 'navHistory', icon: History },
+    { id: 'notifications', titleEn: 'Alerts', titleKey: 'navNotifications', icon: Bell, badge: unreadCount },
   ];
 
   // Additional Services specifically for Mobile (excluding the 4 tabs pinned on the bottom bar: Home, Book, Queue, History)
   const mobileAdditionalServices: {
     id: ActiveView;
     titleEn: string;
-    titleHi: string;
+    titleKey: keyof TranslationStrings;
     desc: string;
     icon: React.ElementType;
     badge?: number;
@@ -105,21 +70,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { 
       id: 'centres', 
       titleEn: 'Procurement Centres', 
-      titleHi: 'क्रय केंद्र एवं मानचित्र', 
+      titleKey: 'navCentres',
       desc: 'Mandi locator, distances & slot availability',
       icon: MapPin 
     },
     { 
       id: 'procurement', 
       titleEn: 'Procurement & DBT', 
-      titleHi: 'तौल एवं बैंक भुगतान', 
+      titleKey: 'navProcurement',
       desc: 'Intake weighbridge slips & PFMS transfer logs',
       icon: IndianRupee 
     },
     { 
       id: 'notifications', 
       titleEn: 'Alerts & Notices', 
-      titleHi: 'सूचनाएं एवं दिशानिर्देश', 
+      titleKey: 'navNotifications',
       desc: 'Queue updates & MSP notifications',
       icon: Bell,
       badge: unreadCount 
@@ -127,17 +92,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { 
       id: 'profile', 
       titleEn: 'Farmer Profile & Land', 
-      titleHi: 'किसान विवरण एवं भूमि', 
+      titleKey: 'navProfile',
       desc: 'Aadhaar e-KYC, Jamabandi & bank account',
       icon: User 
     },
-  ];
-
-  const languages: { code: Language; label: string }[] = [
-    { code: 'en', label: 'English' },
-    { code: 'hi', label: 'हिंदी' },
-    { code: 'pa', label: 'ਪੰਜਾਬੀ' },
-    { code: 'mr', label: 'मराठी' },
   ];
 
   const handleNavClick = (view: ActiveView) => {
@@ -210,9 +168,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <div className="flex items-center gap-2.5 min-w-0">
                       <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#063B2A]' : 'text-[#CBD8D1]'}`} />
                       <div className="leading-tight truncate">
-                        <div className="text-[13px]">{item.titleEn}</div>
-                        <div className={`text-[10px] font-['Noto_Sans_Devanagari'] ${isActive ? 'text-[#075E43]' : 'text-[#CBD8D1]'}`}>
-                          {item.titleHi}
+                        <div className="text-[13px]">{t(item.titleKey)}</div>
+                        <div className={`text-[10px] ${isActive ? 'text-[#075E43]' : 'text-[#CBD8D1]'}`}>
+                          {item.titleEn}
                         </div>
                       </div>
                     </div>
@@ -385,9 +343,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             <Icon className="w-4 h-4 flex-shrink-0" />
                           </div>
                           <div className="leading-tight truncate">
-                            <div className="text-xs font-bold">{item.titleEn}</div>
-                            <div className={`text-[10px] font-['Noto_Sans_Devanagari'] ${isActive ? 'text-[#075E43]' : 'text-[#CBD8D1]'}`}>
-                              {item.titleHi}
+                            <div className="text-xs font-bold">{t(item.titleKey)}</div>
+                            <div className={`text-[10px] ${isActive ? 'text-[#075E43]' : 'text-[#CBD8D1]'}`}>
+                              {item.titleEn}
                             </div>
                             <div className={`text-[10px] mt-0.5 truncate ${isActive ? 'text-[#34443D]' : 'text-[#CBD8D1]/80'}`}>
                               {item.desc}
@@ -419,27 +377,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
             {/* Mobile Drawer Bottom: Language & Support */}
             <div className="p-3.5 border-t border-[#0B4734] bg-[#04261B] space-y-2">
-              {/* Language Switcher */}
+              {/* Language Dropdown Selector in Drawer */}
               <div className="flex items-center justify-between text-xs text-[#CBD8D1] pb-2 border-b border-[#0B4734]">
                 <span className="flex items-center gap-1 text-[11px]">
                   <Globe className="w-3.5 h-3.5 text-[#CBD8D1]" />
-                  Language:
+                  Language / भाषा:
                 </span>
-                <div className="flex items-center gap-1">
-                  {languages.map((l) => (
-                    <button
-                      key={l.code}
-                      onClick={() => setLanguage(l.code)}
-                      className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
-                        language === l.code
-                          ? 'bg-[#E7F3EC] text-[#063B2A] font-bold'
-                          : 'text-[#CBD8D1] hover:bg-[#075E43]'
-                      }`}
-                    >
-                      {l.label}
-                    </button>
-                  ))}
-                </div>
+                <LanguageDropdown variant="header" />
               </div>
 
               <div className="grid grid-cols-2 gap-2 pt-1">

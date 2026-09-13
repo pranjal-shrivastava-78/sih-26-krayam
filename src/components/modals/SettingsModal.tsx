@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Language } from '../../types';
+import { INDIAN_LANGUAGES } from '../../i18n/languages';
 import { X, Globe, Bell, Eye, Check } from 'lucide-react';
 
 export const SettingsModal: React.FC = () => {
@@ -17,24 +18,17 @@ export const SettingsModal: React.FC = () => {
 
   if (!isSettingsModalOpen) return null;
 
-  const languages: { code: Language; label: string; nativeName: string }[] = [
-    { code: 'en', label: 'English', nativeName: 'English' },
-    { code: 'hi', label: 'Hindi', nativeName: 'हिंदी' },
-    { code: 'pa', label: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ' },
-    { code: 'mr', label: 'Marathi', nativeName: 'मराठी' },
-  ];
-
   return (
     <div className="fixed inset-0 bg-[#063B2A]/60 z-50 flex items-center justify-center p-4">
-      <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] max-w-lg w-full shadow-gov-dropdown">
+      <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] max-w-lg w-full shadow-gov-dropdown max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-[#EDF3EF] px-5 py-3.5 border-b border-[#CBD8D1] flex items-center justify-between">
+        <div className="bg-[#EDF3EF] px-5 py-3.5 border-b border-[#CBD8D1] flex items-center justify-between flex-shrink-0">
           <div>
             <h3 className="text-base font-bold text-[#17231F]">
               Portal Settings / सेटिंग्स
             </h3>
             <p className="text-xs text-[#66736D]">
-              Preferences, alerts, and bilingual options
+              Top 10 Most Spoken Languages in India + English
             </p>
           </div>
           <button
@@ -45,31 +39,37 @@ export const SettingsModal: React.FC = () => {
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto">
           {/* Language Selection */}
           <div>
-            <div className="flex items-center gap-2 mb-2 text-xs uppercase font-bold tracking-wider text-[#17231F]">
-              <Globe className="w-4 h-4 text-[#075E43]" />
-              <span>Language Preference / भाषा चुनें</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-xs uppercase font-bold tracking-wider text-[#17231F]">
+                <Globe className="w-4 h-4 text-[#075E43]" />
+                <span>Language Preference / भाषा चुनें</span>
+              </div>
+              <span className="text-[10px] bg-[#E7F3EC] text-[#075E43] font-bold px-2 py-0.5 rounded border border-[#CBD8D1]">
+                11 Languages
+              </span>
             </div>
-            <div className="grid grid-cols-2 gap-2.5">
-              {languages.map((l) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {INDIAN_LANGUAGES.map((l) => (
                 <button
                   key={l.code}
                   onClick={() => setLanguage(l.code)}
-                  className={`p-3 rounded-[6px] border text-left flex items-center justify-between transition-colors ${
+                  className={`p-2.5 rounded-[6px] border text-left flex flex-col justify-between transition-colors ${
                     language === l.code
-                      ? 'border-[#075E43] bg-[#E7F3EC] font-bold text-[#063B2A]'
+                      ? 'border-[#075E43] bg-[#E7F3EC] font-bold text-[#063B2A] ring-1 ring-[#075E43]'
                       : 'border-[#CBD8D1] bg-[#FFFFFF] hover:bg-[#F3F9F5] text-[#17231F]'
                   }`}
                 >
-                  <div>
-                    <div className="text-xs">{l.label}</div>
-                    <div className="text-sm font-semibold">{l.nativeName}</div>
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-xs font-semibold">{l.englishName}</span>
+                    {language === l.code && (
+                      <Check className="w-3.5 h-3.5 text-[#075E43]" />
+                    )}
                   </div>
-                  {language === l.code && (
-                    <Check className="w-4 h-4 text-[#075E43]" />
-                  )}
+                  <div className="text-sm font-bold text-[#063B2A] mt-0.5">{l.name}</div>
+                  <div className="text-[10px] text-[#66736D] mt-0.5 font-mono">{l.speakersShare}</div>
                 </button>
               ))}
             </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { TranslationStrings } from '../../i18n/translations';
 import { 
   CalendarPlus, 
   Activity, 
@@ -21,54 +22,63 @@ export const DashboardView: React.FC = () => {
     activeBooking, 
     setActiveView, 
     setIsHelpModalOpen,
-    unreadCount 
+    unreadCount,
+    t
   } = useApp();
 
-  const services = [
+  const services: {
+    id: string;
+    titleKey: keyof TranslationStrings;
+    titleEn: string;
+    desc: string;
+    icon: React.ElementType;
+    badge?: number;
+    action: () => void;
+  }[] = [
     {
       id: 'booking',
-      title: 'Book Slot',
-      titleHi: 'स्लॉट बुक करें',
+      titleKey: 'navBooking',
+      titleEn: 'Book Slot',
       desc: 'Reserve a procurement slot at government mandi',
       icon: CalendarPlus,
       action: () => setActiveView('booking'),
     },
     {
       id: 'tracking',
-      title: 'Queue Track',
-      titleHi: 'कतार की स्थिति',
+      titleKey: 'navTracking',
+      titleEn: 'Queue Track',
       desc: 'Track live vehicle position & estimated waiting time',
       icon: Activity,
       action: () => setActiveView('tracking'),
     },
     {
       id: 'centres',
-      title: 'Procurement Centres',
-      titleHi: 'क्रय केंद्र खोजें',
+      titleKey: 'navCentres',
+      titleEn: 'Procurement Centres',
       desc: 'Find nearby operational mandis & sub-yards on map',
       icon: MapPin,
       action: () => setActiveView('centres'),
     },
     {
       id: 'procurement',
-      title: 'Procurement & DBT',
-      titleHi: 'तौल एवं प्रत्यक्ष लाभ अंतरण',
+      titleKey: 'navProcurement',
+      titleEn: 'Procurement & DBT',
       desc: 'View weighing slip, quality grade, & bank disbursement',
       icon: IndianRupee,
       action: () => setActiveView('procurement'),
     },
     {
       id: 'history',
-      title: 'Transaction History',
-      titleHi: 'गतिविधि एवं लेन-देन',
+      titleKey: 'navHistory',
+      titleEn: 'Transaction History',
       desc: 'Access verified records of previous crop procurements',
       icon: History,
       action: () => setActiveView('history'),
     },
     {
       id: 'alerts',
-      title: 'Important Alerts',
-      titleHi: 'सूचनाएं एवं दिशानिर्देश',
+      titleKey: 'navNotifications',
+      titleEn: 'Important Alerts',
       desc: 'Procurement schedule updates & MSP announcements',
       icon: Bell,
       badge: unreadCount,
@@ -76,16 +86,16 @@ export const DashboardView: React.FC = () => {
     },
     {
       id: 'help',
-      title: 'Help & Support',
-      titleHi: 'सहायता एवं संपर्क',
+      titleKey: 'helpSupport',
+      titleEn: 'Help & Support',
       desc: 'Toll-free helpline (1800-180-1551) & grievance redressal',
       icon: HelpCircle,
       action: () => setIsHelpModalOpen(true),
     },
     {
       id: 'profile',
-      title: 'Farmer Profile & Land',
-      titleHi: 'किसान विवरण एवं भूमि',
+      titleKey: 'navProfile',
+      titleEn: 'Farmer Profile & Land',
       desc: 'Aadhaar linkage, landholding, & linked bank account',
       icon: ShieldCheck,
       action: () => setActiveView('profile'),
@@ -99,17 +109,17 @@ export const DashboardView: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase font-bold tracking-wider text-[#075E43] bg-[#E7F3EC] px-2 py-0.5 rounded-[4px] border border-[#CBD8D1]">
-              Farmer Portal
+              {t('verifiedFarmer')}
             </span>
             <span className="text-xs text-[#66736D]">
               ID: {farmer?.farmerId || 'MP-2024-7842'}
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#17231F] mt-1.5">
-            Good Morning, {farmer?.fullName || 'Sardar Gurpreet Singh'}
+            {t('goodMorning')}, {farmer?.fullName || 'Sardar Gurpreet Singh'}
           </h1>
           <p className="text-sm text-[#34443D] mt-0.5">
-            Government of India — Direct Mandi Procurement & Allocation Service
+            {t('govOfIndia')} — Direct Mandi Procurement & Allocation Service
           </p>
         </div>
 
@@ -120,14 +130,14 @@ export const DashboardView: React.FC = () => {
             className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 h-11 px-5 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
           >
             <CalendarPlus className="w-4 h-4" />
-            <span>Book a Slot</span>
+            <span>{t('bookSlotAction')}</span>
           </button>
           <button
             onClick={() => setActiveView('tracking')}
             className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 h-11 px-5 rounded-[6px] bg-[#FFFFFF] border border-[#0B6B4F] text-[#0B6B4F] hover:bg-[#E7F3EC] font-semibold text-sm transition-colors"
           >
             <Activity className="w-4 h-4" />
-            <span>Track Queue</span>
+            <span>{t('trackQueueAction')}</span>
           </button>
         </div>
       </div>
@@ -139,11 +149,11 @@ export const DashboardView: React.FC = () => {
           <div className="bg-[#EDF3EF] px-5 py-3 border-b border-[#CBD8D1] flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="text-xs uppercase font-bold tracking-wider text-[#063B2A]">
-                CURRENT BOOKING / वर्तमान बुकिंग
+                {t('currentBooking')}
               </span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-xs font-bold bg-[#E7F3EC] text-[#16803C] border border-[#CBD8D1]">
                 <span className="w-2 h-2 rounded-full bg-[#16803C] animate-pulse" />
-                LIVE QUEUE
+                {t('liveQueueBadge')}
               </span>
             </div>
             <div className="text-xs font-mono text-[#34443D]">
@@ -156,18 +166,18 @@ export const DashboardView: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
               {/* Crop & Quantity */}
               <div className="space-y-1">
-                <div className="text-xs text-[#66736D] uppercase font-semibold">Crop & Quantity</div>
+                <div className="text-xs text-[#66736D] uppercase font-semibold">{t('cropAndQuantity')}</div>
                 <div className="text-xl sm:text-2xl font-bold text-[#17231F]">
                   {activeBooking.cropName}
                 </div>
                 <div className="text-sm font-semibold text-[#075E43]">
-                  Quantity: {activeBooking.quantityQuintals} Quintals (Qtl)
+                  {t('quantityInQuintals')}: {activeBooking.quantityQuintals} Qtl
                 </div>
               </div>
 
               {/* Centre Information */}
               <div className="space-y-1">
-                <div className="text-xs text-[#66736D] uppercase font-semibold">Procurement Centre</div>
+                <div className="text-xs text-[#66736D] uppercase font-semibold">{t('mandiCentre')}</div>
                 <div className="text-sm font-bold text-[#17231F] flex items-center gap-1.5">
                   <Building2 className="w-4 h-4 text-[#075E43] flex-shrink-0" />
                   {activeBooking.centreName}
@@ -180,24 +190,24 @@ export const DashboardView: React.FC = () => {
               {/* Queue Status Strip (Inline) */}
               <div className="bg-[#F4FAF6] border border-[#B7DCC5] rounded-[6px] p-3 flex items-center justify-around text-center">
                 <div>
-                  <div className="text-[11px] font-bold text-[#66736D] uppercase">Queue Pos</div>
+                  <div className="text-[11px] font-bold text-[#66736D] uppercase">{t('liveQueuePosition')}</div>
                   <div className="text-2xl font-black text-[#063B2A] font-mono">
                     #{activeBooking.queuePosition || 3}
                   </div>
                 </div>
                 <div className="w-[1px] h-8 bg-[#CBD8D1]" />
                 <div>
-                  <div className="text-[11px] font-bold text-[#66736D] uppercase">Ahead</div>
+                  <div className="text-[11px] font-bold text-[#66736D] uppercase">{t('aheadBadge')}</div>
                   <div className="text-2xl font-black text-[#063B2A] font-mono">
                     {activeBooking.farmersAhead !== undefined ? activeBooking.farmersAhead : 2}
                   </div>
                 </div>
                 <div className="w-[1px] h-8 bg-[#CBD8D1]" />
                 <div>
-                  <div className="text-[11px] font-bold text-[#66736D] uppercase">Est. Wait</div>
+                  <div className="text-[11px] font-bold text-[#66736D] uppercase">{t('estWaitBadge')}</div>
                   <div className="text-sm font-bold text-[#063B2A] mt-1 flex items-center gap-1 justify-center">
                     <Clock className="w-3.5 h-3.5" />
-                    ~{activeBooking.estimatedWaitMinutes || 25}m
+                    ~{activeBooking.estimatedWaitMinutes || 25}{t('minutesAbbr')}
                   </div>
                 </div>
               </div>
@@ -208,7 +218,7 @@ export const DashboardView: React.FC = () => {
                   onClick={() => setActiveView('tracking')}
                   className="w-full lg:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
                 >
-                  <span>Track Live Queue</span>
+                  <span>{t('trackQueueAction')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -217,22 +227,21 @@ export const DashboardView: React.FC = () => {
         </div>
       ) : (
         <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-6 text-center">
-          <div className="text-base font-bold text-[#17231F]">No Active Procurement Booking</div>
-          <p className="text-sm text-[#66736D] mt-1">You currently do not have an active mandi token.</p>
+          <div className="text-base font-bold text-[#17231F]">{t('noActiveBooking')}</div>
           <button
             onClick={() => setActiveView('booking')}
             className="mt-4 inline-flex items-center gap-2 h-10 px-5 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] text-sm font-semibold"
           >
-            <span>Book a Slot Now</span>
+            <span>{t('bookSlotAction')}</span>
           </button>
         </div>
       )}
 
-      {/* Services Grid (Section 15: 2-column or 3-column compact service grid) */}
+      {/* Services Grid */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-[#17231F]">
-            Government Services & Mandi Tools
+            {t('servicesTitle')}
           </h2>
           <span className="text-xs text-[#66736D]">
             Official Agriculture Services
@@ -260,10 +269,10 @@ export const DashboardView: React.FC = () => {
                     )}
                   </div>
                   <div className="font-bold text-sm text-[#17231F] group-hover:text-[#063B2A] transition-colors leading-tight">
-                    {item.title}
+                    {t(item.titleKey)}
                   </div>
-                  <div className="text-xs text-[#075E43] font-['Noto_Sans_Devanagari'] font-medium mt-0.5">
-                    {item.titleHi}
+                  <div className="text-xs text-[#075E43] font-medium mt-0.5">
+                    {item.titleEn}
                   </div>
                   <p className="text-xs text-[#66736D] mt-1.5 line-clamp-2 leading-relaxed">
                     {item.desc}
@@ -271,7 +280,7 @@ export const DashboardView: React.FC = () => {
                 </div>
 
                 <div className="mt-4 pt-2.5 border-t border-[#EDF3EF] flex items-center text-xs font-semibold text-[#0B6B4F] group-hover:underline">
-                  <span>Open Service</span>
+                  <span>{t('viewDetails')}</span>
                   <ArrowRight className="w-3.5 h-3.5 ml-1 transition-transform group-hover:translate-x-0.5" />
                 </div>
               </button>

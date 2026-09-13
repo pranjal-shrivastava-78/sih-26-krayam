@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Emblem } from './Emblem';
+import { LanguageDropdown } from '../common/LanguageDropdown';
 import { Bell, Menu, ChevronDown, UserCheck, LogOut, LogIn, ShieldCheck } from 'lucide-react';
 
 interface GovernmentHeaderProps {
@@ -13,8 +14,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
     unreadCount, 
     activeView, 
     setActiveView, 
-    language, 
-    setLanguage,
+    t,
     isLoggedIn,
     logout
   } = useApp();
@@ -27,32 +27,17 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
       <div className="w-full bg-[#063B2A] text-[#FFFFFF] text-[11px] py-1 px-4 sm:px-6">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between">
           <span className="font-medium tracking-wide flex items-center gap-2">
-            <span>भारत सरकार | Government of India</span>
+            <span>{t('govOfIndia')}</span>
             <span className="hidden lg:inline text-[#A3D99D] text-[10px] bg-[#075E43] px-2 py-0.5 rounded border border-[#16845F]">
-              FastAPI Grid Connected
+              {t('fastApiConnected')}
             </span>
           </span>
           <div className="flex items-center gap-3">
             <span className="hidden md:inline text-[#CBD8D1]">
-              कृषि एवं किसान कल्याण मंत्रालय | Ministry of Agriculture & Farmers Welfare
+              {t('ministryName')}
             </span>
-            <div className="flex items-center border border-[#16845F] rounded px-1.5 py-0.5 bg-[#075E43] text-[10px]">
-              <button
-                onClick={() => setLanguage('en')}
-                className={`px-1.5 py-0.5 rounded transition-colors ${language === 'en' ? 'bg-[#FFFFFF] text-[#063B2A] font-bold' : 'text-[#E7F3EC] hover:text-[#FFFFFF]'}`}
-                aria-label="Switch to English"
-              >
-                English
-              </button>
-              <span className="text-[#16845F] px-1">|</span>
-              <button
-                onClick={() => setLanguage('hi')}
-                className={`px-1.5 py-0.5 rounded transition-colors ${language === 'hi' ? 'bg-[#FFFFFF] text-[#063B2A] font-bold' : 'text-[#E7F3EC] hover:text-[#FFFFFF]'}`}
-                aria-label="हिंदी में बदलें"
-              >
-                हिंदी
-              </button>
-            </div>
+            {/* Top Right Indian Languages Dropdown */}
+            <LanguageDropdown variant="header" />
           </div>
         </div>
       </div>
@@ -90,14 +75,14 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
               </div>
 
               <div className="border-l border-[#CBD8D1] pl-2 sm:pl-2.5 hidden sm:block leading-tight">
-                <div className="text-[11px] font-semibold text-[#17231F] font-['Noto_Sans_Devanagari']">
-                  भारत सरकार
+                <div className="text-[11px] font-semibold text-[#17231F]">
+                  {t('govOfIndia')}
                 </div>
                 <div className="text-[10px] text-[#66736D]">
                   Government of India
                 </div>
                 <div className="text-[10px] font-medium text-[#34443D] mt-0.5 line-clamp-1">
-                  कृषि एवं किसान कल्याण मंत्रालय
+                  {t('ministryName')}
                 </div>
               </div>
             </div>
@@ -112,17 +97,14 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
             >
               <div className="flex items-baseline gap-2">
                 <span className="text-xl sm:text-2xl font-bold tracking-tight text-[#063B2A]">
-                  KRAYAM
+                  {t('appTitle')}
                 </span>
                 <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[4px] bg-[#E7F3EC] text-[#075E43] border border-[#CBD8D1] hidden lg:inline">
                   Portal
                 </span>
               </div>
-              <div className="text-xs font-semibold text-[#075E43] font-['Noto_Sans_Devanagari'] truncate leading-tight">
-                कृषि उपज क्रय प्रबंधन प्रणाली
-              </div>
-              <div className="text-[11px] text-[#66736D] truncate hidden sm:block leading-tight">
-                Farmer Procurement Management System
+              <div className="text-xs font-semibold text-[#075E43] truncate leading-tight">
+                {t('appSubtitle')}
               </div>
             </div>
           </div>

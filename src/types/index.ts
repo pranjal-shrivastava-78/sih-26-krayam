@@ -1,4 +1,15 @@
-export type Language = 'en' | 'hi' | 'pa' | 'mr';
+export type Language = 
+  | 'en'  // English
+  | 'hi'  // हिन्दी (Hindi) - ~43.6%
+  | 'bn'  // বাংলা (Bengali) - ~8.0%
+  | 'mr'  // मराठी (Marathi) - ~6.9%
+  | 'te'  // తెలుగు (Telugu) - ~6.7%
+  | 'ta'  // தமிழ் (Tamil) - ~5.7%
+  | 'gu'  // ગુજરાતી (Gujarati) - ~4.6%
+  | 'ur'  // اردو (Urdu) - ~4.2%
+  | 'kn'  // ಕನ್ನಡ (Kannada) - ~3.6%
+  | 'or'  // ଓଡ଼ିଆ (Odia) - ~3.1%
+  | 'pa'; // ਪੰਜਾਬੀ (Punjabi) - ~2.7%
 
 export type ActiveView = 
   | 'dashboard' 

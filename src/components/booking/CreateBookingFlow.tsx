@@ -29,7 +29,8 @@ export const CreateBookingFlow: React.FC = () => {
     farmer, 
     createBooking, 
     activeBooking, 
-    setActiveView 
+    setActiveView,
+    t
   } = useApp();
 
   const [step, setStep] = useState<number>(1);
@@ -65,11 +66,11 @@ export const CreateBookingFlow: React.FC = () => {
   };
 
   const stepsList = [
-    { num: 1, titleEn: 'Select Crop', titleHi: 'फसल चुनें' },
-    { num: 2, titleEn: 'Enter Quantity', titleHi: 'मात्रा दर्ज करें' },
-    { num: 3, titleEn: 'Select Centre', titleHi: 'केंद्र चुनें' },
-    { num: 4, titleEn: 'Date & Time', titleHi: 'तारीख व समय' },
-    { num: 5, titleEn: 'Confirm Booking', titleHi: 'पुष्टि करें' },
+    { num: 1, titleEn: 'Select Crop', titleKey: 'selectCrop' as const },
+    { num: 2, titleEn: 'Enter Quantity', titleKey: 'enterQuantity' as const },
+    { num: 3, titleEn: 'Select Centre', titleKey: 'selectCentre' as const },
+    { num: 4, titleEn: 'Date & Time', titleKey: 'selectSlot' as const },
+    { num: 5, titleEn: 'Confirm Booking', titleKey: 'confirmBooking' as const },
   ];
 
   return (
@@ -120,7 +121,7 @@ export const CreateBookingFlow: React.FC = () => {
         <div className="flex items-baseline justify-between">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#17231F]">
-              Book Procurement Slot / खरीद स्लॉट बुक करें
+              {t('procurementBooking')}
             </h1>
             <p className="text-xs sm:text-sm text-[#66736D] mt-1">
               Ministry of Agriculture & Farmers Welfare — Digital Mandi Slot Allotment
@@ -151,11 +152,11 @@ export const CreateBookingFlow: React.FC = () => {
                     </div>
                     <div className={`h-[2px] flex-1 ${isDone ? 'bg-[#16803C]' : 'bg-[#CBD8D1]'} hidden md:block`} />
                   </div>
-                  <div className={`text-xs font-semibold leading-tight ${isCurrent ? 'text-[#063B2A] font-bold' : 'text-[#66736D]'}`}>
-                    {s.titleEn}
+                  <div className={`text-xs font-semibold leading-tight ${isCurrent ? 'text-[#063B2A] font-bold' : 'text-[#17231F]'}`}>
+                    {t(s.titleKey)}
                   </div>
-                  <div className="text-[10px] text-[#66736D] font-['Noto_Sans_Devanagari'] hidden sm:block">
-                    {s.titleHi}
+                  <div className="text-[10px] text-[#66736D] hidden sm:block">
+                    {s.titleEn}
                   </div>
                 </div>
               );

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Language } from '../../types';
+import { LanguageDropdown } from '../common/LanguageDropdown';
 import { 
   ShieldCheck, 
   User, 
@@ -152,20 +153,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
             भारत सरकार • कृषि एवं किसान कल्याण मंत्रालय | Government of India
           </span>
           <div className="flex items-center gap-2">
-            <Globe className="w-3.5 h-3.5 text-[#A3D99D]" />
-            <div className="flex items-center gap-1 bg-[#075E43] rounded px-1.5 py-0.5 text-[10px]">
-              {languages.map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => setLanguage(l.code)}
-                  className={`px-1.5 py-0.5 rounded transition-colors ${
-                    language === l.code ? 'bg-[#FFFFFF] text-[#063B2A] font-bold' : 'text-[#CBD8D1] hover:text-[#FFFFFF]'
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
+            <LanguageDropdown variant="header" />
           </div>
         </div>
       </div>
