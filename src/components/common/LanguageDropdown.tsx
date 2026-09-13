@@ -7,11 +7,13 @@ import { Globe, ChevronDown, Check } from 'lucide-react';
 interface LanguageDropdownProps {
   className?: string;
   variant?: 'header' | 'sidebar' | 'modal';
+  align?: 'left' | 'right';
 }
 
 export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({ 
   className = '',
-  variant = 'header' 
+  variant = 'header',
+  align = 'right'
 }) => {
   const { language, setLanguage } = useApp();
   const [isOpen, setIsOpen] = useState(false);
@@ -80,7 +82,9 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
       {/* Dropdown Modal List */}
       {isOpen && (
         <div 
-          className="absolute right-0 mt-1.5 w-72 sm:w-80 bg-[#FFFFFF] rounded-[8px] shadow-[0_8px_30px_rgba(0,0,0,0.18)] border border-[#CBD8D1] py-1.5 z-50 text-[#17231F] animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden"
+          className={`absolute ${
+            align === 'left' ? 'left-0' : 'right-0'
+          } mt-1.5 w-64 sm:w-72 max-w-[calc(100vw-1.5rem)] bg-[#FFFFFF] rounded-[8px] shadow-[0_8px_30px_rgba(0,0,0,0.22)] border border-[#CBD8D1] py-1.5 z-50 text-[#17231F] animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden`}
           role="menu"
           aria-orientation="vertical"
         >

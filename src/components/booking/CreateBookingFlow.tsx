@@ -132,9 +132,31 @@ export const CreateBookingFlow: React.FC = () => {
           </span>
         </div>
 
-        {/* Section 16: Horizontal Stepper */}
-        <div className="mt-6 pt-6 border-t border-[#EDF3EF]">
-          <div className="grid grid-cols-5 gap-2">
+        {/* Section 16: Adaptive Stepper */}
+        <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-[#EDF3EF]">
+          {/* Mobile Stepper (< 640px): Compact progress bar & step indicator */}
+          <div className="sm:hidden space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#063B2A] flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-[#063B2A] text-white flex items-center justify-center text-[10px] font-bold">
+                  {step}
+                </span>
+                <span>{t(stepsList[step - 1].titleKey)}</span>
+              </span>
+              <span className="text-[11px] font-mono font-semibold text-[#075E43] bg-[#E7F3EC] px-2 py-0.5 rounded">
+                Step {step} of 5
+              </span>
+            </div>
+            <div className="w-full bg-[#EDF3EF] h-2 rounded-full overflow-hidden">
+              <div 
+                className="bg-[#075E43] h-full transition-all duration-300 rounded-full"
+                style={{ width: `${(step / 5) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Desktop & Tablet Stepper (>= 640px): Full 5-column horizontal milestone view */}
+          <div className="hidden sm:grid sm:grid-cols-5 gap-2">
             {stepsList.map((s) => {
               const isDone = step > s.num;
               const isCurrent = step === s.num;
@@ -216,7 +238,7 @@ export const CreateBookingFlow: React.FC = () => {
             <div className="pt-4 flex justify-end">
               <button
                 onClick={() => setStep(2)}
-                className="inline-flex items-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
               >
                 <span>Continue to Step 2</span>
                 <ArrowRight className="w-4 h-4" />
@@ -275,10 +297,10 @@ export const CreateBookingFlow: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-4 flex items-center justify-between">
+            <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <button
                 onClick={() => setStep(1)}
-                className="inline-flex items-center gap-1.5 h-11 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold"
+                className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
@@ -286,7 +308,7 @@ export const CreateBookingFlow: React.FC = () => {
               <button
                 onClick={() => setStep(3)}
                 disabled={quantityQuintals <= 0}
-                className="inline-flex items-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors disabled:opacity-50"
               >
                 <span>Continue to Step 3</span>
                 <ArrowRight className="w-4 h-4" />
@@ -349,17 +371,17 @@ export const CreateBookingFlow: React.FC = () => {
               })}
             </div>
 
-            <div className="pt-4 flex items-center justify-between">
+            <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <button
                 onClick={() => setStep(2)}
-                className="inline-flex items-center gap-1.5 h-11 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold"
+                className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
               </button>
               <button
                 onClick={() => setStep(4)}
-                className="inline-flex items-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
+                className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
               >
                 <span>Continue to Step 4</span>
                 <ArrowRight className="w-4 h-4" />
@@ -432,17 +454,17 @@ export const CreateBookingFlow: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-4 flex items-center justify-between">
+            <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <button
                 onClick={() => setStep(3)}
-                className="inline-flex items-center gap-1.5 h-11 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold"
+                className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
               </button>
               <button
                 onClick={handleConfirm}
-                className="inline-flex items-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
+                className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
               >
                 <span>Confirm & Generate Token</span>
                 <CheckCircle className="w-4 h-4" />

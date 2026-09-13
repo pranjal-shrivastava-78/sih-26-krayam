@@ -30,7 +30,7 @@ export const CookieConsentBanner: React.FC = () => {
     <div 
       role="region"
       aria-label="Cookie consent banner"
-      className="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] sm:w-[420px] max-w-full bg-[#FFFFFF] border-2 border-[#075E43] rounded-[10px] shadow-2xl p-4 sm:p-5 text-[#17231F] font-['Inter'] animate-in slide-in-from-bottom-5 duration-300"
+      className="fixed bottom-20 lg:bottom-4 right-2 sm:right-4 z-50 w-[calc(100vw-1rem)] sm:w-[420px] max-w-full bg-[#FFFFFF] border-2 border-[#075E43] rounded-[10px] shadow-2xl p-3.5 sm:p-5 text-[#17231F] font-['Inter'] animate-in slide-in-from-bottom-5 duration-300"
     >
       {/* Top Banner Row */}
       <div className="flex items-start justify-between gap-3">
@@ -45,7 +45,7 @@ export const CookieConsentBanner: React.FC = () => {
         <button
           type="button"
           onClick={() => handleChoice('declined')}
-          className="text-[#66736D] hover:text-[#17231F] p-1 rounded hover:bg-[#F0F4F2] transition-colors"
+          className="text-[#66736D] hover:text-[#17231F] p-1.5 rounded hover:bg-[#F0F4F2] transition-colors"
           title="Dismiss banner"
         >
           <X className="w-4 h-4" />
@@ -53,11 +53,11 @@ export const CookieConsentBanner: React.FC = () => {
       </div>
 
       {/* Body Copy */}
-      <p className="mt-2.5 text-xs sm:text-[13px] text-[#33413B] leading-relaxed">
+      <p className="mt-2 text-xs sm:text-[13px] text-[#33413B] leading-relaxed">
         Krayam uses essential cookies to keep the platform secure and functional. With your permission, we may also use optional cookies to remember preferences and understand how the website is used.
       </p>
 
-      <p className="mt-2 text-xs sm:text-[13px] text-[#33413B]">
+      <p className="mt-1.5 text-xs sm:text-[13px] text-[#33413B]">
         Read our{' '}
         <button
           type="button"
@@ -78,21 +78,21 @@ export const CookieConsentBanner: React.FC = () => {
       </p>
 
       {/* Button Actions */}
-      <div className="mt-4 flex flex-col gap-2">
+      <div className="mt-3.5 flex flex-col gap-2">
         <button
           type="button"
           onClick={() => handleChoice('all')}
-          className="w-full py-2 px-3 bg-[#075E43] hover:bg-[#063B2A] active:bg-[#04261B] text-[#FFFFFF] text-xs font-bold rounded-[6px] transition-colors shadow-sm flex items-center justify-center gap-1.5"
+          className="w-full py-2 px-3 bg-[#075E43] hover:bg-[#063B2A] active:bg-[#04261B] text-[#FFFFFF] text-xs font-bold rounded-[6px] transition-colors shadow-sm flex items-center justify-center gap-1.5 min-h-[40px]"
         >
           <ShieldCheck className="w-3.5 h-3.5 text-[#85E1A9]" />
           <span>Accept All</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <button
             type="button"
             onClick={() => handleChoice('essential')}
-            className="flex-1 py-1.5 px-2.5 bg-[#EDF3EF] hover:bg-[#DEE9E3] text-[#063B2A] border border-[#CBD8D1] text-xs font-semibold rounded-[6px] transition-colors text-center truncate"
+            className="flex-1 py-1.5 px-2.5 bg-[#EDF3EF] hover:bg-[#DEE9E3] text-[#063B2A] border border-[#CBD8D1] text-xs font-semibold rounded-[6px] transition-colors text-center truncate min-h-[36px]"
             title="Accept Only Essential Cookies"
           >
             Accept Only Essential Cookies
@@ -101,7 +101,7 @@ export const CookieConsentBanner: React.FC = () => {
           <button
             type="button"
             onClick={() => handleChoice('declined')}
-            className="py-1.5 px-3 bg-[#F8FAF9] hover:bg-[#EDF3EF] text-[#66736D] hover:text-[#17231F] border border-[#CBD8D1] text-xs font-medium rounded-[6px] transition-colors whitespace-nowrap"
+            className="py-1.5 px-3 bg-[#F8FAF9] hover:bg-[#EDF3EF] text-[#66736D] hover:text-[#17231F] border border-[#CBD8D1] text-xs font-medium rounded-[6px] transition-colors whitespace-nowrap min-h-[36px]"
           >
             Do Not Accept
           </button>

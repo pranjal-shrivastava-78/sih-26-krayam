@@ -57,9 +57,9 @@ export const CentresView: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
             {/* Search Input */}
-            <div className="relative min-w-[220px]">
+            <div className="relative flex-1 sm:min-w-[220px]">
               <Search className="w-4 h-4 text-[#66736D] absolute left-3 top-3" />
               <input
                 type="text"
@@ -74,7 +74,7 @@ export const CentresView: React.FC = () => {
             <select
               value={cropFilter}
               onChange={(e) => setCropFilter(e.target.value)}
-              className="h-10 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-xs text-[#17231F] focus:outline-none focus:border-[#16845F]"
+              className="h-10 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-xs text-[#17231F] focus:outline-none focus:border-[#16845F] w-full sm:w-auto"
             >
               <option value="ALL">All Crops (सभी फसलें)</option>
               {crops.map((c) => (
@@ -205,7 +205,7 @@ export const CentresView: React.FC = () => {
             </span>
           </div>
 
-          <div className="h-[480px] w-full rounded-[6px] overflow-hidden border border-[#CBD8D1]">
+          <div className="h-[280px] sm:h-[380px] lg:h-[480px] w-full rounded-[6px] overflow-hidden border border-[#CBD8D1]">
             <LeafletMap
               farmerCoordinates={farmer?.location.coordinates}
               centres={filteredCentres}

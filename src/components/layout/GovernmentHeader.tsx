@@ -24,15 +24,15 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
   return (
     <header className="w-full bg-[#FFFFFF] border-b border-[#CBD8D1] sticky top-0 z-30 shadow-xs">
       {/* Official Top National Identity Stripe */}
-      <div className="w-full bg-[#063B2A] text-[#FFFFFF] text-[11px] py-1 px-4 sm:px-6">
-        <div className="max-w-[1440px] mx-auto flex items-center justify-between">
-          <span className="font-medium tracking-wide flex items-center gap-2">
-            <span>{t('govOfIndia')}</span>
+      <div className="w-full bg-[#063B2A] text-[#FFFFFF] text-[10px] sm:text-[11px] py-1 px-3 sm:px-6">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-2">
+          <span className="font-medium tracking-wide flex items-center gap-2 truncate">
+            <span className="truncate">{t('govOfIndia')}</span>
             <span className="hidden lg:inline text-[#A3D99D] text-[10px] bg-[#075E43] px-2 py-0.5 rounded border border-[#16845F]">
               {t('fastApiConnected')}
             </span>
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <span className="hidden md:inline text-[#CBD8D1]">
               {t('ministryName')}
             </span>
@@ -43,14 +43,14 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
       </div>
 
       {/* Main Official Header Area */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-2.5 sm:py-3">
-        <div className="flex items-center justify-between gap-3">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 py-2.5 sm:py-3">
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
           {/* Left: Mobile Toggle + Emblem + User Sprout Logo + Portal Identity */}
-          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
             {/* Mobile Menu Button */}
             <button
               onClick={onOpenSidebar}
-              className="p-2 rounded-[6px] border border-[#CBD8D1] text-[#17231F] hover:bg-[#F3F9F5] lg:hidden flex-shrink-0"
+              className="p-1.5 sm:p-2 rounded-[6px] border border-[#CBD8D1] text-[#17231F] hover:bg-[#F3F9F5] lg:hidden flex-shrink-0"
               aria-label="Open Navigation Menu"
             >
               <Menu className="w-5 h-5 text-[#075E43]" />
@@ -59,14 +59,14 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
             {/* Emblem Area */}
             <div 
               onClick={() => setActiveView('dashboard')}
-              className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group flex-shrink-0"
+              className="flex items-center gap-1.5 sm:gap-2.5 cursor-pointer group flex-shrink-0"
             >
               <div className="text-[#063B2A] flex-shrink-0">
-                <Emblem className="w-7 h-9 sm:w-8 sm:h-10" />
+                <Emblem className="w-6 h-8 sm:w-8 sm:h-10" />
               </div>
 
               {/* Seedling / Sprout Brand Logo */}
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-[10px] overflow-hidden border border-[#CBD8D1] shadow-xs flex-shrink-0 bg-[#075E43]">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[8px] sm:rounded-[10px] overflow-hidden border border-[#CBD8D1] shadow-xs flex-shrink-0 bg-[#075E43]">
                 <img 
                   src="/logo.png" 
                   alt="KRAYAM Seedling Logo" 
@@ -88,29 +88,29 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
             </div>
 
             {/* Vertical Divider */}
-            <div className="h-9 w-[1px] bg-[#CBD8D1] hidden md:block" />
+            <div className="h-8 sm:h-9 w-[1px] bg-[#CBD8D1] hidden md:block" />
 
             {/* Portal Title & Subtitle */}
             <div 
               onClick={() => setActiveView('dashboard')}
-              className="cursor-pointer min-w-0"
+              className="cursor-pointer min-w-0 truncate"
             >
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-[#063B2A]">
+              <div className="flex items-baseline gap-1.5 sm:gap-2">
+                <span className="text-lg sm:text-2xl font-bold tracking-tight text-[#063B2A]">
                   {t('appTitle')}
                 </span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[4px] bg-[#E7F3EC] text-[#075E43] border border-[#CBD8D1] hidden lg:inline">
+                <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[4px] bg-[#E7F3EC] text-[#075E43] border border-[#CBD8D1] hidden lg:inline">
                   Portal
                 </span>
               </div>
-              <div className="text-xs font-semibold text-[#075E43] truncate leading-tight">
+              <div className="text-[10px] sm:text-xs font-semibold text-[#075E43] truncate leading-tight">
                 {t('appSubtitle')}
               </div>
             </div>
           </div>
 
           {/* Right: Notification Bell & Farmer Identity Block */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 relative">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 relative">
             {/* Notification Bell */}
             <button
               onClick={() => setActiveView('notifications')}

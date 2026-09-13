@@ -198,7 +198,7 @@ export const OperatorQueueTab: React.FC = () => {
               </div>
 
               {/* Status and Action Buttons */}
-              <div className="flex items-center gap-2 self-end lg:self-center flex-wrap">
+              <div className="flex items-center gap-2 self-stretch sm:self-end lg:self-center flex-wrap justify-between sm:justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-[#EDF3EF]">
                 <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider ${
                   b.status === 'PROCESSING'
                     ? 'bg-[#175CD3]/15 text-[#175CD3]'

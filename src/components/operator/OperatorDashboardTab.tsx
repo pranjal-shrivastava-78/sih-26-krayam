@@ -79,7 +79,7 @@ export const OperatorDashboardTab: React.FC = () => {
       )}
 
       {/* Primary KPI Metrics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {/* Today's Bookings */}
         <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-4 shadow-sm">
           <div className="text-[11px] font-bold text-[#66736D] uppercase">
@@ -233,7 +233,7 @@ export const OperatorDashboardTab: React.FC = () => {
 
           {/* Queue Table */}
           <div className="overflow-x-auto border border-[#CBD8D1] rounded-[6px]">
-            <table className="w-full text-xs text-left">
+            <table className="w-full text-xs text-left min-w-[550px]">
               <thead className="bg-[#EDF3EF] text-[#34443D] uppercase text-[10px] font-bold border-b border-[#CBD8D1]">
                 <tr>
                   <th className="px-3 py-2.5">{ot.queueTokenHeader}</th>

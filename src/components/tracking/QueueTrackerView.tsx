@@ -154,10 +154,10 @@ export const QueueTrackerView: React.FC = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
               <button
                 onClick={() => setIsRescheduleOpen(true)}
-                className="h-10 px-4 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:border-[#075E43] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="h-10 px-4 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:border-[#075E43] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-[#075E43]" />
                 <span>Reschedule Booking</span>
@@ -165,7 +165,7 @@ export const QueueTrackerView: React.FC = () => {
 
               <button
                 onClick={() => setShowCancelDialog(true)}
-                className="h-10 px-3.5 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:border-[#B42318] hover:bg-[#FFF5F5] text-[#B42318] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                className="h-10 px-3.5 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:border-[#B42318] hover:bg-[#FFF5F5] text-[#B42318] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
               >
                 <XCircle className="w-3.5 h-3.5" />
                 <span>Cancel</span>
@@ -228,8 +228,8 @@ export const QueueTrackerView: React.FC = () => {
         </div>
 
         {/* Demo Simulation Trigger Bar */}
-        <div className="bg-[#F5F8F6] border-t border-[#CBD8D1] px-5 py-2.5 flex items-center justify-between">
-          <span className="text-xs text-[#66736D]">
+        <div className="bg-[#F5F8F6] border-t border-[#CBD8D1] px-4 sm:px-5 py-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-[#66736D]">
+          <span>
             Official Queue Simulation Tool (for operational testing)
           </span>
           <button

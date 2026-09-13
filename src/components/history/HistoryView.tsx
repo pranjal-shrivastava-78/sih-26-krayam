@@ -155,7 +155,7 @@ export const HistoryView: React.FC = () => {
       {/* Section 19: Searchable Transaction Table */}
       <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="gov-table">
+          <table className="gov-table min-w-[640px]">
             <thead>
               <tr>
                 <th className="w-1/6">Date / तारीख</th>

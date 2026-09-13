@@ -138,8 +138,8 @@ export const ProcurementPaymentView: React.FC = () => {
               </span>
             </div>
 
-            <div className="border border-[#CBD8D1] rounded-[6px] overflow-hidden">
-              <table className="gov-table">
+            <div className="border border-[#CBD8D1] rounded-[6px] overflow-hidden overflow-x-auto">
+              <table className="gov-table min-w-[480px]">
                 <tbody>
                   <tr>
                     <td className="w-1/2 bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">

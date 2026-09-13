@@ -164,7 +164,7 @@ export const OperatorBookingsTab: React.FC = () => {
       {/* Bookings Table */}
       <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left">
+          <table className="w-full text-xs text-left min-w-[650px]">
             <thead className="bg-[#EDF3EF] text-[#34443D] uppercase text-[10px] font-bold border-b border-[#CBD8D1]">
               <tr>
                 <th className="px-4 py-3">{ot.bookingIdHeader}</th>
@@ -256,8 +256,8 @@ export const OperatorBookingsTab: React.FC = () => {
 
       {/* Booking Details Modal */}
       {selectedBooking && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-[10px] border border-[#CBD8D1] max-w-lg w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-[10px] border border-[#CBD8D1] max-w-lg w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#CBD8D1] pb-3">
               <h3 className="font-bold text-sm text-[#17231F] flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#075E43]" />
@@ -367,8 +367,8 @@ export const OperatorBookingsTab: React.FC = () => {
 
       {/* Reschedule Booking Modal */}
       {rescheduleModalBooking && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-[10px] border border-[#CBD8D1] max-w-md w-full p-6 shadow-xl space-y-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50">
+          <div className="bg-white rounded-[10px] border border-[#CBD8D1] max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-xl space-y-4">
             <h3 className="font-bold text-sm text-[#075E43] flex items-center gap-2">
               <Clock className="w-4 h-4" />
               <span>{ot.rescheduleBtn}: {rescheduleModalBooking.id}</span>

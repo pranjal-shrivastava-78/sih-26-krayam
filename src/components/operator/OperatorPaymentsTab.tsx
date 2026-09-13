@@ -148,14 +148,14 @@ export const OperatorPaymentsTab: React.FC = () => {
                 </div>
 
                 {/* Action Bar */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#CBD8D1]">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 pt-2 border-t border-[#CBD8D1]">
                   <div className="text-[11px] text-[#66736D]">
                     {ot.avgPaymentSla}
                   </div>
                   <button
                     type="button"
                     onClick={() => handleAuthorizePayment(p.id)}
-                    className="bg-[#075E43] hover:bg-[#063B2A] text-white text-xs font-bold px-4 py-2 rounded-[6px] transition-colors flex items-center gap-1.5 shadow-sm"
+                    className="w-full sm:w-auto bg-[#075E43] hover:bg-[#063B2A] text-white text-xs font-bold px-4 py-2 rounded-[6px] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     <FileCheck className="w-4 h-4" />
                     <span>{ot.confirmDbtPaymentBtn}</span>
@@ -177,7 +177,7 @@ export const OperatorPaymentsTab: React.FC = () => {
       {activeTab === 'HISTORY' && (
         <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
+            <table className="w-full text-xs text-left min-w-[700px]">
               <thead className="bg-[#EDF3EF] text-[#34443D] uppercase text-[10px] font-bold border-b border-[#CBD8D1]">
                 <tr>
                   <th className="px-4 py-3">Txn Ref</th>

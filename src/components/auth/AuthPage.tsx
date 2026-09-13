@@ -237,21 +237,23 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
 
   return (
     <div className="min-h-screen bg-[#F5F8F6] text-[#17231F] flex flex-col justify-between">
-      {/* Top Government Strip with Language Selector */}
-      <div className="bg-[#063B2A] text-[#FFFFFF] text-xs py-2 px-4 sm:px-8 border-b border-[#075E43]">
-        <div className="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-2">
-          <span className="font-medium tracking-wide">
+      {/* Top Government Strip with Language Selector on the Right */}
+      <div className="bg-[#063B2A] text-[#FFFFFF] text-xs py-2 px-3 sm:px-8 border-b border-[#075E43]">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+          <span className="font-medium tracking-wide text-[10px] sm:text-xs leading-snug">
             भारत सरकार • कृषि एवं किसान कल्याण मंत्रालय | Government of India
           </span>
-          <div className="flex items-center gap-2">
-            <LanguageDropdown variant="header" />
+          <div className="flex items-center justify-end self-end sm:self-auto gap-2">
+            <LanguageDropdown variant="header" align="right" />
           </div>
         </div>
       </div>
 
       {/* Main Authentication Container */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 my-4">
-        <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[10px] w-full max-w-xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
+      <div className="flex-1 flex items-center justify-center p-3 sm:p-6 lg:p-8 my-2 sm:my-4">
+        <div className={`bg-[#FFFFFF] border border-[#CBD8D1] rounded-[10px] w-full ${
+          tab === 'register' ? 'max-w-xl md:max-w-3xl lg:max-w-4xl' : 'max-w-xl'
+        } shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden transition-all duration-200`}>
           
           {/* Header with Sprout Logo */}
           <div className="bg-[#EDF3EF] p-6 border-b border-[#CBD8D1] text-center">
@@ -274,12 +276,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
             </p>
 
             {/* Tab Switcher: Farmer Login | Operator Login | New Registration */}
-            <div className="grid grid-cols-3 mt-6 bg-[#FFFFFF] p-1 rounded-[6px] border border-[#CBD8D1] max-w-md mx-auto gap-1">
+            <div className="flex sm:grid sm:grid-cols-3 mt-6 bg-[#FFFFFF] p-1 rounded-[6px] border border-[#CBD8D1] max-w-lg mx-auto gap-1 overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 id="tab-farmer-login"
                 onClick={() => { setTab('farmer_login'); setRegSuccessFarmerId(null); setLoginError(''); }}
-                className={`py-2 px-2 text-xs font-bold rounded-[4px] transition-colors truncate ${
+                className={`flex-1 min-w-[110px] sm:min-w-0 py-2 px-2 text-[11px] sm:text-xs font-bold rounded-[4px] transition-colors whitespace-nowrap text-center ${
                   tab === 'farmer_login' ? 'bg-[#063B2A] text-[#FFFFFF]' : 'text-[#66736D] hover:text-[#17231F]'
                 }`}
               >
@@ -289,18 +291,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                 type="button"
                 id="tab-operator-login"
                 onClick={() => { setTab('operator_login'); setRegSuccessFarmerId(null); setLoginError(''); }}
-                className={`py-2 px-2 text-xs font-bold rounded-[4px] transition-colors truncate flex items-center justify-center gap-1 ${
+                className={`flex-1 min-w-[120px] sm:min-w-0 py-2 px-2 text-[11px] sm:text-xs font-bold rounded-[4px] transition-colors whitespace-nowrap flex items-center justify-center gap-1 ${
                   tab === 'operator_login' ? 'bg-[#075E43] text-[#FFFFFF]' : 'text-[#66736D] hover:text-[#075E43]'
                 }`}
               >
                 <Briefcase className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">{at.tabOperatorLogin}</span>
+                <span>{at.tabOperatorLogin}</span>
               </button>
               <button
                 type="button"
                 id="tab-register"
                 onClick={() => { setTab('register'); setRegSuccessFarmerId(null); setLoginError(''); }}
-                className={`py-2 px-2 text-xs font-bold rounded-[4px] transition-colors truncate ${
+                className={`flex-1 min-w-[120px] sm:min-w-0 py-2 px-2 text-[11px] sm:text-xs font-bold rounded-[4px] transition-colors whitespace-nowrap text-center ${
                   tab === 'register' ? 'bg-[#063B2A] text-[#FFFFFF]' : 'text-[#66736D] hover:text-[#17231F]'
                 }`}
               >
@@ -705,7 +707,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block font-bold text-[#17231F] uppercase mb-1">
                         {at.tehsilLabel}
@@ -715,7 +717,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                         value={regData.tehsil}
                         onChange={(e) => setRegData({ ...regData, tehsil: e.target.value })}
                         placeholder={at.tehsilPlaceholder}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-2 py-2 text-xs focus:border-[#075E43] focus:outline-none"
+                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 text-xs focus:border-[#075E43] focus:outline-none min-h-[40px]"
                       />
                     </div>
                     <div>
@@ -726,7 +728,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                         type="text"
                         value={regData.district}
                         onChange={(e) => setRegData({ ...regData, district: e.target.value })}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-2 py-2 text-xs focus:border-[#075E43] focus:outline-none"
+                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 text-xs focus:border-[#075E43] focus:outline-none min-h-[40px]"
                       />
                     </div>
                     <div>
@@ -738,7 +740,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                         value={regData.pincode}
                         onChange={(e) => setRegData({ ...regData, pincode: e.target.value })}
                         placeholder={at.pincodePlaceholder}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-2 py-2 text-xs focus:border-[#075E43] focus:outline-none"
+                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 text-xs focus:border-[#075E43] focus:outline-none min-h-[40px]"
                       />
                     </div>
                   </div>
@@ -851,11 +853,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
 
       {/* Official Government Footer Strip */}
       <div className="bg-[#FFFFFF] border-t border-[#CBD8D1] text-xs py-3 px-4 sm:px-8 text-[#66736D]">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 text-center sm:text-left">
           <span>
             © 2026 Ministry of Agriculture & Farmers Welfare, Government of India.
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-3 gap-y-1">
             <button
               type="button"
               onClick={() => setIsTcModalOpen(true)}

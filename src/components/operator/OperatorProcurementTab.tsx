@@ -381,7 +381,7 @@ export const OperatorProcurementTab: React.FC = () => {
       {subTab === 'HISTORY' && (
         <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
+            <table className="w-full text-xs text-left min-w-[650px]">
               <thead className="bg-[#EDF3EF] text-[#34443D] uppercase text-[10px] font-bold border-b border-[#CBD8D1]">
                 <tr>
                   <th className="px-4 py-3">{ot.bookingIdHeader}</th>

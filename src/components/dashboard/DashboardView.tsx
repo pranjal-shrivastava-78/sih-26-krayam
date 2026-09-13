@@ -124,17 +124,17 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Primary Action Buttons */}
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full md:w-auto">
           <button
             onClick={() => setActiveView('booking')}
-            className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 h-11 px-5 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
+            className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
           >
             <CalendarPlus className="w-4 h-4" />
             <span>{t('bookSlotAction')}</span>
           </button>
           <button
             onClick={() => setActiveView('tracking')}
-            className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 h-11 px-5 rounded-[6px] bg-[#FFFFFF] border border-[#0B6B4F] text-[#0B6B4F] hover:bg-[#E7F3EC] font-semibold text-sm transition-colors"
+            className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-[6px] bg-[#FFFFFF] border border-[#0B6B4F] text-[#0B6B4F] hover:bg-[#E7F3EC] font-semibold text-sm transition-colors"
           >
             <Activity className="w-4 h-4" />
             <span>{t('trackQueueAction')}</span>
@@ -248,7 +248,7 @@ export const DashboardView: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {services.map((item) => {
             const Icon = item.icon;
             return (

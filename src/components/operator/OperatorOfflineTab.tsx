@@ -54,11 +54,11 @@ export const OperatorOfflineTab: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
             <button
               type="button"
               onClick={toggleOfflineMode}
-              className={`px-4 py-2 rounded-[6px] text-xs font-bold transition-colors flex items-center gap-2 border ${
+              className={`px-4 py-2 rounded-[6px] text-xs font-bold transition-colors flex items-center justify-center gap-2 border ${
                 isOffline 
                   ? 'bg-[#EA8A0A] hover:bg-[#D97706] text-white border-[#EA8A0A]' 
                   : 'bg-[#EDF3EF] hover:bg-[#CBD8D1] text-[#063B2A] border-[#CBD8D1]'
@@ -71,7 +71,7 @@ export const OperatorOfflineTab: React.FC = () => {
             <button
               type="button"
               onClick={() => syncOfflineQueue()}
-              className="bg-[#063B2A] hover:bg-[#075E43] text-white text-xs font-bold px-4 py-2 rounded-[6px] transition-colors flex items-center gap-1.5 shadow-sm"
+              className="bg-[#063B2A] hover:bg-[#075E43] text-white text-xs font-bold px-4 py-2 rounded-[6px] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>{ot.retrySyncBtn}</span>
