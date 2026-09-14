@@ -288,7 +288,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div className="p-4 border-b border-[#0B4734] flex items-center justify-between bg-[#04261B]">
                 <div>
                   <div className="font-bold text-base text-[#FFFFFF] tracking-tight flex items-center gap-2">
-                    <span>KRAYAM Portal</span>
+                    <span>KRAYAM</span>
                     <span className="text-[10px] font-normal uppercase text-[#CBD8D1] bg-[#075E43] px-1.5 py-0.5 rounded">
                       Gov Menu
                     </span>

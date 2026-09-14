@@ -158,7 +158,7 @@ export interface TranslationStrings {
 export const translations: Record<Language, TranslationStrings> = {
   // 1. English
   en: {
-    appTitle: 'KRAYAM Portal',
+    appTitle: 'KRAYAM',
     appSubtitle: 'Government Grain Procurement & Queue System',
     navDashboard: 'Dashboard',
     navBooking: 'Book Slot',
@@ -305,7 +305,7 @@ export const translations: Record<Language, TranslationStrings> = {
 
   // 2. Hindi (हिन्दी) - ~43.6%
   hi: {
-    appTitle: 'क्रयम (KRAYAM) पोर्टल',
+    appTitle: 'क्रयम (KRAYAM)',
     appSubtitle: 'सरकारी अनाज खरीद एवं कतार प्रबंधन प्रणाली',
     navDashboard: 'मुख्य पृष्ठ',
     navBooking: 'स्लॉट बुक करें',
@@ -452,7 +452,7 @@ export const translations: Record<Language, TranslationStrings> = {
 
   // 3. Bengali (বাংলা) - ~8.0%
   bn: {
-    appTitle: 'ক্রয়ম (KRAYAM) পোর্টাল',
+    appTitle: 'ক্রয়ম (KRAYAM)',
     appSubtitle: 'সরকারি শস্য সংগ্রহ ও সারি ব্যবস্থাপনা ব্যবস্থা',
     navDashboard: 'ড্যাশবোর্ড',
     navBooking: 'স্লট বুকিং',
@@ -599,7 +599,7 @@ export const translations: Record<Language, TranslationStrings> = {
 
   // 4. Marathi (मराठी) - ~6.9%
   mr: {
-    appTitle: 'क्रयम (KRAYAM) पोर्टल',
+    appTitle: 'क्रयम (KRAYAM)',
     appSubtitle: 'शासकीय धान्य खरेदी व रांग व्यवस्थापन प्रणाली',
     navDashboard: 'मुख्य पृष्ठ',
     navBooking: 'स्लॉट बुकिंग',
@@ -746,7 +746,7 @@ export const translations: Record<Language, TranslationStrings> = {
 
   // 5. Telugu (తెలుగు) - ~6.7%
   te: {
-    appTitle: 'క్రయం (KRAYAM) పోర్టల్',
+    appTitle: 'క్రయం (KRAYAM)',
     appSubtitle: 'ప్రభుత్వ ధాన్య సేకరణ & క్యూ నిర్వహణ వ్యవస్థ',
     navDashboard: 'డాష్‌బోర్డ్',
     navBooking: 'స్లాట్ బుకింగ్',
@@ -893,7 +893,7 @@ export const translations: Record<Language, TranslationStrings> = {
 
   // 6. Tamil (தமிழ்) - ~5.7%
   ta: {
-    appTitle: 'கிரயம் (KRAYAM) போர்டல்',
+    appTitle: 'கிரயம் (KRAYAM)',
     appSubtitle: 'அரசு தானிய கொள்முதல் & வரிசை மேலாண்மை அமைப்பு',
     navDashboard: 'முகப்பு',
     navBooking: 'முன்பதிவு',
@@ -1040,7 +1040,7 @@ export const translations: Record<Language, TranslationStrings> = {
 
   // 7. Gujarati (ગુજરાતી) - ~4.6%
   gu: {
-    appTitle: 'ક્રયમ (KRAYAM) પોર્ટલ',
+    appTitle: 'ક્રયમ (KRAYAM)',
     appSubtitle: 'સરકારી અનાજ ખરીદી અને કતાર વ્યવસ્થાપન પ્રણાલી',
     navDashboard: 'મુખ્ય પૃષ્ઠ',
     navBooking: 'સ્લોટ બુકિંગ',
@@ -1187,7 +1187,7 @@ export const translations: Record<Language, TranslationStrings> = {
 
   // 8. Urdu (اردو) - ~4.2%
   ur: {
-    appTitle: 'کریام (KRAYAM) پورٹل',
+    appTitle: 'کریام (KRAYAM)',
     appSubtitle: 'سرکاری غلہ خریداری اور قطار انتظام نظام',
     navDashboard: 'ڈیش بورڈ',
     navBooking: 'سلاٹ بکنگ',
@@ -1334,7 +1334,7 @@ export const translations: Record<Language, TranslationStrings> = {
 
   // 9. Kannada (ಕನ್ನಡ) - ~3.6%
   kn: {
-    appTitle: 'ಕ್ರಯಮ್ (KRAYAM) ಪೋರ್ಟಲ್',
+    appTitle: 'ಕ್ರಯಮ್ (KRAYAM)',
     appSubtitle: 'ಸರ್ಕಾರಿ ಧಾನ್ಯ ಖರೀದಿ ಮತ್ತು ಸರದಿ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆ',
     navDashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
     navBooking: 'ಸ್ಲಾಟ್ ಕಾಯ್ದಿರಿಸಿ',
@@ -1481,7 +1481,7 @@ export const translations: Record<Language, TranslationStrings> = {
 
   // 10. Odia (ଓଡ଼ିଆ) - ~3.1%
   or: {
-    appTitle: 'କ୍ରୟମ୍ (KRAYAM) ପୋର୍ଟାଲ୍',
+    appTitle: 'କ୍ରୟମ୍ (KRAYAM)',
     appSubtitle: 'ସରକାରୀ ଶସ୍ୟ କ୍ରୟ ଏବଂ ଧାଡ଼ି ପରିଚାଳନା ପ୍ରଣାଳୀ',
     navDashboard: 'ମୁଖ୍ୟ ପୃଷ୍ଠା',
     navBooking: 'ସ୍ଲଟ୍ ବୁକିଂ',
@@ -1628,7 +1628,7 @@ export const translations: Record<Language, TranslationStrings> = {
 
   // 11. Punjabi (ਪੰਜਾਬੀ) - ~2.7%
   pa: {
-    appTitle: 'ਕਰਯਮ (KRAYAM) ਪੋਰਟਲ',
+    appTitle: 'ਕਰਯਮ (KRAYAM)',
     appSubtitle: 'ਸਰਕਾਰੀ ਖਰੀਦ ਅਤੇ ਕਤਾਰ ਪ੍ਰਬੰਧਨ ਪ੍ਰਣਾਲੀ',
     navDashboard: 'ਮੁੱਖ ਪੰਨਾ',
     navBooking: 'ਸਲਾਟ ਬੁੱਕ ਕਰੋ',

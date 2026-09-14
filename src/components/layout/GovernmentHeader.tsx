@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Emblem } from './Emblem';
+import { OfficialBrandBar } from './OfficialBrandBar';
 import { LanguageDropdown } from '../common/LanguageDropdown';
 import { Bell, Menu, ChevronDown, UserCheck, LogOut, LogIn, ShieldCheck } from 'lucide-react';
 
@@ -56,57 +57,8 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
               <Menu className="w-5 h-5 text-[#075E43]" />
             </button>
 
-            {/* Emblem Area */}
-            <div 
-              onClick={() => setActiveView('dashboard')}
-              className="flex items-center gap-1.5 sm:gap-2.5 cursor-pointer group flex-shrink-0"
-            >
-              <div className="text-[#063B2A] flex-shrink-0">
-                <Emblem className="w-6 h-8 sm:w-8 sm:h-10" />
-              </div>
-
-              {/* Seedling / Sprout Brand Logo */}
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[8px] sm:rounded-[10px] overflow-hidden border border-[#CBD8D1] shadow-xs flex-shrink-0 bg-[#075E43]">
-                <img 
-                  src="/logo.png" 
-                  alt="KRAYAM Seedling Logo" 
-                  className="w-full h-full object-cover" 
-                />
-              </div>
-
-              <div className="border-l border-[#CBD8D1] pl-2 sm:pl-2.5 hidden sm:block leading-tight">
-                <div className="text-[11px] font-semibold text-[#17231F]">
-                  {t('govOfIndia')}
-                </div>
-                <div className="text-[10px] text-[#66736D]">
-                  Government of India
-                </div>
-                <div className="text-[10px] font-medium text-[#34443D] mt-0.5 line-clamp-1">
-                  {t('ministryName')}
-                </div>
-              </div>
-            </div>
-
-            {/* Vertical Divider */}
-            <div className="h-8 sm:h-9 w-[1px] bg-[#CBD8D1] hidden md:block" />
-
-            {/* Portal Title & Subtitle */}
-            <div 
-              onClick={() => setActiveView('dashboard')}
-              className="cursor-pointer min-w-0 truncate"
-            >
-              <div className="flex items-baseline gap-1.5 sm:gap-2">
-                <span className="text-lg sm:text-2xl font-bold tracking-tight text-[#063B2A]">
-                  {t('appTitle')}
-                </span>
-                <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-[4px] bg-[#E7F3EC] text-[#075E43] border border-[#CBD8D1] hidden lg:inline">
-                  Portal
-                </span>
-              </div>
-              <div className="text-[10px] sm:text-xs font-semibold text-[#075E43] truncate leading-tight">
-                {t('appSubtitle')}
-              </div>
-            </div>
+            {/* Left Interactive Area: Official Brand Bar matching photo */}
+            <OfficialBrandBar onClick={() => setActiveView('dashboard')} />
           </div>
 
           {/* Right: Notification Bell & Farmer Identity Block */}
