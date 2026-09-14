@@ -236,9 +236,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F8F6] text-[#17231F] flex flex-col justify-between">
+    <div 
+      className="min-h-screen text-[#17231F] flex flex-col justify-between relative bg-cover bg-center bg-no-repeat sm:bg-fixed"
+      style={{
+        backgroundImage: "url('/login-bg.png')",
+        backgroundColor: '#F5F8F6'
+      }}
+    >
       {/* Top Government Strip with Language Selector on the Right */}
-      <div className="bg-[#063B2A] text-[#FFFFFF] text-xs py-2 px-3 sm:px-8 border-b border-[#075E43]">
+      <div className="bg-[#063B2A] text-[#FFFFFF] text-xs py-2 px-3 sm:px-8 border-b border-[#075E43] relative z-10 shadow-sm">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
           <span className="font-medium tracking-wide text-[10px] sm:text-xs leading-snug">
             भारत सरकार • कृषि एवं किसान कल्याण मंत्रालय | Government of India
@@ -250,10 +256,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       </div>
 
       {/* Main Authentication Container */}
-      <div className="flex-1 flex items-center justify-center p-3 sm:p-6 lg:p-8 my-2 sm:my-4">
-        <div className={`bg-[#FFFFFF] border border-[#CBD8D1] rounded-[10px] w-full ${
+      <div className="flex-1 flex items-center justify-center p-3 sm:p-6 lg:p-8 my-2 sm:my-4 relative z-10">
+        <div className={`bg-[#FFFFFF]/95 backdrop-blur-md border border-[#CBD8D1] rounded-[12px] w-full ${
           tab === 'register' ? 'max-w-xl md:max-w-3xl lg:max-w-4xl' : 'max-w-xl'
-        } shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden transition-all duration-200`}>
+        } shadow-[0_12px_40px_rgba(6,59,42,0.12)] overflow-hidden transition-all duration-200`}>
           
           {/* Header with Sprout Logo */}
           <div className="bg-[#EDF3EF] p-6 border-b border-[#CBD8D1] text-center">
@@ -852,7 +858,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       </div>
 
       {/* Official Government Footer Strip */}
-      <div className="bg-[#FFFFFF] border-t border-[#CBD8D1] text-xs py-3 px-4 sm:px-8 text-[#66736D]">
+      <div className="bg-[#FFFFFF]/90 backdrop-blur-sm border-t border-[#CBD8D1] text-xs py-3 px-4 sm:px-8 text-[#66736D] relative z-10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 text-center sm:text-left">
           <span>
             © 2026 Ministry of Agriculture & Farmers Welfare, Government of India.
