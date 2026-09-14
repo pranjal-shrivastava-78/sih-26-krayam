@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { ActiveView, Language } from '../../types';
+import { ActiveView } from '../../types';
 import { 
   LayoutDashboard,
   Activity, 
@@ -12,14 +12,9 @@ import {
   HelpCircle,
   Settings,
   X,
-  CheckCircle2,
-  ShieldCheck,
   User,
-  ExternalLink,
   Globe,
-  LogOut,
-  LogIn,
-  Briefcase
+  LogIn
 } from 'lucide-react';
 import { TranslationStrings } from '../../i18n/translations';
 import { LanguageDropdown } from '../common/LanguageDropdown';
@@ -33,16 +28,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { 
     activeView, 
     setActiveView, 
-    farmer, 
     unreadCount, 
     setIsHelpModalOpen, 
     setIsSettingsModalOpen,
     setIsTcModalOpen,
     setIsPrivacyModalOpen,
     t,
-    isLoggedIn,
-    logout
+    isLoggedIn
   } = useApp();
+
 
   // All 7 Services for Desktop
   const desktopServices: {
@@ -112,40 +106,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           1. DESKTOP SIDEBAR (Visible on lg screens, perfectly aligned 
              underneath the government header with 280px fixed width)
       ──────────────────────────────────────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-[280px] shrink-0 bg-[#063B2A] text-[#FFFFFF] border-r border-[#0B4734] sticky top-[72px] h-[calc(100vh-72px)] overflow-y-auto justify-between pb-6 select-none">
+      <aside className="hidden lg:flex flex-col w-[280px] shrink-0 bg-[#063B2A] text-[#FFFFFF] border-r border-[#0B4734] sticky top-[80px] h-[calc(100vh-80px)] overflow-hidden justify-between pb-6 select-none">
         <div>
-          {/* Section 7: Farmer Profile Panel (Official Identity Block) */}
-          {farmer && (
-            <div className="p-3.5 mx-3.5 mt-4 mb-2 rounded-[8px] bg-[#075E43]/70 border border-[#16845F]/60">
-              <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-wider text-[#CBD8D1] pb-2 border-b border-[#16845F]/40 mb-2">
-                <span className="flex items-center gap-1.5 text-[#E7F3EC]">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#E7F3EC]" />
-                  Verified Farmer
-                </span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#16803C]" />
-              </div>
-
-              <div className="flex items-start gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-[#063B2A] border border-[#CBD8D1] flex items-center justify-center text-[#FFFFFF] flex-shrink-0 mt-0.5">
-                  <User className="w-4 h-4 text-[#CBD8D1]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-bold text-[#FFFFFF] truncate leading-tight">
-                    {farmer.fullName}
-                  </div>
-                  <div className="text-xs font-mono text-[#CBD8D1] mt-0.5">
-                    Farmer ID: {farmer.farmerId}
-                  </div>
-                  <div className="text-[11px] text-[#E7F3EC] truncate mt-0.5">
-                    {farmer.location.village}, {farmer.location.district}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Section 6: Main Services Navigation */}
-          <div className="px-3.5 py-2">
+          <div className="px-3.5 pt-4 pb-2">
             <div className="text-[10px] uppercase tracking-wider text-[#CBD8D1] font-bold px-2 mb-2">
               Main Services / मुख्य सेवाएं
             </div>
@@ -216,18 +180,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
           </button>
 
-          {isLoggedIn ? (
-            <button
-              onClick={() => logout()}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] text-xs text-[#FCA5A5] hover:bg-[#7F1D1D]/30 transition-colors text-left"
-            >
-              <LogOut className="w-4 h-4 text-[#FCA5A5]" />
-              <div className="leading-tight">
-                <div>Sign Out</div>
-                <div className="text-[10px] text-[#FCA5A5]/80 font-['Noto_Sans_Devanagari']">लॉग आउट करें</div>
-              </div>
-            </button>
-          ) : (
+          {!isLoggedIn && (
             <button
               onClick={() => setActiveView('auth')}
               className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] text-xs text-[#A3D99D] hover:bg-[#075E43] transition-colors text-left"
@@ -308,35 +261,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </div>
 
               {/* Verified Farmer Profile Block */}
-              {farmer && (
-                <div className="p-3.5 mx-3.5 my-3 rounded-[8px] bg-[#075E43]/70 border border-[#16845F]/60">
-                  <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-wider text-[#CBD8D1] pb-2 border-b border-[#16845F]/40 mb-2">
-                    <span className="flex items-center gap-1.5 text-[#E7F3EC]">
-                      <ShieldCheck className="w-3.5 h-3.5 text-[#E7F3EC]" />
-                      Verified Farmer
-                    </span>
-                    <span className="text-[10px] font-mono text-[#CBD8D1]">{farmer.farmerId}</span>
-                  </div>
-
-                  <div className="text-sm font-bold text-[#FFFFFF] leading-tight">
-                    {farmer.fullName}
-                  </div>
-                  <div className="text-[11px] text-[#E7F3EC] mt-0.5">
-                    {farmer.location.village}, {farmer.location.district}
-                  </div>
-
-                  <button
-                    onClick={() => handleNavClick('profile')}
-                    className="mt-2.5 w-full h-8 px-2.5 rounded-[4px] bg-[#063B2A] hover:bg-[#04261B] text-[#E7F3EC] text-xs font-semibold flex items-center justify-center gap-1.5 border border-[#16845F]"
-                  >
-                    <User className="w-3 h-3" />
-                    <span>View Full Profile & Land</span>
-                  </button>
-                </div>
-              )}
-
               {/* Mobile: Additional Government Services (Not on Bottom Bar) */}
-              <div className="px-3.5 py-2">
+              <div className="px-3.5 py-3">
                 <div className="flex items-center justify-between px-2 mb-2">
                   <span className="text-[10px] uppercase tracking-wider text-[#CBD8D1] font-bold">
                     Additional Services / अन्य सेवाएं
@@ -427,19 +353,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </div>
 
               {/* Mobile Auth Button */}
-              <div className="pt-1">
-                {isLoggedIn ? (
-                  <button
-                    onClick={() => {
-                      logout();
-                      onClose();
-                    }}
-                    className="w-full h-9 px-2.5 rounded-[6px] bg-[#7F1D1D]/40 hover:bg-[#7F1D1D]/70 text-[#FCA5A5] text-xs font-semibold flex items-center justify-center gap-1.5 border border-[#EF4444]/40"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Sign Out (लॉग आउट)</span>
-                  </button>
-                ) : (
+              {!isLoggedIn && (
+                <div className="pt-1">
                   <button
                     onClick={() => {
                       setActiveView('auth');
@@ -450,8 +365,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <LogIn className="w-3.5 h-3.5" />
                     <span>Login / Register (लॉग इन)</span>
                   </button>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Mobile Legal Links */}
               <div className="pt-2 border-t border-[#0B4734] flex items-center justify-center gap-3 text-[11px] text-[#CBD8D1]">
