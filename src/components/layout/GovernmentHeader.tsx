@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Emblem } from './Emblem';
 import { OfficialBrandBar } from './OfficialBrandBar';
 import { LanguageDropdown } from '../common/LanguageDropdown';
-import { Bell, Menu, ChevronDown, UserCheck, LogOut, LogIn, ShieldCheck } from 'lucide-react';
+import { Bell, Menu, ChevronDown, UserCheck, LogOut, LogIn, ShieldCheck, Calendar, Clock } from 'lucide-react';
 
 interface GovernmentHeaderProps {
   onOpenSidebar: () => void;
@@ -17,28 +17,78 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
     setActiveView, 
     t,
     isLoggedIn,
-    logout
+    logout,
+    language
   } = useApp();
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
+  // Live Date and Time Shower formatted dynamically with 1-second ticking clock
+  const [currentDateTime, setCurrentDateTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formattedDate = currentDateTime.toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-IN', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  const formattedTime = currentDateTime.toLocaleTimeString(language === 'hi' ? 'hi-IN' : 'en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+
   return (
     <header className="w-full bg-[#FFFFFF] border-b border-[#CBD8D1] sticky top-0 z-30 shadow-xs">
-      {/* Official Top National Identity Stripe */}
-      <div className="w-full bg-[#063B2A] text-[#FFFFFF] text-[10px] sm:text-[11px] py-1 px-3 sm:px-6">
-        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-2">
-          <span className="font-medium tracking-wide flex items-center gap-2 truncate">
-            <span className="truncate">{t('govOfIndia')}</span>
-            <span className="hidden lg:inline text-[#A3D99D] text-[10px] bg-[#075E43] px-2 py-0.5 rounded border border-[#16845F]">
+      {/* Official Top National Identity Stripe with Date & Day Shower + Live Time */}
+      <div className="w-full bg-[#063B2A] text-[#FFFFFF] text-[10px] sm:text-[11px] py-1.5 px-3 sm:px-6 border-b border-[#075E43] relative z-40 shadow-xs">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          {/* Left: Government of India & Tech Badge */}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-semibold tracking-wide text-[#FFFFFF] truncate">
+              {t('govOfIndia')}
+            </span>
+            <span className="hidden lg:inline-flex items-center gap-1.5 text-[#A3D99D] text-[10px] bg-[#075E43] px-2 py-0.5 rounded border border-[#16845F] font-medium shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
               {t('fastApiConnected')}
             </span>
-          </span>
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <span className="hidden md:inline text-[#CBD8D1]">
+          </div>
+
+          {/* Center: Live Date & Time Shower */}
+          <div className="hidden sm:flex items-center gap-2 text-[11px] text-[#E7F3EC] bg-[#04261B]/80 px-3 py-0.5 rounded-full border border-[#0B4734] shadow-xs shrink-0">
+            <div className="flex items-center gap-1.5 font-medium tracking-wide">
+              <Calendar className="w-3.5 h-3.5 text-[#A3D99D]" />
+              <span>{formattedDate}</span>
+            </div>
+            <span className="text-[#16845F]">•</span>
+            <div className="flex items-center gap-1.5 font-mono font-semibold text-[#85E1A9]">
+              <Clock className="w-3.5 h-3.5 text-[#A3D99D]" />
+              <span>{formattedTime}</span>
+            </div>
+          </div>
+
+          {/* Mobile compact time */}
+          <div className="sm:hidden flex items-center gap-1 text-[10px] text-[#85E1A9] font-mono font-medium shrink-0">
+            <Clock className="w-3 h-3 text-[#A3D99D]" />
+            <span>{currentDateTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+          </div>
+
+          {/* Right: Ministry Name & Language Dropdown */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <span className="hidden xl:inline text-[#CBD8D1] truncate max-w-[280px]">
               {t('ministryName')}
             </span>
             {/* Top Right Indian Languages Dropdown */}
-            <LanguageDropdown variant="header" />
+            <LanguageDropdown variant="header" align="right" />
           </div>
         </div>
       </div>
@@ -63,6 +113,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
 
           {/* Right: Notification Bell & Farmer Identity Block */}
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 relative">
+
             {/* Notification Bell */}
             <button
               onClick={() => setActiveView('notifications')}
@@ -159,10 +210,11 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
             ) : (
               <button
                 onClick={() => setActiveView('auth')}
-                className="h-9 px-3 sm:px-4 rounded-[6px] bg-[#075E43] hover:bg-[#063B2A] text-[#FFFFFF] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                className="h-9 px-2.5 sm:px-4 rounded-[6px] bg-[#075E43] hover:bg-[#063B2A] text-[#FFFFFF] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
               >
                 <LogIn className="w-4 h-4" />
-                <span>Login / Register</span>
+                <span className="hidden sm:inline">Login / Register</span>
+                <span className="sm:hidden">Login</span>
               </button>
             )}
           </div>

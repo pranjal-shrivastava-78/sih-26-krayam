@@ -8,12 +8,14 @@ interface LanguageDropdownProps {
   className?: string;
   variant?: 'header' | 'sidebar' | 'modal';
   align?: 'left' | 'right';
+  direction?: 'up' | 'down';
 }
 
 export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({ 
   className = '',
   variant = 'header',
-  align = 'right'
+  align = 'right',
+  direction = 'down'
 }) => {
   const { language, setLanguage } = useApp();
   const [isOpen, setIsOpen] = useState(false);
@@ -21,7 +23,7 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
 
   const currentLang = INDIAN_LANGUAGES.find(l => l.code === language) || INDIAN_LANGUAGES[0];
 
-  // Close on outside click
+  // Close on outside click or touch
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -31,7 +33,7 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
 
     if (isOpen) {
       document.addEventListener('mousedown', handleOutsideClick);
-      document.addEventListener('touchstart', handleOutsideClick);
+      document.addEventListener('touchstart', handleOutsideClick, { passive: true });
     }
 
     return () => {
@@ -56,6 +58,15 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
 
   return (
     <div className={`relative inline-block text-left ${className}`} ref={dropdownRef}>
+      {/* Optional Mobile Backdrop for clean outside click dismissal on phone/tablet */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/20 sm:hidden" 
+          onClick={() => setIsOpen(false)} 
+          aria-hidden="true" 
+        />
+      )}
+
       {/* Dropdown Trigger Button */}
       <button
         type="button"
@@ -84,7 +95,9 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
         <div 
           className={`absolute ${
             align === 'left' ? 'left-0' : 'right-0'
-          } mt-1.5 w-64 sm:w-72 max-w-[calc(100vw-1.5rem)] bg-[#FFFFFF] rounded-[8px] shadow-[0_8px_30px_rgba(0,0,0,0.22)] border border-[#CBD8D1] py-1.5 z-50 text-[#17231F] animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden`}
+          } ${
+            direction === 'up' ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          } w-64 sm:w-72 max-w-[calc(100vw-1.5rem)] bg-[#FFFFFF] rounded-[8px] shadow-[0_10px_35px_rgba(0,0,0,0.25)] border border-[#CBD8D1] py-1.5 z-[100] text-[#17231F] animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden`}
           role="menu"
           aria-orientation="vertical"
         >
@@ -105,7 +118,7 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
           </div>
 
           {/* Language Options Grid */}
-          <div className="max-h-80 overflow-y-auto py-1 divide-y divide-[#F5F8F6]">
+          <div className="max-h-[min(320px,65vh)] overflow-y-auto py-1 divide-y divide-[#F5F8F6]">
             {INDIAN_LANGUAGES.map((langItem) => {
               const isSelected = language === langItem.code;
               return (

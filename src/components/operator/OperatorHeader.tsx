@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { OfficialBrandBar } from '../layout/OfficialBrandBar';
 import { LanguageDropdown } from '../common/LanguageDropdown';
@@ -10,7 +10,8 @@ import {
   RefreshCw, 
   LogOut, 
   Layers, 
-  Calendar, 
+  Calendar,
+  Clock, 
   Scale, 
   CreditCard, 
   BarChart3, 
@@ -33,6 +34,30 @@ export const OperatorHeader: React.FC = () => {
 
   const ot = getOperatorText(language);
   const pendingSyncCount = syncQueue.filter(q => q.status === 'PENDING').length;
+
+  // Live Date & Time Clock for Mandi Floor Operations
+  const [currentDateTime, setCurrentDateTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formattedDate = currentDateTime.toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  const formattedTime = currentDateTime.toLocaleTimeString(language === 'hi' ? 'hi-IN' : 'en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
 
   return (
     <header className="sticky top-0 z-40 shadow-md">
@@ -89,8 +114,25 @@ export const OperatorHeader: React.FC = () => {
             </div>
           </div>
 
+          {/* Center: Live Date & Time for Mandi Intake Ops */}
+          <div className="hidden sm:flex items-center gap-2 text-[11px] text-[#E7F3EC] bg-[#04261B]/90 px-3 py-1 rounded-full border border-[#0B4734] shadow-xs shrink-0">
+            <div className="flex items-center gap-1.5 font-medium tracking-wide">
+              <Calendar className="w-3.5 h-3.5 text-[#A3D99D]" />
+              <span>{formattedDate}</span>
+            </div>
+            <span className="text-[#16845F]">•</span>
+            <div className="flex items-center gap-1.5 font-mono font-semibold text-[#85E1A9]">
+              <Clock className="w-3.5 h-3.5 text-[#A3D99D]" />
+              <span>{formattedTime}</span>
+            </div>
+          </div>
+
           {/* Right: Connection & Offline Sync Status */}
           <div className="flex items-center gap-2">
+            {/* Mobile compact time */}
+            <span className="sm:hidden text-[10px] font-mono text-[#85E1A9] bg-[#04261B] px-2 py-0.5 rounded border border-[#0B4734] shrink-0">
+              {currentDateTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+            </span>
             <button
               type="button"
               onClick={toggleOfflineMode}

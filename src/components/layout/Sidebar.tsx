@@ -38,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   } = useApp();
 
 
-  // All 7 Services for Desktop
+  // 6 Services for Desktop (Alerts removed as requested)
   const desktopServices: {
     id: ActiveView;
     titleEn: string;
@@ -52,7 +52,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { id: 'centres', titleEn: 'Centres', titleKey: 'navCentres', icon: MapPin },
     { id: 'procurement', titleEn: 'Procurement & DBT', titleKey: 'navProcurement', icon: IndianRupee },
     { id: 'history', titleEn: 'History', titleKey: 'navHistory', icon: History },
-    { id: 'notifications', titleEn: 'Alerts', titleKey: 'navNotifications', icon: Bell, badge: unreadCount },
   ];
 
   // Additional Services specifically for Mobile (excluding the 4 tabs pinned on the bottom bar: Home, Book, Queue, History)
@@ -79,14 +78,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       icon: IndianRupee 
     },
     { 
-      id: 'notifications', 
-      titleEn: 'Alerts & Notices', 
-      titleKey: 'navNotifications',
-      desc: 'Queue updates & MSP notifications',
-      icon: Bell,
-      badge: unreadCount 
-    },
-    { 
       id: 'profile', 
       titleEn: 'Farmer Profile & Land', 
       titleKey: 'navProfile',
@@ -106,58 +97,57 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           1. DESKTOP SIDEBAR (Visible on lg screens, perfectly aligned 
              underneath the government header with 280px fixed width)
       ──────────────────────────────────────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-[280px] shrink-0 bg-[#063B2A] text-[#FFFFFF] border-r border-[#0B4734] sticky top-[80px] h-[calc(100vh-80px)] overflow-hidden justify-between pb-6 select-none">
-        <div>
-          {/* Section 6: Main Services Navigation */}
-          <div className="px-3.5 pt-4 pb-2">
-            <div className="text-[10px] uppercase tracking-wider text-[#CBD8D1] font-bold px-2 mb-2">
-              Main Services / मुख्य सेवाएं
-            </div>
+      <aside className="hidden lg:flex flex-col w-[280px] shrink-0 bg-[#063B2A] text-[#FFFFFF] border-r border-[#0B4734] sticky top-[86px] sm:top-[90px] h-[calc(100vh-86px)] sm:h-[calc(100vh-90px)] overflow-y-auto pb-6 select-none">
+        {/* Section: Main Services Navigation */}
+        <div className="px-3.5 pt-4 pb-1">
+          <div className="text-[10px] uppercase tracking-wider text-[#CBD8D1] font-bold px-2 mb-2">
+            Main Services / मुख्य सेवाएं
+          </div>
 
-            <nav className="space-y-1">
-              {desktopServices.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeView === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNavClick(item.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[6px] text-left transition-colors relative ${
-                      isActive
-                        ? 'bg-[#E7F3EC] text-[#063B2A] font-bold border border-[#CBD8D1]'
-                        : 'text-[#E7F3EC] hover:bg-[#075E43] hover:text-[#FFFFFF]'
-                    }`}
-                  >
-                    {isActive && (
-                      <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#063B2A] rounded-r" />
-                    )}
+          <nav className="space-y-1">
+            {desktopServices.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavClick(item.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[6px] text-left transition-colors relative ${
+                    isActive
+                      ? 'bg-[#E7F3EC] text-[#063B2A] font-bold border border-[#CBD8D1]'
+                      : 'text-[#E7F3EC] hover:bg-[#075E43] hover:text-[#FFFFFF]'
+                  }`}
+                >
+                  {isActive && (
+                    <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#063B2A] rounded-r" />
+                  )}
 
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#063B2A]' : 'text-[#CBD8D1]'}`} />
-                      <div className="leading-tight truncate">
-                        <div className="text-[13px]">{t(item.titleKey)}</div>
-                        <div className={`text-[10px] ${isActive ? 'text-[#075E43]' : 'text-[#CBD8D1]'}`}>
-                          {item.titleEn}
-                        </div>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#063B2A]' : 'text-[#CBD8D1]'}`} />
+                    <div className="leading-tight truncate">
+                      <div className="text-[13px]">{t(item.titleKey)}</div>
+                      <div className={`text-[10px] ${isActive ? 'text-[#075E43]' : 'text-[#CBD8D1]'}`}>
+                        {item.titleEn}
                       </div>
                     </div>
+                  </div>
 
-                    {item.badge !== undefined && item.badge > 0 && (
-                      <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                        isActive ? 'bg-[#063B2A] text-[#FFFFFF]' : 'bg-[#D97706] text-[#FFFFFF]'
-                      }`}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                      isActive ? 'bg-[#063B2A] text-[#FFFFFF]' : 'bg-[#D97706] text-[#FFFFFF]'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Sidebar Footer: Help & Support, Settings, Version */}
-        <div className="p-3 mx-3.5 border-t border-[#0B4734] bg-[#04261B] rounded-[6px] space-y-1">
+        {/* Sidebar Footer: Help & Support, Settings, Version (Positioned directly under nav with zero wasted free space) */}
+        <div className="px-3.5 pt-3">
+          <div className="p-3 border border-[#0B4734] bg-[#04261B] rounded-[6px] space-y-1 shadow-xs">
           <button
             onClick={() => setIsHelpModalOpen(true)}
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[6px] text-xs text-[#E7F3EC] hover:bg-[#075E43] transition-colors text-left"
@@ -212,9 +202,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          <div className="pt-1 flex items-center justify-between text-[10px] text-[#CBD8D1]/80 px-1">
-            <span>Krayam Platform</span>
-            <span className="font-mono">v2.4.0</span>
+            <div className="pt-1 flex items-center justify-between text-[10px] text-[#CBD8D1]/80 px-1">
+              <span>Krayam Platform</span>
+              <span className="font-mono">v2.4.0</span>
+            </div>
           </div>
         </div>
       </aside>
@@ -331,7 +322,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <Globe className="w-3.5 h-3.5 text-[#CBD8D1]" />
                   Language / भाषा:
                 </span>
-                <LanguageDropdown variant="header" />
+                <LanguageDropdown variant="header" direction="up" align="right" />
               </div>
 
               <div className="grid grid-cols-2 gap-2 pt-1">

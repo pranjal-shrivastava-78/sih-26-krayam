@@ -244,12 +244,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       }}
     >
       {/* Top Government Strip with Language Selector on the Right */}
-      <div className="bg-[#063B2A] text-[#FFFFFF] text-xs py-2 px-3 sm:px-8 border-b border-[#075E43] relative z-10 shadow-sm">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
-          <span className="font-medium tracking-wide text-[10px] sm:text-xs leading-snug">
+      <div className="bg-[#063B2A] text-[#FFFFFF] text-xs py-2 px-3 sm:px-8 border-b border-[#075E43] relative z-50 shadow-sm">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
+          <span className="font-medium tracking-wide text-[10px] sm:text-xs leading-snug truncate">
             भारत सरकार • कृषि एवं किसान कल्याण मंत्रालय | Government of India
           </span>
-          <div className="flex items-center justify-end self-end sm:self-auto gap-2">
+          <div className="flex items-center justify-end shrink-0 gap-2">
             <LanguageDropdown variant="header" align="right" />
           </div>
         </div>
