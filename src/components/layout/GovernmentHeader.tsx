@@ -82,10 +82,10 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
       </div>
 
       {/* Main Official Header Area */}
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 py-2.5 sm:py-3">
-        <div className="flex items-center justify-between gap-2 sm:gap-3">
+      <div className="max-w-[1440px] mx-auto px-2.5 sm:px-6 py-2 sm:py-3">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-3">
           {/* Left: Mobile Toggle + Emblem + User Sprout Logo + Portal Identity */}
-          <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 sm:gap-3.5 min-w-0 flex-1">
             {/* Mobile Menu Button */}
             <button
               onClick={onOpenSidebar}

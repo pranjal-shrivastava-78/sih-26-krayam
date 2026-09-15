@@ -62,12 +62,12 @@ export const OperatorHeader: React.FC = () => {
     <header className="sticky top-0 z-40 shadow-md">
       {/* 1. Official National Brand Bar (White background, identical to Farmer Header matching reference photo) */}
       <div className="w-full bg-[#FFFFFF] border-b border-[#CBD8D1]">
-        <div className="max-w-[1500px] mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3">
-          {/* Left: Official Brand Bar (Logo -> KRAYAM -> Divider -> Emblem & Govt of India -> Divider -> Ministry) */}
-          <OfficialBrandBar onClick={() => setOperatorActiveTab('dashboard')} />
+        <div className="max-w-[1500px] mx-auto px-2.5 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2 sm:gap-3">
+          {/* Left: Official Brand Bar */}
+          <OfficialBrandBar className="flex-1 min-w-0" onClick={() => setOperatorActiveTab('dashboard')} />
 
           {/* Right: Operator Badge, Language Dropdown & Logout Button */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Operator Identity Badge */}
             <div className="hidden sm:flex flex-col text-right leading-tight">
               <span className="font-bold text-[#17231F] text-xs">
