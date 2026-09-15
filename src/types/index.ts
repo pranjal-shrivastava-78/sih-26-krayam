@@ -200,7 +200,6 @@ export type OperatorView =
   | 'procurement' 
   | 'payments' 
   | 'analytics' 
-  | 'ai_insights' 
   | 'offline';
 
 export interface OperatorProfile {

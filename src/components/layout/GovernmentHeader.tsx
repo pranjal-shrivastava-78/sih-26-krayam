@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Emblem } from './Emblem';
 import { OfficialBrandBar } from './OfficialBrandBar';
 import { LanguageDropdown } from '../common/LanguageDropdown';
 import { Bell, Menu, ChevronDown, UserCheck, LogOut, LogIn, ShieldCheck, Calendar, Clock } from 'lucide-react';
@@ -49,44 +48,33 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
 
   return (
     <header className="w-full bg-[#FFFFFF] border-b border-[#CBD8D1] sticky top-0 z-30 shadow-xs">
-      {/* Official Top National Identity Stripe with Date & Day Shower + Live Time */}
+      {/* Official Top Stripe with Live Clock on Left and Language Dropdown on Right */}
       <div className="w-full bg-[#063B2A] text-[#FFFFFF] text-[10px] sm:text-[11px] py-1.5 px-3 sm:px-6 border-b border-[#075E43] relative z-40 shadow-xs">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-2 sm:gap-4">
-          {/* Left: Government of India & Tech Badge */}
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="font-semibold tracking-wide text-[#FFFFFF] truncate">
-              {t('govOfIndia')}
-            </span>
-            <span className="hidden lg:inline-flex items-center gap-1.5 text-[#A3D99D] text-[10px] bg-[#075E43] px-2 py-0.5 rounded border border-[#16845F] font-medium shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
-              {t('fastApiConnected')}
-            </span>
-          </div>
-
-          {/* Center: Live Date & Time Shower */}
-          <div className="hidden sm:flex items-center gap-2 text-[11px] text-[#E7F3EC] bg-[#04261B]/80 px-3 py-0.5 rounded-full border border-[#0B4734] shadow-xs shrink-0">
-            <div className="flex items-center gap-1.5 font-medium tracking-wide">
-              <Calendar className="w-3.5 h-3.5 text-[#A3D99D]" />
-              <span>{formattedDate}</span>
+          {/* Left: Live Date & Time Clock */}
+          <div className="flex items-center gap-2">
+            {/* Desktop & Tablet: Date + Live Clock */}
+            <div className="hidden sm:flex items-center gap-2 text-[11px] text-[#E7F3EC] bg-[#04261B]/80 px-3 py-0.5 rounded-full border border-[#0B4734] shadow-xs shrink-0">
+              <div className="flex items-center gap-1.5 font-medium tracking-wide">
+                <Calendar className="w-3.5 h-3.5 text-[#A3D99D]" />
+                <span>{formattedDate}</span>
+              </div>
+              <span className="text-[#16845F]">•</span>
+              <div className="flex items-center gap-1.5 font-mono font-semibold text-[#85E1A9]">
+                <Clock className="w-3.5 h-3.5 text-[#A3D99D]" />
+                <span>{formattedTime}</span>
+              </div>
             </div>
-            <span className="text-[#16845F]">•</span>
-            <div className="flex items-center gap-1.5 font-mono font-semibold text-[#85E1A9]">
-              <Clock className="w-3.5 h-3.5 text-[#A3D99D]" />
+
+            {/* Mobile compact time */}
+            <div className="sm:hidden flex items-center gap-1.5 text-[10px] text-[#85E1A9] font-mono font-medium bg-[#04261B]/80 px-2.5 py-0.5 rounded-full border border-[#0B4734] shrink-0">
+              <Clock className="w-3 h-3 text-[#A3D99D]" />
               <span>{formattedTime}</span>
             </div>
           </div>
 
-          {/* Mobile compact time */}
-          <div className="sm:hidden flex items-center gap-1 text-[10px] text-[#85E1A9] font-mono font-medium shrink-0">
-            <Clock className="w-3 h-3 text-[#A3D99D]" />
-            <span>{currentDateTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
-          </div>
-
-          {/* Right: Ministry Name & Language Dropdown */}
+          {/* Right: Language Dropdown */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <span className="hidden xl:inline text-[#CBD8D1] truncate max-w-[280px]">
-              {t('ministryName')}
-            </span>
             {/* Top Right Indian Languages Dropdown */}
             <LanguageDropdown variant="header" align="right" />
           </div>

@@ -15,7 +15,6 @@ import {
   Scale, 
   CreditCard, 
   BarChart3, 
-  Sparkles, 
   HardDrive
 } from 'lucide-react';
 
@@ -250,19 +249,6 @@ export const OperatorHeader: React.FC = () => {
         >
           <BarChart3 className="w-3.5 h-3.5" />
           <span>{ot.tabAnalytics}</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setOperatorActiveTab('ai_insights')}
-          className={`px-3 py-2 rounded-t-[6px] font-bold flex items-center gap-1.5 border-b-2 transition-colors whitespace-nowrap ${
-            operatorActiveTab === 'ai_insights'
-              ? 'bg-[#075E43] text-[#FFFFFF] border-[#85E1A9]'
-              : 'text-[#CBD8D1] hover:text-[#FFFFFF] hover:bg-[#075E43]/40 border-transparent'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5 text-[#EA8A0A]" />
-          <span>{ot.tabAiInsights}</span>
         </button>
 
         <button

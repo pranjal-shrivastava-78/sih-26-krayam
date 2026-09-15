@@ -7,7 +7,6 @@ import { OperatorBookingsTab } from './OperatorBookingsTab';
 import { OperatorProcurementTab } from './OperatorProcurementTab';
 import { OperatorPaymentsTab } from './OperatorPaymentsTab';
 import { OperatorAnalyticsTab } from './OperatorAnalyticsTab';
-import { OperatorAiInsightsTab } from './OperatorAiInsightsTab';
 import { OperatorOfflineTab } from './OperatorOfflineTab';
 import { ShieldCheck, Phone } from 'lucide-react';
 
@@ -27,7 +26,6 @@ export const OperatorPortal: React.FC = () => {
         {operatorActiveTab === 'procurement' && <OperatorProcurementTab />}
         {operatorActiveTab === 'payments' && <OperatorPaymentsTab />}
         {operatorActiveTab === 'analytics' && <OperatorAnalyticsTab />}
-        {operatorActiveTab === 'ai_insights' && <OperatorAiInsightsTab />}
         {operatorActiveTab === 'offline' && <OperatorOfflineTab />}
       </main>
 

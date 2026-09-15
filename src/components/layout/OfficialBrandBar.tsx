@@ -1,6 +1,5 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { Emblem } from './Emblem';
 
 interface OfficialBrandBarProps {
   onClick?: () => void;
@@ -38,37 +37,7 @@ export const OfficialBrandBar: React.FC<OfficialBrandBarProps> = ({
           {t('appSubtitle')}
         </div>
       </div>
-
-      {/* Vertical Divider 1: Between KRAYAM and National Identity */}
-      <div className="h-8 sm:h-9 w-[1px] bg-[#CBD8D1] hidden md:block flex-shrink-0" />
-
-      {/* 3. Ashok Emblem & Government of India Block */}
-      <div className="hidden md:flex items-center gap-2 sm:gap-2.5 flex-shrink-0 text-left">
-        <div className="flex-shrink-0 flex items-center">
-          <Emblem className="h-9 sm:h-10 md:h-11 w-auto max-w-[44px]" alt="State Emblem of India" />
-        </div>
-        <div className="flex flex-col leading-tight">
-          <span className="text-[11px] lg:text-[12px] font-bold text-[#17231F] tracking-tight whitespace-nowrap">
-            भारत सरकार
-          </span>
-          <span className="text-[9px] lg:text-[10px] font-semibold text-[#5A6860] uppercase tracking-wider whitespace-nowrap mt-0.5">
-            GOVERNMENT OF INDIA
-          </span>
-        </div>
-      </div>
-
-      {/* Vertical Divider 2: Between Government of India and Ministry */}
-      <div className="h-7 lg:h-8 w-[1px] bg-[#CBD8D1] hidden md:block flex-shrink-0" />
-
-      {/* 4. Ministry of Agriculture & Farmers Welfare */}
-      <div className="hidden md:flex flex-col leading-tight text-left flex-shrink-0">
-        <span className="text-[11px] lg:text-[12px] font-bold text-[#17231F] tracking-tight whitespace-nowrap">
-          कृषि एवं किसान कल्याण मंत्रालय
-        </span>
-        <span className="text-[9px] lg:text-[10px] font-semibold text-[#5A6860] uppercase tracking-wider whitespace-nowrap mt-0.5">
-          MINISTRY OF AGRICULTURE & FARMERS WELFARE
-        </span>
-      </div>
     </div>
   );
 };
+

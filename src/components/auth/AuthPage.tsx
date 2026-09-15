@@ -243,12 +243,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
         backgroundColor: '#F5F8F6'
       }}
     >
-      {/* Top Government Strip with Language Selector on the Right */}
+      {/* Top Strip with Language Selector on the Right */}
       <div className="bg-[#063B2A] text-[#FFFFFF] text-xs py-2 px-3 sm:px-8 border-b border-[#075E43] relative z-50 shadow-sm">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
-          <span className="font-medium tracking-wide text-[10px] sm:text-xs leading-snug truncate">
-            भारत सरकार • कृषि एवं किसान कल्याण मंत्रालय | Government of India
-          </span>
+        <div className="max-w-6xl mx-auto flex items-center justify-end gap-2">
           <div className="flex items-center justify-end shrink-0 gap-2">
             <LanguageDropdown variant="header" align="right" />
           </div>
@@ -857,13 +854,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
         </div>
       </div>
 
-      {/* Official Government Footer Strip */}
+      {/* Footer Strip */}
       <div className="bg-[#FFFFFF]/90 backdrop-blur-sm border-t border-[#CBD8D1] text-xs py-3 px-4 sm:px-8 text-[#66736D] relative z-10">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 text-center sm:text-left">
-          <span>
-            © 2026 Ministry of Agriculture & Farmers Welfare, Government of India.
-          </span>
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-3 gap-y-1">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-center sm:justify-end gap-x-3 gap-y-1">
             <button
               type="button"
               onClick={() => setIsTcModalOpen(true)}
@@ -886,7 +879,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
               <ShieldCheck className="w-3.5 h-3.5" /> 256-Bit SSL Encrypted
             </span>
           </div>
-        </div>
       </div>
     </div>
   );

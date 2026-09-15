@@ -14,7 +14,6 @@ import {
   WifiOff, 
   RefreshCw, 
   PhoneCall, 
-  Sparkles,
   TrendingUp
 } from 'lucide-react';
 
@@ -295,20 +294,13 @@ export const OperatorDashboardTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Right 1 Col: AI Insights & Yard Load Alert */}
+        {/* Right 1 Col: Yard Telemetry & Yard Load Alert */}
         <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-[#17231F] flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#EA8A0A]" />
-              <span>AI Yard Telemetry</span>
+              <Activity className="w-4 h-4 text-[#075E43]" />
+              <span>Yard Arrival Telemetry</span>
             </h2>
-            <button
-              type="button"
-              onClick={() => setOperatorActiveTab('ai_insights')}
-              className="text-xs font-bold text-[#075E43] hover:underline"
-            >
-              Details
-            </button>
           </div>
 
           {/* High-load warning box */}
