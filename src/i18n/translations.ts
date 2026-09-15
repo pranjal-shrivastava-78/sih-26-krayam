@@ -288,7 +288,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'Payment History',
     noHistory: 'No history records found',
 
-    goodMorning: 'Good Morning',
+    goodMorning: 'Hello',
     bookSlotAction: 'Book a Slot',
     trackQueueAction: 'Track Queue',
     servicesTitle: 'Government Services & Mandi Tools',
@@ -435,7 +435,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'भुगतान इतिहास',
     noHistory: 'कोई इतिहास रिकॉर्ड नहीं मिला',
 
-    goodMorning: 'नमस्ते / शुभ प्रभात',
+    goodMorning: 'नमस्ते',
     bookSlotAction: 'स्लॉट बुक करें',
     trackQueueAction: 'कतार देखें',
     servicesTitle: 'सरकारी सेवाएं एवं मंडी उपकरण',
@@ -582,7 +582,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'পেমেন্ট ইতিহাস',
     noHistory: 'কোন রেকর্ড পাওয়া যায়নি',
 
-    goodMorning: 'সুপ্রভাত / নমস্কার',
+    goodMorning: 'নমস্কার',
     bookSlotAction: 'স্লট বুক করুন',
     trackQueueAction: 'সারি দেখুন',
     servicesTitle: 'সরকারি পরিষেবা ও মান্ডি টুলস',
@@ -729,7 +729,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'पेमेंट इतिहास',
     noHistory: 'कोणतीही नोंद सापडली नाही',
 
-    goodMorning: 'शुभ प्रभात / नमस्कार',
+    goodMorning: 'नमस्कार',
     bookSlotAction: 'स्लॉट बुक करा',
     trackQueueAction: 'रांग पहा',
     servicesTitle: 'शासकीय सेवा आणि बाजार समिती साधने',
@@ -876,7 +876,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'చెల్లింపు చరిత్ర',
     noHistory: 'రికార్డులు ఏవీ లేవు',
 
-    goodMorning: 'శుభోదయం / నమస్కారం',
+    goodMorning: 'నమస్కారం',
     bookSlotAction: 'స్లాట్ బుక్ చేయండి',
     trackQueueAction: 'క్యూ ట్రాక్ చేయండి',
     servicesTitle: 'ప్రభుత్వ సేవలు మరియు మార్కెట్ సాధనాలు',
@@ -1023,7 +1023,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'பணப்பரிவர்த்தனை வரலாறு',
     noHistory: 'பதிவுகள் எதுவும் இல்லை',
 
-    goodMorning: 'காலை வணக்கம்',
+    goodMorning: 'வணக்கம்',
     bookSlotAction: 'முன்பதிவு செய்',
     trackQueueAction: 'வரிசையை கவனி',
     servicesTitle: 'அரசு சேவைகள் மற்றும் மண்டி கருவிகள்',
@@ -1170,7 +1170,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'ચુકવણી ઇતિહાસ',
     noHistory: 'કોઈ ઇતિહાસ મળ્યો નથી',
 
-    goodMorning: 'સુપ્રભાત / નમસ્તે',
+    goodMorning: 'નમસ્તે',
     bookSlotAction: 'સ્લોટ બુક કરો',
     trackQueueAction: 'કતાર ટ્રેક કરો',
     servicesTitle: 'સરકારી સેવાઓ અને મંડી સાધનો',
@@ -1317,7 +1317,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'ادائیگی کی تاریخ',
     noHistory: 'کوئی ریکارڈ نہیں ملا',
 
-    goodMorning: 'صبح بخیر / آداب',
+    goodMorning: 'آداب',
     bookSlotAction: 'سلاٹ بک کریں',
     trackQueueAction: 'قطار ٹریک کریں',
     servicesTitle: 'سرکاری خدمات اور منڈی کے آلات',
@@ -1464,7 +1464,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'ಪಾವತಿ ಇತಿಹಾಸ',
     noHistory: 'ಯಾವುದೇ ಇತಿಹಾಸ ಕಂಡುಬಂದಿಲ್ಲ',
 
-    goodMorning: 'ಶುಭೋದಯ / ನಮಸ್ಕಾರ',
+    goodMorning: 'ನಮಸ್ಕಾರ',
     bookSlotAction: 'ಸ್ಲಾಟ್ ಕಾಯ್ದಿರಿಸಿ',
     trackQueueAction: 'ಸರದಿ ಟ್ರ್ಯಾಕ್ ಮಾಡಿ',
     servicesTitle: 'ಸರ್ಕಾರಿ ಸೇವೆಗಳು ಮತ್ತು ಮಂಡಿ ಉಪಕರಣಗಳು',
@@ -1611,7 +1611,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'ପେମେଣ୍ଟ ଇତିହାସ',
     noHistory: 'କୌଣସି ରେକର୍ଡ ମିଳିଲା ନାହିଁ',
 
-    goodMorning: 'ଶୁଭ ସକାଳ / ନମସ୍କାର',
+    goodMorning: 'ନମସ୍କାର',
     bookSlotAction: 'ସ୍ଲଟ୍ ବୁକ୍ କରନ୍ତୁ',
     trackQueueAction: 'ଧାଡ଼ି ଟ୍ରାକ୍ କରନ୍ତୁ',
     servicesTitle: 'ସରକାରୀ ସେବା ଓ ମଣ୍ଡି ଉପକରଣ',
@@ -1758,7 +1758,7 @@ export const translations: Record<Language, TranslationStrings> = {
     paymentHistoryTab: 'ਭੁਗਤਾਨ ਇਤਿਹਾਸ',
     noHistory: 'ਕੋਈ ਰਿਕਾਰਡ ਨਹੀਂ ਮਿਲਿਆ',
 
-    goodMorning: 'ਸ਼ੁਭ ਸਵੇਰ / ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ',
+    goodMorning: 'ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ',
     bookSlotAction: 'ਸਲਾਟ ਬੁੱਕ ਕਰੋ',
     trackQueueAction: 'ਕਤਾਰ ਟਰੈਕ ਕਰੋ',
     servicesTitle: 'ਸਰਕਾਰੀ ਸੇਵਾਵਾਂ ਅਤੇ ਮੰਡੀ ਟੂਲਜ਼',
