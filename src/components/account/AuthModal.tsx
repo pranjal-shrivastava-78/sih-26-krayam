@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { ShieldCheck, User, CheckCircle2, ArrowRight, X } from 'lucide-react';
+import { ShieldCheck, User, CheckCircle2, ArrowRight, X, Phone, KeyRound } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -8,11 +8,14 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const { login, register, t } = useApp();
+  const { login, sendOtp, verifyOtp, register, t } = useApp();
   const [tab, setTab] = useState<'login' | 'register'>('login');
 
   const [loginId, setLoginId] = useState('');
+  const [loginOtpSent, setLoginOtpSent] = useState(false);
+  const [loginOtpCode, setLoginOtpCode] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [regData, setRegData] = useState({
     fullName: '',
@@ -20,44 +23,99 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     village: '',
     tehsil: '',
     district: '',
-    state: 'Punjab',
+    state: '',
     pincode: '',
     landHoldingAcres: 5
   });
+  const [regOtpSent, setRegOtpSent] = useState(false);
+  const [regOtpCode, setRegOtpCode] = useState('');
+  const [regError, setRegError] = useState('');
   const [regSuccessId, setRegSuccessId] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError('');
+
     if (!loginId.trim()) {
-      setLoginError('Enter Farmer ID or Mobile Number');
+      setLoginError('Enter your 10-digit mobile number');
       return;
     }
+
+    if (!loginOtpSent) {
+      setIsSubmitting(true);
+      try {
+        await sendOtp(loginId);
+        setLoginOtpSent(true);
+      } catch (err: any) {
+        setLoginError(err.message || 'Failed to send OTP.');
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    if (!loginOtpCode.trim() || loginOtpCode.trim().length !== 6) {
+      setLoginError('Enter the 6-digit OTP code');
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      const success = await login(loginId);
+      const success = await login(loginId, loginOtpCode.trim());
       if (success) {
         setLoginError('');
         onClose();
       } else {
-        setLoginError('Invalid credentials. Please verify your Farmer ID or mobile number.');
+        setLoginError('Mobile verified, but account is not yet registered.');
       }
     } catch (err: any) {
       setLoginError(err.message || 'Login failed.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setRegError('');
+
     if (!regData.fullName || !regData.mobileNumber || !regData.village) {
-      alert('Please fill required fields');
+      setRegError('Please fill required fields (Name, Mobile, Village)');
       return;
     }
+
+    if (!regOtpSent) {
+      setIsSubmitting(true);
+      try {
+        await sendOtp(regData.mobileNumber);
+        setRegOtpSent(true);
+      } catch (err: any) {
+        setRegError(err.message || 'Failed to send OTP');
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    if (!regOtpCode.trim() || regOtpCode.trim().length !== 6) {
+      setRegError('Enter the 6-digit OTP code');
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
+      const verifyRes = await verifyOtp(regData.mobileNumber, regOtpCode.trim());
+      if (!verifyRes.token) {
+        throw new Error('OTP verification failed.');
+      }
       const newFarmer = await register(regData);
       setRegSuccessId(newFarmer.farmerId);
     } catch (err: any) {
-      alert(err.message || 'Registration failed.');
+      setRegError(err.message || 'Registration failed.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -140,33 +198,49 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className="block text-[9px] uppercase tracking-[0.45px] text-[#2e5a40] font-bold mb-1.5">
-                  {t('farmerId')} / {t('mobileNumber')}
+                  {t('mobileNumber')}
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-[#2e5a40] absolute left-4 top-3.5" />
+                  <Phone className="w-4 h-4 text-[#2e5a40] absolute left-4 top-3.5" />
                   <input
-                    type="text"
+                    type="tel"
+                    required
+                    disabled={loginOtpSent}
                     value={loginId}
                     onChange={(e) => setLoginId(e.target.value)}
-                    placeholder="e.g. FID-2026-7842"
-                    className="w-full pl-11 pr-4 py-3 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs font-mono text-[#0d2618] focus:border-[#166534] outline-none font-semibold"
+                    placeholder="e.g. 9876543210"
+                    className="w-full pl-11 pr-4 py-3 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs font-mono text-[#0d2618] focus:border-[#166534] outline-none font-semibold disabled:bg-[#eef8ee]"
                   />
                 </div>
+                {loginOtpSent && (
+                  <div className="mt-3 space-y-1">
+                    <label className="block text-[9px] uppercase tracking-[0.45px] text-[#2e5a40] font-bold mb-1">
+                      Enter 6-Digit OTP
+                    </label>
+                    <div className="relative">
+                      <KeyRound className="w-4 h-4 text-[#2e5a40] absolute left-4 top-3.5" />
+                      <input
+                        type="text"
+                        maxLength={6}
+                        autoFocus
+                        value={loginOtpCode}
+                        onChange={(e) => setLoginOtpCode(e.target.value)}
+                        placeholder="Enter 6-digit OTP"
+                        className="w-full pl-11 pr-4 py-3 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs font-mono font-bold tracking-widest text-center text-[#0d2618] focus:border-[#166534] outline-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setLoginOtpSent(false); setLoginOtpCode(''); }}
+                      className="text-[10px] text-[#166534] font-semibold hover:underline block text-right mt-1"
+                    >
+                      Change Mobile Number
+                    </button>
+                  </div>
+                )}
                 {loginError && (
                   <p className="text-xs text-[#dc2626] font-semibold mt-1.5">{loginError}</p>
                 )}
-              </div>
-
-              {/* Demo button */}
-              <div className="bg-[#f4fbf5] p-3 rounded-[16px] border border-[#cdeac6] flex items-center justify-between text-xs">
-                <span className="text-[#2e5a40]">Quick Simulation:</span>
-                <button
-                  type="button"
-                  onClick={() => setLoginId('FID-2026-7842')}
-                  className="font-mono font-bold text-[#166534] hover:underline"
-                >
-                  Load FID-2026-7842
-                </button>
               </div>
 
               <div className="flex gap-3 pt-2">
@@ -179,15 +253,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-[#166534] hover:bg-[#14532d] text-[#ffffff] rounded-[56px] text-xs font-bold flex items-center justify-center gap-2 shadow-sm"
+                  disabled={isSubmitting}
+                  className="flex-1 py-3 bg-[#166534] hover:bg-[#14532d] disabled:opacity-60 text-[#ffffff] rounded-[56px] text-xs font-bold flex items-center justify-center gap-2 shadow-sm"
                 >
-                  <span>{t('login')}</span>
+                  <span>{isSubmitting ? '...' : loginOtpSent ? 'Verify & Login' : 'Send OTP'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </form>
           ) : (
             <form onSubmit={handleRegisterSubmit} className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+              {regError && (
+                <div className="p-2.5 bg-[#FFF5F5] border border-[#F0C2C2] text-[#B42318] text-xs rounded-[8px]">
+                  {regError}
+                </div>
+              )}
               <div>
                 <label className="block text-[9px] uppercase tracking-[0.45px] text-[#2e5a40] font-bold mb-1">{t('fullName')} *</label>
                 <input
@@ -195,7 +275,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   required
                   value={regData.fullName}
                   onChange={(e) => setRegData({ ...regData, fullName: e.target.value })}
-                  placeholder="e.g. Sardar Gurmeet Singh"
+                  placeholder="e.g. Ramesh Kumar"
                   className="w-full px-4 py-2.5 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs text-[#0d2618] focus:border-[#166534] outline-none font-semibold"
                 />
               </div>
@@ -205,10 +285,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 <input
                   type="tel"
                   required
+                  disabled={regOtpSent}
                   value={regData.mobileNumber}
                   onChange={(e) => setRegData({ ...regData, mobileNumber: e.target.value })}
-                  placeholder="e.g. +91 98140 12345"
-                  className="w-full px-4 py-2.5 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs text-[#0d2618] focus:border-[#166534] outline-none font-semibold"
+                  placeholder="e.g. 9814012345"
+                  className="w-full px-4 py-2.5 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs text-[#0d2618] focus:border-[#166534] outline-none font-semibold disabled:bg-[#eef8ee]"
                 />
               </div>
 
@@ -271,6 +352,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 />
               </div>
 
+              {regOtpSent && (
+                <div className="p-3 bg-[#eef8ee] border border-[#cdeac6] rounded-[16px] space-y-1">
+                  <label className="block text-[9px] uppercase tracking-[0.45px] text-[#166534] font-bold">
+                    Enter 6-Digit OTP sent to {regData.mobileNumber}
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-[#166534] absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      maxLength={6}
+                      autoFocus
+                      value={regOtpCode}
+                      onChange={(e) => setRegOtpCode(e.target.value)}
+                      placeholder="Enter 6-digit OTP"
+                      className="w-full pl-10 pr-3 py-2 bg-[#ffffff] border border-[#cdeac6] rounded-[56px] text-xs font-mono font-bold tracking-widest text-center text-[#0d2618] focus:border-[#166534] outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-3 pt-3">
                 <button
                   type="button"
@@ -281,9 +382,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 bg-[#166534] hover:bg-[#14532d] text-[#ffffff] rounded-[56px] text-xs font-bold shadow-sm"
+                  disabled={isSubmitting}
+                  className="flex-1 py-3 bg-[#166534] hover:bg-[#14532d] disabled:opacity-60 text-[#ffffff] rounded-[56px] text-xs font-bold shadow-sm"
                 >
-                  {t('register')}
+                  {isSubmitting ? '...' : regOtpSent ? 'Verify & Register' : 'Send OTP & Register'}
                 </button>
               </div>
             </form>

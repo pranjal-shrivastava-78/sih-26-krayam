@@ -23,16 +23,19 @@ export type ActiveView =
   | 'auth';
 
 export interface LocationCoordinates {
-  lat: number;
-  lng: number;
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+  lat?: number; // Backward compatibility alias for UI pins
+  lng?: number; // Backward compatibility alias for UI pins
 }
 
 export interface VillageLocation {
-  village: string;
-  tehsil: string; // Mandal / Tehsil
-  district: string;
-  state: string;
-  pincode: string;
+  village?: string;
+  tehsil?: string; // Mandal / Tehsil
+  district?: string;
+  state?: string;
+  pincode?: string;
   coordinates?: LocationCoordinates;
 }
 
@@ -49,11 +52,14 @@ export interface FarmerProfile {
 export interface CropInfo {
   id: string;
   name: string;
-  hindiName: string;
-  punjabiName: string;
-  marathiName: string;
-  mspPerQuintal: number; // Minimum Support Price in INR
-  season: 'Kharif' | 'Rabi' | 'Zaid';
+  hindiName?: string;
+  punjabiName?: string;
+  marathiName?: string;
+  mspPerQuintal: number; // Minimum Support Price in INR (from rate_per_unit)
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  ratePerUnit?: number | null;
+  season?: 'Kharif' | 'Rabi' | 'Zaid';
   unit: string;
 }
 
@@ -62,22 +68,23 @@ export type QueueLoadLevel = 'Low' | 'Moderate' | 'High';
 export interface ProcurementCentre {
   id: string;
   name: string;
-  officerInCharge: string;
-  contactNumber: string;
+  code?: string;
+  officerInCharge?: string;
+  contactNumber?: string;
   location: {
-    address: string;
-    village: string;
-    district: string;
-    state: string;
-    coordinates: LocationCoordinates;
+    address?: string;
+    village?: string;
+    district?: string;
+    state?: string;
+    coordinates?: LocationCoordinates;
   };
-  distanceKm: number;
+  distanceKm?: number;
   acceptedCropIds: string[];
   operatingHours: {
     opens: string;
     closes: string;
-    lunchBreak: string;
-    days: string;
+    lunchBreak?: string;
+    days?: string;
   };
   currentQueue: {
     activeVehicles: number;
@@ -87,14 +94,33 @@ export interface ProcurementCentre {
   availableSlots?: number;
 }
 
-export type SlotTimeWindow = 'Morning (08:00 AM - 11:30 AM)' | 'Midday (11:30 AM - 02:30 PM)' | 'Afternoon (02:30 PM - 05:30 PM)';
+export type SlotTimeWindow = string;
 
 export interface TimeSlot {
   id: string;
-  timeWindow: SlotTimeWindow;
-  availableCapacityQuintals: number;
-  maxCapacityQuintals: number;
+  centreId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  maxBookings: number;
+  currentBookings: number;
   isAvailable: boolean;
+  timeWindow?: SlotTimeWindow;
+  formattedTimeWindow?: string;
+  availableCapacityQuintals?: number;
+  maxCapacityQuintals?: number;
+}
+
+export interface RecommendedCentreItem {
+  centre: ProcurementCentre;
+  distanceKm: number | null;
+  accepted: boolean;
+  currentQueue: number;
+  estWaitUnits: number;
+  loadPercent: number;
+  hasSlots: boolean;
+  score: number;
+  reasons: string[];
 }
 
 export type BookingStatus = 
@@ -112,20 +138,25 @@ export type BookingStatus =
   | 'RESCHEDULED';
 
 export interface Booking {
-  id: string; // e.g. BK-2026-9481
+  id: string; // e.g. BK-2026-9481 or server booking_id
+  uuid?: string; // Server internal UUID id
   farmerId: string;
   farmerName: string;
   farmerMobile: string;
   cropId: string;
   cropName: string;
   quantityQuintals: number;
+  unit?: string;
   expectedDate: string; // YYYY-MM-DD
   centreId: string;
   centreName: string;
   centreLocation: string;
+  slotId?: string | null;
   slot: SlotTimeWindow;
   status: BookingStatus;
   createdAt: string;
+  updatedAt?: string;
+  queueEntryId?: string;
   queuePosition?: number;
   farmersAhead?: number;
   estimatedWaitMinutes?: number;
@@ -133,19 +164,35 @@ export interface Booking {
   rescheduleCount?: number;
 }
 
-export type ProcurementStatus = 'Scheduled' | 'Weighed' | 'Quality Graded' | 'Accepted' | 'Rejected';
+export type ProcurementStatus = 'Scheduled' | 'Weighed' | 'Quality Graded' | 'Accepted' | 'Rejected' | 'completed' | 'processing';
 
-export type PaymentStatus = 'Pending' | 'Processing' | 'Credited' | 'Failed';
+export type PaymentStatus = 
+  | 'initiated' 
+  | 'pending_verification' 
+  | 'confirmed' 
+  | 'failed' 
+  | 'cancelled'
+  | 'Pending' 
+  | 'Processing' 
+  | 'Credited'
+  | 'Failed'
+  | 'pending'
+  | 'verified'
+  | 'credited';
 
 export interface ProcurementRecord {
   id: string;
+  uuid?: string;
   bookingId: string;
   farmerId: string;
+  farmerName?: string;
+  farmerMobile?: string;
   cropName: string;
   date: string;
   centreName: string;
   bookedQuantity: number;
   acceptedQuantity: number;
+  unit?: string;
   grossWeight?: number;
   tareWeight?: number;
   netWeight?: number;
@@ -153,24 +200,36 @@ export interface ProcurementRecord {
   grossAmount?: number;
   deductions?: number;
   deductionReason?: string;
-  qualityGrade: 'Grade A' | 'Grade B' | 'Standard';
+  qualityGrade: string;
   procurementStatus: ProcurementStatus;
   paymentStatus: PaymentStatus;
   paymentAmount: number;
+  paymentId?: string;
+  qrCodeUrl?: string;
+  createdAt?: string;
 }
 
 export interface PaymentRecord {
   id: string;
+  uuid?: string;
   transactionId: string;
   procurementId: string;
   bookingId: string;
   farmerId: string;
+  farmerName?: string;
+  farmerMobile?: string;
   cropName: string;
+  quantity?: number;
+  rate?: number;
   amount: number;
   date: string;
   paymentStatus: PaymentStatus;
-  bankAccountMasked: string;
+  bankAccountMasked?: string;
   utrNumber?: string;
+  anomalyFlags?: string[];
+  verifiedBy?: string | null;
+  verifiedAt?: string | null;
+  confirmedAt?: string | null;
 }
 
 export type NotificationType = 
@@ -218,6 +277,7 @@ export interface SyncOperation {
     | 'CHECK_IN' 
     | 'CALL_NEXT' 
     | 'START_PROCESSING' 
+    | 'COMPLETE_PROCESSING'
     | 'COMPLETE_PROCUREMENT' 
     | 'CONFIRM_PAYMENT' 
     | 'MARK_NO_SHOW' 
@@ -228,6 +288,8 @@ export interface SyncOperation {
   details: string;
   payload?: any;
   status: 'PENDING' | 'SYNCED' | 'FAILED';
+  retryCount?: number;
+  lastError?: string;
 }
 
 export interface AiCenterInsight {

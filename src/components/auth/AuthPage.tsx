@@ -1,22 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Language } from '../../types';
 import { LanguageDropdown } from '../common/LanguageDropdown';
 import { getAuthText } from '../../i18n/authTranslations';
 import { 
-  ShieldCheck, 
   User, 
-  Phone, 
-  MapPin, 
-  CreditCard, 
-  FileText, 
-  ArrowRight, 
-  CheckCircle2, 
+  Users,
+  LogIn,
+  UserPlus,
   Lock, 
-  KeyRound,
+  Eye,
+  EyeOff,
+  Phone,
   Building2,
-  Sparkles,
-  Briefcase
+  Briefcase,
+  Key,
+  KeyRound,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight
 } from 'lucide-react';
 
 interface AuthPageProps {
@@ -25,24 +27,85 @@ interface AuthPageProps {
 
 export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
   const { 
-    login, 
     sendOtp,
+    verifyOtp,
     operatorLogin, 
+    operatorRegister,
     register, 
     language, 
     setActiveView,
     centres,
-    setIsTcModalOpen,
-    setIsPrivacyModalOpen
+    setIsTcModalOpen
   } = useApp();
 
   const at = getAuthText(language);
 
-  // Tab State: Farmer Login | Operator Login | Registration
-  const [tab, setTab] = useState<'farmer_login' | 'operator_login' | 'register'>('farmer_login');
+  // Role & Action selectors: matching the target design
+  const [selectedRole, setSelectedRole] = useState<'farmer' | 'operator'>('farmer');
+  const [selectedAction, setSelectedAction] = useState<'login' | 'register'>('login');
   
   // Mandatory Terms & Conditions Agreement
   const [agreedToTc, setAgreedToTc] = useState(false);
+
+  // Password visibility toggle (for Operator Login/Register)
+  const [showPassword, setShowPassword] = useState(false);
+
+  // General feedback messages
+  const [authError, setAuthError] = useState('');
+  const [authSuccess, setAuthSuccess] = useState<string | null>(null);
+
+  // Operator Login credentials
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [password, setPassword] = useState('');
+
+  // Farmer OTP credentials (strictly OTP-based, no password)
+  const [farmerMobile, setFarmerMobile] = useState('');
+  const [farmerOtpCode, setFarmerOtpCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Form submission loading indicator
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Operator Registration fields (Strictly matching POST /api/v1/operator/register)
+  const [opRegName, setOpRegName] = useState('');
+  const [opRegMobile, setOpRegMobile] = useState('');
+  const [opRegPassword, setOpRegPassword] = useState('');
+  const [opRegCentreId, setOpRegCentreId] = useState(centres[0]?.id || '');
+  const [opRegServiceKey, setOpRegServiceKey] = useState('');
+
+  // Farmer Registration fields
+  const [farmerRegName, setFarmerRegName] = useState('');
+  const [farmerRegMobile, setFarmerRegMobile] = useState('');
+  const [farmerRegVillage, setFarmerRegVillage] = useState('');
+  const [farmerRegDistrict, setFarmerRegDistrict] = useState('');
+  const [farmerRegState, setFarmerRegState] = useState('');
+  const [farmerRegPincode, setFarmerRegPincode] = useState('');
+  const [farmerRegLand, setFarmerRegLand] = useState(5);
+  const [farmerRegOtpSent, setFarmerRegOtpSent] = useState(false);
+  const [farmerRegOtpCode, setFarmerRegOtpCode] = useState('');
+  const [farmerRegCooldown, setFarmerRegCooldown] = useState(0);
+  const [farmerSuccessId, setFarmerSuccessId] = useState<string | null>(null);
+
+  // Sync default centre when centres catalog loads
+  useEffect(() => {
+    if (!opRegCentreId && centres.length > 0) {
+      setOpRegCentreId(centres[0].id);
+    }
+  }, [centres, opRegCentreId]);
+
+  // Timers for OTP cooldowns
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
+  useEffect(() => {
+    if (farmerRegCooldown <= 0) return;
+    const interval = setInterval(() => setFarmerRegCooldown((c) => c - 1), 1000);
+    return () => clearInterval(interval);
+  }, [farmerRegCooldown]);
 
   const termsText = {
     en: 'I agree to the Terms & Conditions',
@@ -50,7 +113,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
     pa: 'ਮੈਂ ਨਿਯਮਾਂ ਅਤੇ ਸ਼ਰਤਾਂ (Terms & Conditions) ਨਾਲ ਸਹਿਮਤ ਹਾਂ',
     bn: 'আমি শর্তাবলী (Terms & Conditions) সাথে একমত',
     mr: 'मी अटी आणि शर्तींशी (Terms & Conditions) सहमत आहे',
-    te: 'నేను నిబంధనలు మరియు షరతులకు (Terms & Conditions) అంగీకరిస్తున్నాను',
+    te: 'నేను నిబంధనలు మరియు షరతులకు (Terms & Conditions) అంగীకరిస్తున్నాను',
     ta: 'விதிமுறைகள் மற்றும் நிபந்தனைகளை (Terms & Conditions) நான் ஒப்புக்கொள்கிறேன்',
     gu: 'હું નિયમો અને શરતો (Terms & Conditions) સાથે સંમત છું',
     ur: 'میں شرائط و ضوابط (Terms & Conditions) سے متفق ہوں',
@@ -71,485 +134,685 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
     kn: 'ದಯವಿಟ್ಟು ಮುಂದುವರಿಯುವ ಮೊದಲು ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳನ್ನು ಒಪ್ಪಿಕೊಳ್ಳಿ.',
     or: 'ଦୟାକରି ଆଗକୁ ବଢ଼ିବା ପୂର୍ବରୁ ନିୟମ ଏବଂ ସର୍ତ୍ତାବଳୀ ସହିତ ସହମତ ହୁଅନ୍ତୁ |'
   }[language] || 'Please agree to the Terms & Conditions before proceeding.';
-  
-  // Farmer Login State
-  const [loginMethod, setLoginMethod] = useState<'farmerId' | 'otp'>('farmerId');
-  const [loginIdentifier, setLoginIdentifier] = useState('MP-2024-7842');
-  const [mobileForOtp, setMobileForOtp] = useState('+91 98765 43210');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Operator Login State
-  const [operatorId, setOperatorId] = useState('OP-SAMRALA-01');
-  const [operatorPin, setOperatorPin] = useState('2026');
-  const [selectedCentreId, setSelectedCentreId] = useState('centre-samrala');
-
-  // Registration State matching features.md
-  const [regData, setRegData] = useState({
-    fullName: '',
-    mobileNumber: '',
-    aadhaarNumber: '',
-    village: '',
-    tehsil: '',
-    district: 'Ludhiana',
-    state: 'Punjab',
-    pincode: '',
-    landHoldingAcres: 5,
-    primaryCrop: 'Wheat (गेहूं)',
-    bankName: 'Punjab National Bank',
-    bankAccount: '',
-    ifscCode: '',
-    preferredLanguage: 'en' as Language,
-  });
-  const [regSuccessFarmerId, setRegSuccessFarmerId] = useState<string | null>(null);
-
-  // Handle Farmer Login
-  const handleFarmerLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError('');
-
-    if (!agreedToTc) {
-      setLoginError(termsErrorMsg);
-      return;
-    }
-
-    const identifier = loginMethod === 'otp' ? mobileForOtp : loginIdentifier;
-    if (!identifier.trim()) {
-      setLoginError(at.fillMandatoryError);
-      return;
-    }
-
-    if (loginMethod === 'otp') {
-      if (!otpSent) {
-        setLoginError('Please click "Send OTP" first.');
-        return;
-      }
-      if (!otpCode.trim() || otpCode.trim().length !== 6) {
-        setLoginError(at.invalidOtpError);
-        return;
-      }
-    }
-
-    setIsSubmitting(true);
-    try {
-      const success = await login(identifier, loginMethod === 'otp' ? otpCode.trim() : undefined);
-      setIsSubmitting(false);
-
-      if (success) {
-        if (onSuccess) onSuccess();
-        setActiveView('dashboard');
-      } else {
-        setLoginError(at.invalidCredsError);
-      }
-    } catch (err: any) {
-      setIsSubmitting(false);
-      setLoginError(err.message || at.invalidCredsError);
-    }
-  };
-
-  // Handle Operator Login
-  const handleOperatorLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError('');
-
-    if (!agreedToTc) {
-      setLoginError(termsErrorMsg);
-      return;
-    }
-
-    if (!operatorId.trim()) {
-      setLoginError(at.fillMandatoryError);
+  // Handle Send OTP for Farmer Login (Real Backend API)
+  const handleSendFarmerOtp = async () => {
+    setAuthError('');
+    const cleanDigits = farmerMobile.replace(/[^\d]/g, '');
+    if (cleanDigits.length < 10) {
+      setAuthError('Please enter a valid 10-digit Indian mobile number.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const success = await operatorLogin(operatorId, operatorPin, selectedCentreId);
-      setIsSubmitting(false);
-
-      if (success) {
-        if (onSuccess) onSuccess();
-        setActiveView('dashboard');
-      } else {
-        setLoginError(at.invalidCredsError);
-      }
-    } catch (err: any) {
-      setIsSubmitting(false);
-      setLoginError(err.message || at.invalidCredsError);
-    }
-  };
-
-  const handleSendOtp = async () => {
-    if (!mobileForOtp || mobileForOtp.length < 10) {
-      setLoginError(at.fillMandatoryError);
-      return;
-    }
-    setIsSubmitting(true);
-    setLoginError('');
-    try {
-      await sendOtp(mobileForOtp);
+      await sendOtp(cleanDigits);
       setOtpSent(true);
+      setResendCooldown(30);
       setIsSubmitting(false);
+      setAuthSuccess(`OTP sent to +91 ${cleanDigits}. Please enter the OTP below.`);
     } catch (err: any) {
       setIsSubmitting(false);
-      setLoginError(err.message || 'Failed to send OTP.');
+      setAuthError(err.message || 'Failed to send OTP. Please try again.');
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  // 1. Submit: Operator Login (POST /api/v1/operator/login)
+  const handleSubmitOperatorLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError('');
+    setAuthSuccess(null);
 
     if (!agreedToTc) {
-      alert(termsErrorMsg);
+      setAuthError(termsErrorMsg);
       return;
     }
 
-    if (!regData.fullName || !regData.mobileNumber || !regData.village) {
-      alert(at.fillMandatoryError);
+    const cleanDigits = mobileNumber.replace(/[^\d]/g, '');
+    if (cleanDigits.length < 10) {
+      setAuthError('Please enter your 10-digit registered mobile number.');
+      return;
+    }
+
+    if (!password) {
+      setAuthError('Please enter your operator account password.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const newFarmer = await register({
-        fullName: regData.fullName,
-        mobileNumber: regData.mobileNumber.startsWith('+91') ? regData.mobileNumber : `+91 ${regData.mobileNumber}`,
-        village: regData.village,
-        tehsil: regData.tehsil || 'Samrala',
-        district: regData.district,
-        state: regData.state,
-        pincode: regData.pincode || '141114',
-        landHoldingAcres: Number(regData.landHoldingAcres) || 5,
-        coordinates: { lat: 30.8358, lng: 76.1917 }
-      });
+      const success = await operatorLogin(cleanDigits, password);
       setIsSubmitting(false);
-      setRegSuccessFarmerId(newFarmer.farmerId);
+
+      if (success) {
+        if (onSuccess) onSuccess();
+        setActiveView('dashboard');
+      } else {
+        setAuthError('Invalid phone or password');
+      }
     } catch (err: any) {
       setIsSubmitting(false);
-      alert(err.message || 'Registration failed.');
+      setAuthError(err.message || 'Invalid phone or password');
     }
   };
 
-  const fillQuickDemo = (role: 'gurpreet' | 'manpreet') => {
-    setAgreedToTc(true);
-    if (role === 'gurpreet') {
-      setTab('farmer_login');
-      setLoginIdentifier('MP-2024-7842');
-      setMobileForOtp('+91 98765 43210');
-      setLoginMethod('farmerId');
-    } else if (role === 'manpreet') {
-      setTab('farmer_login');
-      setLoginIdentifier('PB-2026-1049');
-      setMobileForOtp('+91 98140 55678');
-      setLoginMethod('farmerId');
+  // 2. Submit: Farmer Login (OTP-only, NO password)
+  const handleSubmitFarmerLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthSuccess(null);
+
+    if (!agreedToTc) {
+      setAuthError(termsErrorMsg);
+      return;
     }
-    setLoginError('');
+
+    const cleanDigits = farmerMobile.replace(/[^\d]/g, '');
+    if (cleanDigits.length < 10) {
+      setAuthError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    // If OTP not yet requested, trigger OTP send
+    if (!otpSent) {
+      await handleSendFarmerOtp();
+      return;
+    }
+
+    // Verify OTP
+    if (!farmerOtpCode.trim() || farmerOtpCode.trim().length !== 6) {
+      setAuthError('Please enter the 6-digit OTP received on your mobile.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await verifyOtp(cleanDigits, farmerOtpCode.trim());
+      setIsSubmitting(false);
+
+      if (res.token) {
+        if (res.isRegistered) {
+          if (onSuccess) onSuccess();
+          setActiveView('dashboard');
+        } else {
+          setFarmerRegMobile(cleanDigits);
+          setSelectedAction('register');
+          setAuthError('Mobile verified. Please complete your farmer registration profile below.');
+        }
+      }
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setAuthError(err.message || 'Verification failed. Please check OTP and retry.');
+    }
+  };
+
+  // 3. Submit: Operator Registration (POST /api/v1/operator/register)
+  const handleSubmitOperatorRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthSuccess(null);
+
+    if (!agreedToTc) {
+      setAuthError(termsErrorMsg);
+      return;
+    }
+
+    if (!opRegName.trim()) {
+      setAuthError('Please enter operator full name.');
+      return;
+    }
+
+    const cleanDigits = opRegMobile.replace(/[^\d]/g, '');
+    if (cleanDigits.length < 10) {
+      setAuthError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    if (opRegPassword.length < 8) {
+      setAuthError('Password must be at least 8 characters long.');
+      return;
+    }
+
+    const centreId = opRegCentreId || centres[0]?.id;
+    if (!centreId) {
+      setAuthError('Please select a Mandi Procurement Centre.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const createdOp = await operatorRegister({
+        name: opRegName.trim(),
+        phone: cleanDigits,
+        password: opRegPassword,
+        centre_id: centreId,
+        serviceKey: opRegServiceKey.trim() || undefined,
+      });
+
+      setIsSubmitting(false);
+      setAuthSuccess(`Operator account registered for ${createdOp.name}! Please login below.`);
+      setMobileNumber(cleanDigits);
+      setPassword(opRegPassword);
+      setSelectedAction('login');
+    } catch (err: any) {
+      setIsSubmitting(false);
+      if (err.message?.includes('Invalid service key') || err.message?.includes('FORBIDDEN')) {
+        setAuthError('Government Service Key Required: The server requires an authorized Mandi Board Service Key to register new operators. Please enter the Service Key or login with existing credentials.');
+      } else {
+        setAuthError(err.message || 'Registration failed. Please check your details.');
+      }
+    }
+  };
+
+  // 4. Submit: Farmer Registration
+  const handleSubmitFarmerRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthSuccess(null);
+
+    if (!agreedToTc) {
+      setAuthError(termsErrorMsg);
+      return;
+    }
+
+    if (!farmerRegName.trim() || !farmerRegMobile.trim() || !farmerRegVillage.trim()) {
+      setAuthError('Please fill required fields (Name, Mobile, Village).');
+      return;
+    }
+
+    const cleanDigits = farmerRegMobile.replace(/[^\d]/g, '');
+    if (cleanDigits.length < 10) {
+      setAuthError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    // Step 1: Send OTP if not sent
+    if (!farmerRegOtpSent) {
+      setIsSubmitting(true);
+      try {
+        await sendOtp(cleanDigits);
+        setFarmerRegOtpSent(true);
+        setFarmerRegCooldown(30);
+        setIsSubmitting(false);
+      } catch (err: any) {
+        setIsSubmitting(false);
+        setAuthError(err.message || 'Failed to send OTP for registration.');
+      }
+      return;
+    }
+
+    // Step 2: Verify OTP
+    if (!farmerRegOtpCode.trim() || farmerRegOtpCode.trim().length !== 6) {
+      setAuthError('Please enter the 6-digit OTP received on your mobile.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const verifyRes = await verifyOtp(cleanDigits, farmerRegOtpCode.trim());
+      if (!verifyRes.token) {
+        throw new Error('OTP verification failed.');
+      }
+
+      const newFarmer = await register({
+        fullName: farmerRegName.trim(),
+        mobileNumber: cleanDigits,
+        village: farmerRegVillage.trim(),
+        tehsil: 'Main',
+        district: farmerRegDistrict.trim() || 'Ludhiana',
+        state: farmerRegState.trim() || 'Punjab',
+        pincode: farmerRegPincode.trim() || '141001',
+        landHoldingAcres: Number(farmerRegLand) || 5,
+      });
+
+      setIsSubmitting(false);
+      setFarmerSuccessId(newFarmer.farmerId);
+      setAuthSuccess(`Farmer registered successfully! Your ID is: ${newFarmer.farmerId}`);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setAuthError(err.message || 'Registration failed.');
+    }
   };
 
   return (
     <div 
-      className="min-h-screen text-[#17231F] flex flex-col justify-between relative bg-cover bg-center bg-no-repeat sm:bg-fixed"
+      className="min-h-screen text-[#17231F] flex flex-col justify-between relative bg-cover bg-center bg-no-repeat sm:bg-fixed font-['Inter']"
       style={{
         backgroundImage: "url('/login-bg.png')",
         backgroundColor: '#F5F8F6'
       }}
     >
-      {/* Top Strip with Language Selector on the Right */}
-      <div className="bg-[#063B2A] text-[#FFFFFF] text-xs py-2 px-3 sm:px-8 border-b border-[#075E43] relative z-50 shadow-sm">
-        <div className="max-w-6xl mx-auto flex items-center justify-end gap-2">
+      {/* Top Header Strip with Language Selector */}
+      <header className="bg-[#063B2A] text-[#FFFFFF] text-xs py-2 px-3 sm:px-8 border-b border-[#075E43] relative z-50 shadow-sm">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
+          <span className="font-bold tracking-wider text-[11px] sm:text-xs uppercase text-[#A3E5B9]">
+            Ministry of Agriculture & Farmers Welfare
+          </span>
           <div className="flex items-center justify-end shrink-0 gap-2">
             <LanguageDropdown variant="header" align="right" />
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Main Authentication Container */}
-      <div className="flex-1 flex items-center justify-center p-3 sm:p-6 lg:p-8 my-2 sm:my-4 relative z-10">
-        <div className={`bg-[#FFFFFF]/95 backdrop-blur-md border border-[#CBD8D1] rounded-[12px] w-full ${
-          tab === 'register' ? 'max-w-xl md:max-w-3xl lg:max-w-4xl' : 'max-w-xl'
-        } shadow-[0_12px_40px_rgba(6,59,42,0.12)] overflow-hidden transition-all duration-200`}>
+      {/* Main Container: Compact, Centered Authentication Card (Matching Target Design) */}
+      <main className="flex-1 flex items-center justify-center p-3 sm:p-5 my-auto relative z-10">
+        <div className="bg-white rounded-[20px] sm:rounded-[24px] border border-[#CBD8D1] w-full max-w-[420px] shadow-[0_16px_48px_rgba(6,59,42,0.14)] overflow-hidden transition-all duration-200">
           
-          {/* Header with Sprout Logo */}
-          <div className="bg-[#EDF3EF] p-6 border-b border-[#CBD8D1] text-center">
-            <div className="w-16 h-16 rounded-[16px] overflow-hidden shadow-sm border border-[#CBD8D1] mx-auto mb-3 bg-[#063B2A]">
+          {/* Top Branding Section (Subtle Soft Greenish Background #F4F7F5) */}
+          <div className="bg-[#F4F7F5] pt-6 pb-4 px-5 sm:px-6 text-center">
+            {/* Sprout Squircle Icon */}
+            <div className="flex justify-center mb-2.5">
               <img 
                 src="/logo.png" 
                 alt="KRAYAM Logo" 
-                className="w-full h-full object-cover" 
+                className="w-14 h-14 object-contain drop-shadow-sm select-none" 
               />
             </div>
 
-            <div className="text-xs uppercase tracking-widest font-bold text-[#075E43]">
+            {/* Portal Titles */}
+            <div className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold text-[#075E43]">
               {at.portalBadge}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#17231F] mt-0.5">
+            <h1 className="text-xl sm:text-[22px] font-extrabold text-[#17231F] leading-tight mt-0.5">
               {at.portalTitle}
             </h1>
-            <p className="text-xs text-[#66736D] mt-1 max-w-md mx-auto leading-relaxed">
+            <p className="text-[10px] sm:text-[11px] text-[#66736D] leading-snug mt-1 max-w-[320px] mx-auto">
               {at.portalSubtitle}
             </p>
 
-            {/* Tab Switcher: Farmer Login | Operator Login | New Registration */}
-            <div className="flex sm:grid sm:grid-cols-3 mt-6 bg-[#FFFFFF] p-1 rounded-[6px] border border-[#CBD8D1] max-w-lg mx-auto gap-1 overflow-x-auto no-scrollbar">
+            {/* Row 1: Role Selector (Farmer vs Operator) */}
+            <div className="grid grid-cols-2 gap-2.5 mt-4">
               <button
                 type="button"
-                id="tab-farmer-login"
-                onClick={() => { setTab('farmer_login'); setRegSuccessFarmerId(null); setLoginError(''); }}
-                className={`flex-1 min-w-[110px] sm:min-w-0 py-2 px-2 text-[11px] sm:text-xs font-bold rounded-[4px] transition-colors whitespace-nowrap text-center ${
-                  tab === 'farmer_login' ? 'bg-[#063B2A] text-[#FFFFFF]' : 'text-[#66736D] hover:text-[#17231F]'
+                id="btn-select-farmer"
+                onClick={() => {
+                  setSelectedRole('farmer');
+                  setAuthError('');
+                  setAuthSuccess(null);
+                }}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-[10px] font-bold text-xs sm:text-sm transition-all duration-150 ${
+                  selectedRole === 'farmer'
+                    ? 'bg-[#064e3b] text-[#FFFFFF] shadow-sm'
+                    : 'bg-[#FFFFFF] text-[#17231F] border border-[#CBD8D1] hover:bg-[#F5F8F6]'
                 }`}
               >
-                {at.tabFarmerLogin}
+                <User className="w-4 h-4 shrink-0" />
+                <span>Farmer</span>
               </button>
+
               <button
                 type="button"
-                id="tab-operator-login"
-                onClick={() => { setTab('operator_login'); setRegSuccessFarmerId(null); setLoginError(''); }}
-                className={`flex-1 min-w-[120px] sm:min-w-0 py-2 px-2 text-[11px] sm:text-xs font-bold rounded-[4px] transition-colors whitespace-nowrap flex items-center justify-center gap-1 ${
-                  tab === 'operator_login' ? 'bg-[#075E43] text-[#FFFFFF]' : 'text-[#66736D] hover:text-[#075E43]'
+                id="btn-select-operator"
+                onClick={() => {
+                  setSelectedRole('operator');
+                  setAuthError('');
+                  setAuthSuccess(null);
+                }}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-[10px] font-bold text-xs sm:text-sm transition-all duration-150 ${
+                  selectedRole === 'operator'
+                    ? 'bg-[#064e3b] text-[#FFFFFF] shadow-sm'
+                    : 'bg-[#FFFFFF] text-[#17231F] border border-[#CBD8D1] hover:bg-[#F5F8F6]'
                 }`}
               >
-                <Briefcase className="w-3.5 h-3.5 shrink-0" />
-                <span>{at.tabOperatorLogin}</span>
+                <Users className="w-4 h-4 shrink-0" />
+                <span>Operator</span>
               </button>
+            </div>
+
+            {/* Row 2: Action Selector (Login vs Registration) */}
+            <div className="grid grid-cols-2 gap-2.5 mt-2.5">
               <button
                 type="button"
-                id="tab-register"
-                onClick={() => { setTab('register'); setRegSuccessFarmerId(null); setLoginError(''); }}
-                className={`flex-1 min-w-[120px] sm:min-w-0 py-2 px-2 text-[11px] sm:text-xs font-bold rounded-[4px] transition-colors whitespace-nowrap text-center ${
-                  tab === 'register' ? 'bg-[#063B2A] text-[#FFFFFF]' : 'text-[#66736D] hover:text-[#17231F]'
+                id="btn-select-login"
+                onClick={() => {
+                  setSelectedAction('login');
+                  setAuthError('');
+                  setAuthSuccess(null);
+                }}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-[10px] font-bold text-xs sm:text-sm transition-all duration-150 ${
+                  selectedAction === 'login'
+                    ? 'bg-[#064e3b] text-[#FFFFFF] shadow-sm'
+                    : 'bg-[#FFFFFF] text-[#17231F] border border-[#CBD8D1] hover:bg-[#F5F8F6]'
                 }`}
               >
-                {at.tabNewRegistration}
+                <LogIn className="w-4 h-4 shrink-0" />
+                <span>Login</span>
+              </button>
+
+              <button
+                type="button"
+                id="btn-select-register"
+                onClick={() => {
+                  setSelectedAction('register');
+                  setAuthError('');
+                  setAuthSuccess(null);
+                }}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-[10px] font-bold text-xs sm:text-sm transition-all duration-150 ${
+                  selectedAction === 'register'
+                    ? 'bg-[#064e3b] text-[#FFFFFF] shadow-sm'
+                    : 'bg-[#FFFFFF] text-[#17231F] border border-[#CBD8D1] hover:bg-[#F5F8F6]'
+                }`}
+              >
+                <UserPlus className="w-4 h-4 shrink-0" />
+                <span>Registration</span>
               </button>
             </div>
           </div>
 
-          {/* TAB 1: FARMER LOGIN */}
-          {tab === 'farmer_login' && (
-            <div className="p-6 sm:p-8 space-y-5">
-              {/* Login Method Toggle */}
-              <div className="flex items-center justify-center gap-4 text-xs">
-                <label className="flex items-center gap-1.5 cursor-pointer font-semibold">
-                  <input
-                    type="radio"
-                    name="loginMethod"
-                    checked={loginMethod === 'farmerId'}
-                    onChange={() => { setLoginMethod('farmerId'); setLoginError(''); }}
-                    className="text-[#075E43] focus:ring-[#075E43]"
-                  />
-                  <span>{at.loginMethodFarmerId}</span>
-                </label>
-                <span className="text-[#CBD8D1]">|</span>
-                <label className="flex items-center gap-1.5 cursor-pointer font-semibold">
-                  <input
-                    type="radio"
-                    name="loginMethod"
-                    checked={loginMethod === 'otp'}
-                    onChange={() => { setLoginMethod('otp'); setLoginError(''); }}
-                    className="text-[#075E43] focus:ring-[#075E43]"
-                  />
-                  <span>{at.loginMethodOtp}</span>
-                </label>
+          {/* Form Body Section (Pure White, Integrated Inside Same Card) */}
+          <div className="bg-[#FFFFFF] border-t border-[#CBD8D1] p-5 sm:p-6 space-y-3.5">
+            
+            {/* Operator Notice (Shown when Operator is selected, matching target design) */}
+            {selectedRole === 'operator' && (
+              <div className="bg-[#FFF4E5] border border-[#FFD8A8] text-[#B45309] text-[11px] p-2.5 rounded-[8px] flex items-start gap-2 leading-tight">
+                <Briefcase className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Authorized Mandi Personnel Only:</strong> Access live queue floor, digital weighbridges, and PFMS DBT authorization.
+                </span>
               </div>
+            )}
 
-              {loginError && (
-                <div className="p-3 bg-[#FFF5F5] border border-[#F0C2C2] text-[#B42318] text-xs rounded-[6px]">
-                  {loginError}
-                </div>
-              )}
+            {/* Error Message Area (Pink banner with clean padding) */}
+            {authError && (
+              <div className="bg-[#FFF0F0] border border-[#FFC9C9] text-[#E03131] text-xs p-2.5 rounded-[8px] leading-tight">
+                {authError}
+              </div>
+            )}
 
-              <form onSubmit={handleFarmerLogin} className="space-y-4">
-                {loginMethod === 'farmerId' ? (
-                  <div>
-                    <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                      {at.farmerIdLabel}
-                    </label>
-                    <div className="relative">
-                      <User className="w-4 h-4 text-[#66736D] absolute left-3 top-3.5" />
-                      <input
-                        type="text"
-                        required
-                        value={loginIdentifier}
-                        onChange={(e) => setLoginIdentifier(e.target.value)}
-                        placeholder={at.farmerIdPlaceholder}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] pl-10 pr-3 py-2.5 text-sm font-mono focus:border-[#075E43] focus:outline-none"
-                      />
-                    </div>
+            {/* Success Message Area */}
+            {authSuccess && (
+              <div className="bg-[#E7F3EC] border border-[#85E1A9] text-[#063B2A] text-xs p-2.5 rounded-[8px] flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#16803C] shrink-0" />
+                <span>{authSuccess}</span>
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* CASE 1: FARMER LOGIN (Strictly OTP-based, NO PASSWORD)    */}
+            {/* ========================================================= */}
+            {selectedRole === 'farmer' && selectedAction === 'login' && (
+              <form onSubmit={handleSubmitFarmerLogin} className="space-y-3.5">
+                {/* Mobile Number Field with fixed icon spacing and protected button area */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#17231F] uppercase tracking-wider mb-1">
+                    MOBILE NUMBER
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    <span className="absolute left-3.5 flex items-center justify-center pointer-events-none text-[#66736D] z-10">
+                      <Phone className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="tel"
+                      required
+                      value={farmerMobile}
+                      onChange={(e) => setFarmerMobile(e.target.value)}
+                      placeholder="Enter registered mobile number"
+                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] pl-10 pr-[92px] py-2 text-xs sm:text-sm text-[#17231F] placeholder:text-[#94A3B8] focus:border-[#075E43] focus:ring-1 focus:ring-[#075E43] focus:outline-none transition-colors"
+                    />
+                    <button
+                      type="button"
+                      disabled={isSubmitting || !farmerMobile.trim() || resendCooldown > 0}
+                      onClick={handleSendFarmerOtp}
+                      className="absolute right-1.5 px-3 py-1 bg-[#EDF3EF] hover:bg-[#CBD8D1] disabled:opacity-50 text-[#063B2A] font-bold text-[11px] rounded-[6px] border border-[#CBD8D1] transition-colors whitespace-nowrap shadow-2xs z-10"
+                    >
+                      {resendCooldown > 0 ? `${resendCooldown}s` : otpSent ? 'Resend' : 'Send OTP'}
+                    </button>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                        {at.mobileLabel}
-                      </label>
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
-                          <Phone className="w-4 h-4 text-[#66736D] absolute left-3 top-3.5" />
-                          <input
-                            type="tel"
-                            required
-                            value={mobileForOtp}
-                            onChange={(e) => setMobileForOtp(e.target.value)}
-                            placeholder={at.mobilePlaceholder}
-                            className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] pl-10 pr-3 py-2.5 text-sm focus:border-[#075E43] focus:outline-none"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleSendOtp}
-                          className="bg-[#EDF3EF] hover:bg-[#CBD8D1] text-[#063B2A] font-bold text-xs px-4 rounded-[6px] border border-[#CBD8D1] transition-colors"
-                        >
-                          {at.sendOtp}
-                        </button>
-                      </div>
-                    </div>
+                </div>
 
-                    {otpSent && (
-                      <div className="p-3 bg-[#E7F3EC] border border-[#85E1A9] text-[#063B2A] text-xs rounded-[6px] space-y-2">
-                        <div className="flex items-center gap-1.5 font-bold">
-                          <CheckCircle2 className="w-4 h-4 text-[#16803C]" />
-                          <span>{at.otpSentAlert}</span>
-                        </div>
-                        <div className="relative">
-                          <KeyRound className="w-4 h-4 text-[#66736D] absolute left-3 top-3" />
-                          <input
-                            type="text"
-                            maxLength={6}
-                            value={otpCode}
-                            onChange={(e) => setOtpCode(e.target.value)}
-                            placeholder={at.otpPlaceholder}
-                            className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] pl-10 pr-3 py-2 text-sm font-mono font-bold tracking-widest focus:border-[#075E43] focus:outline-none"
-                          />
-                        </div>
-                      </div>
+                {/* OTP Field (Only OTP, strictly NO password) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-bold text-[#17231F] uppercase tracking-wider">
+                      OTP
+                    </label>
+                    {otpSent && resendCooldown === 0 && (
+                      <button
+                        type="button"
+                        onClick={handleSendFarmerOtp}
+                        className="text-[10px] font-bold text-[#075E43] hover:underline"
+                      >
+                        Resend OTP
+                      </button>
                     )}
                   </div>
-                )}
+                  <div className="relative flex items-center w-full">
+                    <span className="absolute left-3.5 flex items-center justify-center pointer-events-none text-[#66736D] z-10">
+                      <KeyRound className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      value={farmerOtpCode}
+                      onChange={(e) => setFarmerOtpCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Enter OTP"
+                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] pl-10 pr-4 py-2 text-xs sm:text-sm font-mono tracking-wider text-[#17231F] placeholder:text-[#94A3B8] placeholder:font-sans placeholder:tracking-normal focus:border-[#075E43] focus:ring-1 focus:ring-[#075E43] focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
 
                 {/* Terms & Conditions Checkbox */}
-                <div className="pt-2 pb-1">
-                  <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-[#17231F]">
+                <div className="pt-0.5">
+                  <label className="flex items-center gap-2 text-[11px] text-[#17231F] cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={agreedToTc}
                       onChange={(e) => {
                         setAgreedToTc(e.target.checked);
-                        if (e.target.checked) setLoginError('');
+                        if (e.target.checked) setAuthError('');
                       }}
-                      className="mt-0.5 w-4 h-4 rounded border-[#CBD8D1] text-[#075E43] focus:ring-[#075E43] accent-[#075E43] cursor-pointer shrink-0"
+                      className="w-4 h-4 accent-[#075E43] rounded border-[#CBD8D1] cursor-pointer"
                     />
-                    <span className="leading-snug">
+                    <span>
                       {language === 'en' ? 'I agree to the ' : ''}
                       <button
                         type="button"
                         onClick={(e) => {
                           e.preventDefault();
-                          e.stopPropagation();
                           setIsTcModalOpen(true);
                         }}
-                        className="font-bold text-[#075E43] underline hover:text-[#04261B] transition-colors"
+                        className="font-bold text-[#075E43] underline hover:text-[#04261B]"
                       >
                         {language === 'en' ? 'Terms & Conditions' : termsText}
                       </button>
-                      {language === 'en' && <span className="text-[#66736D] font-['Noto_Sans_Devanagari']"> (नियम एवं शर्तें)</span>}
+                      {language === 'en' && <span className="text-[#66736D]"> (नियम एवं शर्तें)</span>}
                     </span>
                   </label>
                 </div>
 
+                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#063B2A] hover:bg-[#075E43] text-[#FFFFFF] font-bold text-sm py-3 rounded-[6px] transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-[#064e3b] hover:bg-[#063B2A] disabled:opacity-50 text-white font-bold text-xs sm:text-sm py-2.5 px-4 rounded-[8px] shadow-sm flex items-center justify-center gap-2 transition-colors"
                 >
-                  {isSubmitting ? '...' : at.loginButton}
+                  <LogIn className="w-4 h-4" />
+                  <span>{isSubmitting ? 'Logging in...' : otpSent ? 'Login as Farmer' : 'Send OTP & Login as Farmer'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
+            )}
 
-              {/* Quick Fill Pre-fill */}
-              <div className="pt-4 border-t border-[#CBD8D1]">
-                <div className="text-[11px] font-bold text-[#66736D] uppercase mb-2 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-[#EA8A0A]" />
-                  <span>{at.quickDemoTitle}</span>
-                </div>
-                <div className="text-xs">
-                  <button
-                    type="button"
-                    onClick={() => fillQuickDemo('gurpreet')}
-                    className="w-full p-2.5 text-left bg-[#EDF3EF] hover:bg-[#E7F3EC] border border-[#CBD8D1] rounded-[6px] transition-colors"
-                  >
-                    <div className="font-bold text-[#063B2A]">{at.quickDemoFarmer}</div>
-                    <div className="text-[10px] text-[#66736D] font-mono">ID: MP-2024-7842</div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: OPERATOR LOGIN */}
-          {tab === 'operator_login' && (
-            <div className="p-6 sm:p-8 space-y-5">
-              <div className="bg-[#FFF3DC] border border-[#FFE6B3] p-3 rounded-[6px] text-xs text-[#B45309] flex items-center gap-2">
-                <Briefcase className="w-4 h-4 shrink-0" />
-                <span>
-                  <strong>Authorized Mandi Personnel Only:</strong> Access live queue floor, digital weighbridges, and PFMS DBT authorization.
-                </span>
-              </div>
-
-              {loginError && (
-                <div className="p-3 bg-[#FFF5F5] border border-[#F0C2C2] text-[#B42318] text-xs rounded-[6px]">
-                  {loginError}
-                </div>
-              )}
-
-              <form onSubmit={handleOperatorLogin} className="space-y-4">
+            {/* ========================================================= */}
+            {/* CASE 2: OPERATOR LOGIN (Phone + Password as per Swagger)  */}
+            {/* ========================================================= */}
+            {selectedRole === 'operator' && selectedAction === 'login' && (
+              <form onSubmit={handleSubmitOperatorLogin} className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                    {at.operatorIdLabel}
+                  <label className="block text-[11px] font-bold text-[#17231F] uppercase tracking-wider mb-1">
+                    MOBILE NUMBER
                   </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-[#66736D] absolute left-3 top-3.5" />
+                  <div className="relative flex items-center w-full">
+                    <span className="absolute left-3.5 flex items-center justify-center pointer-events-none text-[#66736D] z-10">
+                      <Phone className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="tel"
+                      required
+                      value={mobileNumber}
+                      onChange={(e) => setMobileNumber(e.target.value)}
+                      placeholder="Enter registered mobile number"
+                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] pl-10 pr-4 py-2 text-xs sm:text-sm text-[#17231F] placeholder:text-[#94A3B8] focus:border-[#075E43] focus:ring-1 focus:ring-[#075E43] focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#17231F] uppercase tracking-wider mb-1">
+                    PASSWORD
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    <span className="absolute left-3.5 flex items-center justify-center pointer-events-none text-[#66736D] z-10">
+                      <Lock className="w-4 h-4" />
+                    </span>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] pl-10 pr-10 py-2 text-xs sm:text-sm text-[#17231F] placeholder:text-[#94A3B8] focus:border-[#075E43] focus:ring-1 focus:ring-[#075E43] focus:outline-none transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 p-1 text-[#66736D] hover:text-[#17231F] transition-colors z-10"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Terms Checkbox */}
+                <div className="pt-0.5">
+                  <label className="flex items-center gap-2 text-[11px] text-[#17231F] cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={agreedToTc}
+                      onChange={(e) => {
+                        setAgreedToTc(e.target.checked);
+                        if (e.target.checked) setAuthError('');
+                      }}
+                      className="w-4 h-4 accent-[#075E43] rounded border-[#CBD8D1] cursor-pointer"
+                    />
+                    <span>
+                      {language === 'en' ? 'I agree to the ' : ''}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsTcModalOpen(true);
+                        }}
+                        className="font-bold text-[#075E43] underline hover:text-[#04261B]"
+                      >
+                        {language === 'en' ? 'Terms & Conditions' : termsText}
+                      </button>
+                      {language === 'en' && <span className="text-[#66736D]"> (नियम एवं शर्तें)</span>}
+                    </span>
+                  </label>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#064e3b] hover:bg-[#063B2A] disabled:opacity-50 text-white font-bold text-xs sm:text-sm py-2.5 px-4 rounded-[8px] shadow-sm flex items-center justify-center gap-2 transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>{isSubmitting ? 'Logging in...' : 'Login as Operator'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            )}
+
+            {/* ========================================================= */}
+            {/* CASE 3: OPERATOR REGISTRATION (POST /api/v1/operator/reg) */}
+            {/* ========================================================= */}
+            {selectedRole === 'operator' && selectedAction === 'register' && (
+              <form onSubmit={handleSubmitOperatorRegister} className="space-y-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#17231F] uppercase tracking-wider mb-1">
+                    OPERATOR FULL NAME *
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    <span className="absolute left-3.5 flex items-center justify-center pointer-events-none text-[#66736D] z-10">
+                      <User className="w-4 h-4" />
+                    </span>
                     <input
                       type="text"
                       required
-                      value={operatorId}
-                      onChange={(e) => setOperatorId(e.target.value)}
-                      placeholder={at.operatorIdPlaceholder}
-                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] pl-10 pr-3 py-2.5 text-sm font-mono focus:border-[#075E43] focus:outline-none"
+                      maxLength={100}
+                      value={opRegName}
+                      onChange={(e) => setOpRegName(e.target.value)}
+                      placeholder="e.g. Ramesh Kumar"
+                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] pl-10 pr-4 py-2 text-xs text-[#17231F] placeholder:text-[#94A3B8] focus:border-[#075E43] focus:ring-1 focus:ring-[#075E43] focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                    {at.operatorPinLabel}
+                  <label className="block text-[11px] font-bold text-[#17231F] uppercase tracking-wider mb-1">
+                    OFFICIAL MOBILE NUMBER *
                   </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-[#66736D] absolute left-3 top-3.5" />
+                  <div className="relative flex items-center w-full">
+                    <span className="absolute left-3.5 flex items-center justify-center pointer-events-none text-[#66736D] z-10">
+                      <Phone className="w-4 h-4" />
+                    </span>
                     <input
-                      type="password"
+                      type="tel"
                       required
-                      value={operatorPin}
-                      onChange={(e) => setOperatorPin(e.target.value)}
-                      placeholder={at.operatorPinPlaceholder}
-                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] pl-10 pr-3 py-2.5 text-sm font-mono focus:border-[#075E43] focus:outline-none"
+                      value={opRegMobile}
+                      onChange={(e) => setOpRegMobile(e.target.value)}
+                      placeholder="10-digit registered mobile"
+                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] pl-10 pr-4 py-2 text-xs text-[#17231F] placeholder:text-[#94A3B8] focus:border-[#075E43] focus:ring-1 focus:ring-[#075E43] focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                    {at.operatorCentreLabel}
+                  <label className="block text-[11px] font-bold text-[#17231F] uppercase tracking-wider mb-1">
+                    ACCOUNT PASSWORD (MIN 8 CHARS) *
                   </label>
-                  <div className="relative">
-                    <Building2 className="w-4 h-4 text-[#66736D] absolute left-3 top-3.5" />
+                  <div className="relative flex items-center w-full">
+                    <span className="absolute left-3.5 flex items-center justify-center pointer-events-none text-[#66736D] z-10">
+                      <Lock className="w-4 h-4" />
+                    </span>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      minLength={8}
+                      maxLength={128}
+                      value={opRegPassword}
+                      onChange={(e) => setOpRegPassword(e.target.value)}
+                      placeholder="Set strong password (min 8 chars)"
+                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] pl-10 pr-10 py-2 text-xs text-[#17231F] placeholder:text-[#94A3B8] focus:border-[#075E43] focus:ring-1 focus:ring-[#075E43] focus:outline-none transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 p-1 text-[#66736D] hover:text-[#17231F] transition-colors z-10"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#17231F] uppercase tracking-wider mb-1">
+                    MANDI PROCUREMENT CENTRE *
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    <span className="absolute left-3.5 flex items-center justify-center pointer-events-none text-[#66736D] z-10">
+                      <Building2 className="w-4 h-4" />
+                    </span>
                     <select
-                      value={selectedCentreId}
-                      onChange={(e) => setSelectedCentreId(e.target.value)}
-                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] pl-10 pr-3 py-2.5 text-xs font-medium focus:border-[#075E43] focus:outline-none"
+                      required
+                      value={opRegCentreId}
+                      onChange={(e) => setOpRegCentreId(e.target.value)}
+                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] pl-10 pr-4 py-2 text-xs font-medium text-[#17231F] focus:border-[#075E43] focus:ring-1 focus:ring-[#075E43] focus:outline-none transition-colors"
                     >
                       {centres.map(c => (
                         <option key={c.id} value={c.id}>
@@ -560,312 +823,212 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                   </div>
                 </div>
 
-                {/* Terms & Conditions Checkbox */}
-                <div className="pt-2 pb-1">
-                  <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-[#17231F]">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#17231F] uppercase tracking-wider mb-1">
+                    GOVERNMENT SERVICE KEY (OPTIONAL)
+                  </label>
+                  <div className="relative flex items-center w-full">
+                    <span className="absolute left-3.5 flex items-center justify-center pointer-events-none text-[#66736D] z-10">
+                      <Key className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="password"
+                      value={opRegServiceKey}
+                      onChange={(e) => setOpRegServiceKey(e.target.value)}
+                      placeholder="Required by administrative backend"
+                      className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] pl-10 pr-4 py-2 text-xs text-[#17231F] placeholder:text-[#94A3B8] focus:border-[#075E43] focus:ring-1 focus:ring-[#075E43] focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Terms Checkbox */}
+                <div className="pt-0.5">
+                  <label className="flex items-center gap-2 text-[11px] text-[#17231F] cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={agreedToTc}
                       onChange={(e) => {
                         setAgreedToTc(e.target.checked);
-                        if (e.target.checked) setLoginError('');
+                        if (e.target.checked) setAuthError('');
                       }}
-                      className="mt-0.5 w-4 h-4 rounded border-[#CBD8D1] text-[#075E43] focus:ring-[#075E43] accent-[#075E43] cursor-pointer shrink-0"
+                      className="w-4 h-4 accent-[#075E43] rounded border-[#CBD8D1] cursor-pointer"
                     />
-                    <span className="leading-snug">
-                      {language === 'en' ? 'I agree to the ' : ''}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setIsTcModalOpen(true);
-                        }}
-                        className="font-bold text-[#075E43] underline hover:text-[#04261B] transition-colors"
-                      >
-                        {language === 'en' ? 'Terms & Conditions' : termsText}
-                      </button>
-                      {language === 'en' && <span className="text-[#66736D] font-['Noto_Sans_Devanagari']"> (नियम एवं शर्तें)</span>}
-                    </span>
+                    <span>I agree to the Terms & Conditions</span>
                   </label>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-[#075E43] hover:bg-[#063B2A] text-[#FFFFFF] font-bold text-sm py-3 rounded-[6px] transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  className="w-full bg-[#064e3b] hover:bg-[#063B2A] disabled:opacity-50 text-white font-bold text-xs py-2.5 px-4 rounded-[8px] shadow-sm flex items-center justify-center gap-2 transition-colors"
                 >
-                  <Briefcase className="w-4 h-4" />
-                  <span>{isSubmitting ? '...' : at.loginAsOperatorBtn}</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  <UserPlus className="w-4 h-4" />
+                  <span>{isSubmitting ? 'Creating account...' : 'Register Operator Account'}</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
-            </div>
-          )}
+            )}
 
-          {/* TAB 3: REGISTRATION */}
-          {tab === 'register' && (
-            <div className="p-6 sm:p-8 space-y-5">
-              {regSuccessFarmerId ? (
-                <div className="bg-[#E7F3EC] border border-[#85E1A9] p-6 rounded-[8px] text-center space-y-4">
-                  <div className="w-12 h-12 bg-[#16803C] text-white rounded-full flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-[#063B2A]">{at.regSuccessTitle}</h3>
-                    <p className="text-xs text-[#34443D] mt-1">{at.regSuccessMsg}</p>
-                  </div>
-                  <div className="p-3 bg-white border border-[#CBD8D1] rounded-[6px] inline-block font-mono text-base font-bold text-[#063B2A]">
-                    {at.yourAssignedId}: <span className="text-[#B45309]">{regSuccessFarmerId}</span>
-                  </div>
-                  <div>
+            {/* ========================================================= */}
+            {/* CASE 4: FARMER REGISTRATION (Integrated in Same Card)      */}
+            {/* ========================================================= */}
+            {selectedRole === 'farmer' && selectedAction === 'register' && (
+              <form onSubmit={handleSubmitFarmerRegister} className="space-y-3">
+                {farmerSuccessId ? (
+                  <div className="text-center p-4 bg-[#E7F3EC] rounded-[8px] space-y-2">
+                    <CheckCircle2 className="w-8 h-8 text-[#16803C] mx-auto" />
+                    <div className="font-bold text-xs text-[#063B2A]">Registration Successful!</div>
+                    <div className="text-[11px] font-mono text-[#075E43] font-bold">ID: {farmerSuccessId}</div>
                     <button
                       type="button"
                       onClick={() => {
-                        setLoginIdentifier(regSuccessFarmerId);
-                        setTab('farmer_login');
+                        if (onSuccess) onSuccess();
+                        setActiveView('dashboard');
                       }}
-                      className="bg-[#063B2A] hover:bg-[#075E43] text-[#FFFFFF] font-bold text-xs px-6 py-2.5 rounded-[6px] transition-colors inline-flex items-center gap-2"
+                      className="mt-2 w-full bg-[#064e3b] text-white py-2 rounded-[6px] text-xs font-bold shadow-sm"
                     >
-                      {at.proceedToLogin}
-                      <ArrowRight className="w-4 h-4" />
+                      Enter Farmer Dashboard →
                     </button>
                   </div>
-                </div>
-              ) : (
-                <form onSubmit={handleRegister} className="space-y-4 text-xs">
-                  <div>
-                    <h2 className="text-sm font-bold text-[#17231F]">{at.regTitle}</h2>
-                    <p className="text-[#66736D] text-[11px]">{at.regSubtitle}</p>
-                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17231F] uppercase mb-0.5">
+                          FULL NAME *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={farmerRegName}
+                          onChange={(e) => setFarmerRegName(e.target.value)}
+                          placeholder="Kisan Name"
+                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-xs text-[#17231F] focus:border-[#075E43] focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17231F] uppercase mb-0.5">
+                          MOBILE NUMBER *
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          value={farmerRegMobile}
+                          onChange={(e) => setFarmerRegMobile(e.target.value)}
+                          placeholder="10-digit mobile"
+                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-xs text-[#17231F] focus:border-[#075E43] focus:outline-none"
+                        />
+                      </div>
+                    </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.fullNameLabel} *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={regData.fullName}
-                        onChange={(e) => setRegData({ ...regData, fullName: e.target.value })}
-                        placeholder={at.fullNamePlaceholder}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 focus:border-[#075E43] focus:outline-none"
-                      />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17231F] uppercase mb-0.5">
+                          VILLAGE *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={farmerRegVillage}
+                          onChange={(e) => setFarmerRegVillage(e.target.value)}
+                          placeholder="Village name"
+                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-xs text-[#17231F] focus:border-[#075E43] focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17231F] uppercase mb-0.5">
+                          DISTRICT
+                        </label>
+                        <input
+                          type="text"
+                          value={farmerRegDistrict}
+                          onChange={(e) => setFarmerRegDistrict(e.target.value)}
+                          placeholder="District"
+                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-xs text-[#17231F] focus:border-[#075E43] focus:outline-none"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.mobileLabel} *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={regData.mobileNumber}
-                        onChange={(e) => setRegData({ ...regData, mobileNumber: e.target.value })}
-                        placeholder="9876543210"
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 focus:border-[#075E43] focus:outline-none"
-                      />
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.aadhaarLabel}
-                      </label>
-                      <input
-                        type="text"
-                        value={regData.aadhaarNumber}
-                        onChange={(e) => setRegData({ ...regData, aadhaarNumber: e.target.value })}
-                        placeholder={at.aadhaarPlaceholder}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 focus:border-[#075E43] focus:outline-none font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.villageLabel} *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={regData.village}
-                        onChange={(e) => setRegData({ ...regData, village: e.target.value })}
-                        placeholder={at.villagePlaceholder}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 focus:border-[#075E43] focus:outline-none"
-                      />
-                    </div>
-                  </div>
+                    {farmerRegOtpSent && (
+                      <div className="p-2.5 bg-[#E7F3EC] border border-[#85E1A9] rounded-[6px] space-y-1.5">
+                        <label className="block text-[10px] font-bold text-[#063B2A]">
+                          ENTER 6-DIGIT OTP SENT TO {farmerRegMobile}
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={farmerRegOtpCode}
+                          onChange={(e) => setFarmerRegOtpCode(e.target.value.replace(/\D/g, ''))}
+                          placeholder="6-digit OTP"
+                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-center font-mono text-xs focus:border-[#075E43] focus:outline-none"
+                        />
+                      </div>
+                    )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.tehsilLabel}
-                      </label>
-                      <input
-                        type="text"
-                        value={regData.tehsil}
-                        onChange={(e) => setRegData({ ...regData, tehsil: e.target.value })}
-                        placeholder={at.tehsilPlaceholder}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 text-xs focus:border-[#075E43] focus:outline-none min-h-[40px]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.districtLabel}
-                      </label>
-                      <input
-                        type="text"
-                        value={regData.district}
-                        onChange={(e) => setRegData({ ...regData, district: e.target.value })}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 text-xs focus:border-[#075E43] focus:outline-none min-h-[40px]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.pincodeLabel}
-                      </label>
-                      <input
-                        type="text"
-                        value={regData.pincode}
-                        onChange={(e) => setRegData({ ...regData, pincode: e.target.value })}
-                        placeholder={at.pincodePlaceholder}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 text-xs focus:border-[#075E43] focus:outline-none min-h-[40px]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#CBD8D1]">
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.landHoldingLabel}
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="200"
-                        value={regData.landHoldingAcres}
-                        onChange={(e) => setRegData({ ...regData, landHoldingAcres: Number(e.target.value) })}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 focus:border-[#075E43] focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.primaryCropLabel}
-                      </label>
-                      <select
-                        value={regData.primaryCrop}
-                        onChange={(e) => setRegData({ ...regData, primaryCrop: e.target.value })}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 focus:border-[#075E43] focus:outline-none"
-                      >
-                        <option value="Wheat (गेहूं)">Wheat (गेहूं)</option>
-                        <option value="Paddy / Rice (धान)">Paddy / Rice (धान)</option>
-                        <option value="Mustard (सरसों)">Mustard (सरसों)</option>
-                        <option value="Gram / Chana (चना)">Gram / Chana (चना)</option>
-                        <option value="Cotton (कपास)">Cotton (कपास)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#CBD8D1]">
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.bankAccountLabel}
-                      </label>
-                      <input
-                        type="text"
-                        value={regData.bankAccount}
-                        onChange={(e) => setRegData({ ...regData, bankAccount: e.target.value })}
-                        placeholder={at.bankAccountPlaceholder}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 focus:border-[#075E43] focus:outline-none font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-[#17231F] uppercase mb-1">
-                        {at.ifscCodeLabel}
-                      </label>
-                      <input
-                        type="text"
-                        value={regData.ifscCode}
-                        onChange={(e) => setRegData({ ...regData, ifscCode: e.target.value })}
-                        placeholder={at.ifscCodePlaceholder}
-                        className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-3 py-2 focus:border-[#075E43] focus:outline-none font-mono uppercase"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Terms & Conditions Checkbox */}
-                  <div className="pt-2 pb-1">
-                    <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-[#17231F]">
-                      <input
-                        type="checkbox"
-                        checked={agreedToTc}
-                        onChange={(e) => setAgreedToTc(e.target.checked)}
-                        className="mt-0.5 w-4 h-4 rounded border-[#CBD8D1] text-[#075E43] focus:ring-[#075E43] accent-[#075E43] cursor-pointer shrink-0"
-                      />
-                      <span className="leading-snug">
-                        {language === 'en' ? 'I agree to the ' : ''}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setIsTcModalOpen(true);
+                    {/* Terms Checkbox */}
+                    <div className="pt-0.5">
+                      <label className="flex items-center gap-2 text-[11px] text-[#17231F] cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={agreedToTc}
+                          onChange={(e) => {
+                            setAgreedToTc(e.target.checked);
+                            if (e.target.checked) setAuthError('');
                           }}
-                          className="font-bold text-[#075E43] underline hover:text-[#04261B] transition-colors"
-                        >
-                          {language === 'en' ? 'Terms & Conditions' : termsText}
-                        </button>
-                        {language === 'en' && <span className="text-[#66736D] font-['Noto_Sans_Devanagari']"> (नियम एवं शर्तें)</span>}
-                      </span>
-                    </label>
-                  </div>
+                          className="w-4 h-4 accent-[#075E43] rounded border-[#CBD8D1] cursor-pointer"
+                        />
+                        <span>I agree to the Terms & Conditions</span>
+                      </label>
+                    </div>
 
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-[#063B2A] hover:bg-[#075E43] text-[#FFFFFF] font-bold text-sm py-3 rounded-[6px] transition-colors flex items-center justify-center gap-2 mt-4"
-                  >
-                    {isSubmitting ? '...' : at.registerButton}
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
-              )}
-            </div>
-          )}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-[#064e3b] hover:bg-[#063B2A] disabled:opacity-50 text-white font-bold text-xs py-2.5 px-4 rounded-[8px] shadow-sm flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      <span>{isSubmitting ? 'Registering...' : farmerRegOtpSent ? 'Verify OTP & Register' : 'Send OTP to Register'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+              </form>
+            )}
 
-          {/* Footer Helpline Note */}
-          <div className="bg-[#EDF3EF] px-6 py-3 border-t border-[#CBD8D1] text-center text-xs text-[#66736D]">
-            {at.helplineText}
+          </div>
+
+          {/* Bottom Card Strip (Matching Target Design) */}
+          <div className="bg-[#F4F7F5] border-t border-[#CBD8D1] py-2.5 px-4 text-center text-[10px] sm:text-[11px] text-[#66736D] font-medium">
+            Need Help? Call Kisan Call Centre Toll-Free: 1800-180-1551
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* Footer Strip */}
-      <div className="bg-[#FFFFFF]/90 backdrop-blur-sm border-t border-[#CBD8D1] text-xs py-3 px-4 sm:px-8 text-[#66736D] relative z-10">
-        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-center sm:justify-end gap-x-3 gap-y-1">
+      {/* Official Government Footer */}
+      <footer className="bg-[#FFFFFF]/90 backdrop-blur-md border-t border-[#CBD8D1] py-2.5 px-4 text-center text-[11px] text-[#66736D] relative z-10">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
+          <div>
+            KRAYAM National Farmer Procurement Grid • Designed for Mandi Centers Across India
+          </div>
+          <div className="flex items-center gap-4">
             <button
               type="button"
               onClick={() => setIsTcModalOpen(true)}
-              className="text-[#075E43] underline hover:text-[#04261B] font-medium transition-colors"
+              className="hover:text-[#075E43] transition-colors underline"
             >
               Terms & Conditions
             </button>
-            <span>•</span>
+            <span className="text-[#CBD8D1]">•</span>
             <button
               type="button"
-              onClick={() => setIsPrivacyModalOpen(true)}
-              className="text-[#075E43] underline hover:text-[#04261B] font-medium transition-colors"
+              onClick={() => setIsTcModalOpen(true)}
+              className="hover:text-[#075E43] transition-colors underline"
             >
               Privacy Policy
             </button>
-            <span>•</span>
-            <span className="text-[#075E43] font-semibold">NIC Secure Portal v2.4.0</span>
-            <span>•</span>
-            <span className="text-[#16803C] flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> 256-Bit SSL Encrypted
-            </span>
           </div>
-      </div>
+        </div>
+      </footer>
     </div>
   );
 };

@@ -71,10 +71,10 @@ export const OperatorHeader: React.FC = () => {
             {/* Operator Identity Badge */}
             <div className="hidden sm:flex flex-col text-right leading-tight">
               <span className="font-bold text-[#17231F] text-xs">
-                {operator?.name || 'Sh. Rajesh Kumar'}
+                {operator?.name || 'Mandi Officer'}
               </span>
               <span className="text-[10px] text-[#075E43] font-medium">
-                {operator?.operatorId || 'OP-SAMRALA-01'} • Mandi In-Charge
+                {operator?.operatorId ? `ID: ${operator.operatorId.slice(0, 8)}` : 'Authorized Personnel'} • Mandi In-Charge
               </span>
             </div>
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { OfficialBrandBar } from './OfficialBrandBar';
 import { LanguageDropdown } from '../common/LanguageDropdown';
-import { Bell, Menu, ChevronDown, UserCheck, LogOut, LogIn, ShieldCheck, Calendar, Clock } from 'lucide-react';
+import { Bell, Menu, ChevronDown, UserCheck, LogOut, LogIn, ShieldCheck, Calendar, Clock, MessageSquare } from 'lucide-react';
 
 interface GovernmentHeaderProps {
   onOpenSidebar: () => void;
@@ -14,6 +14,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
     unreadCount, 
     activeView, 
     setActiveView, 
+    setIsSmsModalOpen,
     t,
     isLoggedIn,
     logout,
@@ -119,6 +120,16 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
                   {unreadCount}
                 </span>
               )}
+            </button>
+
+            {/* SMS & NLP Gateway Console Trigger */}
+            <button
+              onClick={() => setIsSmsModalOpen(true)}
+              className="relative p-2 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-[#34443D] hover:bg-[#F3F9F5] transition-colors"
+              title="Krayam SMS & Natural-Language Mandi Gateway"
+              aria-label="SMS Gateway"
+            >
+              <MessageSquare className="w-4 h-4 text-[#075E43]" />
             </button>
 
             {/* Farmer Identity Badge or Login/Register Button */}

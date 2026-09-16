@@ -10,7 +10,7 @@ interface LeafletMapProps {
 }
 
 export const LeafletMap: React.FC<LeafletMapProps> = ({
-  farmerCoordinates = { lat: 30.8358, lng: 76.1917 },
+  farmerCoordinates,
   centres,
   selectedCentreId,
   onSelectCentre
@@ -51,11 +51,15 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       });
     };
 
+    const firstCentreCoords = centres[0]?.location?.coordinates;
+    const initialLat = farmerCoordinates?.latitude ?? farmerCoordinates?.lat ?? firstCentreCoords?.latitude ?? firstCentreCoords?.lat ?? 28.6139;
+    const initialLng = farmerCoordinates?.longitude ?? farmerCoordinates?.lng ?? firstCentreCoords?.longitude ?? firstCentreCoords?.lng ?? 77.2090;
+
     // Initialize map if not yet initialized
     if (!mapInstanceRef.current) {
       const map = L.map(mapContainerRef.current, { zoomControl: false }).setView(
-        [farmerCoordinates.lat, farmerCoordinates.lng],
-        11
+        [initialLat, initialLng],
+        farmerCoordinates ? 11 : 9
       );
 
       // Voyager tile layer for crisp natural light appearance
@@ -76,40 +80,52 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
-    // Add Farmer Location
-    const farmerMarker = L.marker([farmerCoordinates.lat, farmerCoordinates.lng], { icon: farmerIcon })
-      .addTo(map)
-      .bindPopup(`
-        <div style="font-family: sans-serif; padding: 4px;">
-          <span style="font-size: 9px; text-transform: uppercase; letter-spacing: 0.45px; color: #166534; font-weight: bold;">Origin Coordinates</span>
-          <div style="font-size: 13px; font-weight: bold; color: #0d2618; margin-top: 2px;">Farmer Village Location</div>
-        </div>
-      `);
-    markersRef.current.push(farmerMarker);
+    // Add Farmer Location if available
+    const farmerLat = farmerCoordinates?.latitude ?? farmerCoordinates?.lat;
+    const farmerLng = farmerCoordinates?.longitude ?? farmerCoordinates?.lng;
+    if (farmerLat !== undefined && farmerLng !== undefined) {
+      const farmerMarker = L.marker([farmerLat, farmerLng], { icon: farmerIcon })
+        .addTo(map)
+        .bindPopup(`
+          <div style="font-family: sans-serif; padding: 4px;">
+            <span style="font-size: 9px; text-transform: uppercase; letter-spacing: 0.45px; color: #166534; font-weight: bold;">Origin Coordinates</span>
+            <div style="font-size: 13px; font-weight: bold; color: #0d2618; margin-top: 2px;">Farmer Location</div>
+          </div>
+        `);
+      markersRef.current.push(farmerMarker);
+    }
 
     // Add Centre Markers
     centres.forEach(centre => {
+      const cLat = centre.location?.coordinates?.latitude ?? centre.location?.coordinates?.lat;
+      const cLng = centre.location?.coordinates?.longitude ?? centre.location?.coordinates?.lng;
+      if (cLat === undefined || cLng === undefined) return;
+
       const isSelected = centre.id === selectedCentreId;
+      const loadLevel = centre.currentQueue?.loadLevel || 'Low';
+      const activeVehicles = centre.currentQueue?.activeVehicles ?? 0;
+      const distStr = centre.distanceKm !== undefined ? `${centre.distanceKm} km` : '';
+
       const marker = L.marker(
-        [centre.location.coordinates.lat, centre.location.coordinates.lng],
-        { icon: centreIcon(isSelected, centre.currentQueue.loadLevel) }
+        [cLat, cLng],
+        { icon: centreIcon(isSelected, loadLevel) }
       )
         .addTo(map)
         .bindPopup(`
           <div style="font-family: sans-serif; min-width: 200px; padding: 4px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 9px; text-transform: uppercase; letter-spacing: 0.45px; color: #166534; font-weight: bold;">Mandi Terminal</span>
-              <span style="font-size: 11px; font-weight: bold; color: #166534;">${centre.distanceKm} km</span>
+              ${distStr ? `<span style="font-size: 11px; font-weight: bold; color: #166534;">${distStr}</span>` : ''}
             </div>
             <div style="font-size: 13px; font-weight: bold; color: #0d2618; margin-top: 2px;">${centre.name}</div>
-            <div style="font-size: 11px; color: #2e5a40; margin-top: 2px;">${centre.location.address}</div>
+            <div style="font-size: 11px; color: #2e5a40; margin-top: 2px;">${centre.location.address || ''}</div>
             <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 6px; padding-top: 4px; border-top: 1px solid #cdeac6;">
               <span style="color: #2e5a40;">Queue Load:</span>
-              <span style="color: ${centre.currentQueue.loadLevel === 'High' ? '#dc2626' : centre.currentQueue.loadLevel === 'Moderate' ? '#d97706' : '#166534'}; font-weight: bold;">
-                ${centre.currentQueue.loadLevel} (${centre.currentQueue.activeVehicles} vehicles)
+              <span style="color: ${loadLevel === 'High' ? '#dc2626' : loadLevel === 'Moderate' ? '#d97706' : '#166534'}; font-weight: bold;">
+                ${loadLevel} (${activeVehicles} vehicles)
               </span>
             </div>
-            <a href="https://www.google.com/maps/dir/?api=1&destination=${centre.location.coordinates.lat},${centre.location.coordinates.lng}" 
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${cLat},${cLng}" 
                target="_blank" 
                rel="noreferrer"
                style="display: block; text-align: center; background-color: #166534; color: #ffffff; padding: 6px 12px; border-radius: 56px; text-decoration: none; font-size: 11px; margin-top: 8px; font-weight: bold; letter-spacing: -0.08px;">
@@ -127,11 +143,20 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       markersRef.current.push(marker);
     });
 
-    if (centres.length > 0) {
-      const bounds = L.latLngBounds([
-        [farmerCoordinates.lat, farmerCoordinates.lng],
-        ...centres.map(c => [c.location.coordinates.lat, c.location.coordinates.lng] as [number, number])
-      ]);
+    const validPoints: [number, number][] = [];
+    if (farmerLat !== undefined && farmerLng !== undefined) {
+      validPoints.push([farmerLat, farmerLng]);
+    }
+    centres.forEach(c => {
+      const lat = c.location?.coordinates?.latitude ?? c.location?.coordinates?.lat;
+      const lng = c.location?.coordinates?.longitude ?? c.location?.coordinates?.lng;
+      if (lat !== undefined && lng !== undefined) {
+        validPoints.push([lat, lng]);
+      }
+    });
+
+    if (validPoints.length > 0) {
+      const bounds = L.latLngBounds(validPoints);
       map.fitBounds(bounds, { padding: [40, 40] });
     }
   }, [farmerCoordinates, centres, selectedCentreId, onSelectCentre]);

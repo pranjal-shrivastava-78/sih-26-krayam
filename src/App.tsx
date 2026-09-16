@@ -24,23 +24,24 @@ import { TermsConditionsModal } from './components/modals/TermsConditionsModal';
 import { PrivacyPolicyModal } from './components/modals/PrivacyPolicyModal';
 import { CookiePolicyModal } from './components/modals/CookiePolicyModal';
 import { CookieConsentBanner } from './components/common/CookieConsentBanner';
+import { SmsInterfaceModal } from './components/sms/SmsInterfaceModal';
 import api from './services/api';
 
 const MainAppContent: React.FC = () => {
-  const { activeView, isLoggedIn, userRole } = useApp();
+  const { activeView, isLoggedIn, authStatus, userRole } = useApp();
   const [showSplash, setShowSplash] = useState(true);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Initial startup: show user's seedling logo for ~1400 milliseconds
-  if (showSplash) {
+  // Initial startup: show user's seedling logo for ~1400 milliseconds or while auth initializes
+  if (showSplash || authStatus === 'initializing') {
     return <SplashScreen onFinish={() => setShowSplash(false)} durationMs={1400} />;
   }
 
   let content: React.ReactNode;
 
-  // If user is not logged in or active view is auth, render dedicated Registration/Login Page
-  if (!isLoggedIn || activeView === 'auth') {
+  // Strict protected route enforcement: unauthenticated users always get AuthPage
+  if (!isLoggedIn || authStatus !== 'authenticated' || activeView === 'auth') {
     content = <AuthPage onSuccess={() => { }} />;
   } else if (userRole === 'operator') {
     // Centre Operator Web App: Dedicated operator interface based on user's role
@@ -105,6 +106,7 @@ const MainAppContent: React.FC = () => {
       <CookiePolicyModal />
       <CookieConsentBanner />
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <SmsInterfaceModal />
     </>
   );
 };

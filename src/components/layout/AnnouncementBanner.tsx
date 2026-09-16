@@ -4,7 +4,32 @@ import { useApp } from '../../context/AppContext';
 
 export const AnnouncementBanner: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
-  const { t } = useApp();
+  const { t, isOffline, syncOfflineQueue, isSyncing, syncQueue } = useApp();
+
+  const pendingCount = syncQueue.filter(s => s.status === 'PENDING').length;
+
+  if (isOffline) {
+    return (
+      <aside aria-label="Offline Mode Notice" className="w-full bg-[#B45309] text-[#FFFFFF] px-4 py-1.5 text-xs font-medium border-b border-[#92400E] flex items-center justify-between z-30">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-center gap-2 text-center w-full pr-4">
+          <span className="bg-[#FEF3C7] text-[#92400E] text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded">
+            OFFLINE
+          </span>
+          <span className="truncate">
+            Offline Mode: Data saved to IndexedDB. {pendingCount > 0 ? `${pendingCount} actions pending sync.` : 'Changes will sync when connection returns.'}
+          </span>
+          <button
+            type="button"
+            onClick={() => syncOfflineQueue()}
+            disabled={isSyncing}
+            className="ml-2 bg-white/20 hover:bg-white/30 text-white font-bold px-2 py-0.5 rounded text-[10px] transition-colors disabled:opacity-50"
+          >
+            {isSyncing ? 'Syncing...' : 'Sync Now'}
+          </button>
+        </div>
+      </aside>
+    );
+  }
 
   if (!isVisible) return null;
 

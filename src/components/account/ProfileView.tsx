@@ -22,14 +22,14 @@ export const ProfileView: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   const [formData, setFormData] = useState({
-    fullName: farmer?.fullName || 'Sardar Gurpreet Singh',
-    mobileNumber: farmer?.mobileNumber || '+91 98765 43210',
-    village: farmer?.location.village || 'Rampur Kalan',
-    tehsil: farmer?.location.tehsil || 'Samrala',
-    district: farmer?.location.district || 'Ludhiana',
-    state: farmer?.location.state || 'Punjab',
-    pincode: farmer?.location.pincode || '141114',
-    landHoldingAcres: farmer?.landHoldingAcres || 12.5,
+    fullName: farmer?.fullName || '',
+    mobileNumber: farmer?.mobileNumber || '',
+    village: farmer?.location?.village || '',
+    tehsil: farmer?.location?.tehsil || '',
+    district: farmer?.location?.district || '',
+    state: farmer?.location?.state || '',
+    pincode: farmer?.location?.pincode || '',
+    landHoldingAcres: farmer?.landHoldingAcres || 0,
   });
 
   const handleCopyFarmerId = () => {
@@ -44,9 +44,9 @@ export const ProfileView: React.FC = () => {
     updateProfile({
       fullName: formData.fullName,
       mobileNumber: formData.mobileNumber,
-      landHoldingAcres: Number(formData.landHoldingAcres),
+      landHoldingAcres: Number(formData.landHoldingAcres) || undefined,
       location: {
-        ...(farmer?.location || { state: 'Punjab', coordinates: { lat: 30.8358, lng: 76.1917 } }),
+        ...(farmer?.location || {}),
         village: formData.village,
         tehsil: formData.tehsil,
         district: formData.district,
@@ -57,7 +57,23 @@ export const ProfileView: React.FC = () => {
     setIsEditing(false);
   };
 
-  if (!farmer) return null;
+  if (!farmer) {
+    return (
+      <div className="w-full py-8">
+        <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-8 sm:p-12 text-center max-w-xl mx-auto shadow-sm">
+          <div className="w-12 h-12 rounded-[6px] bg-[#E7F3EC] text-[#075E43] border border-[#CBD8D1] flex items-center justify-center mx-auto mb-4">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <h2 className="text-xl font-bold text-[#17231F]">
+            Farmer Profile Not Loaded
+          </h2>
+          <p className="text-xs text-[#66736D] mt-2 mb-6">
+            Please log in with your registered mobile number or Farmer ID to view and manage your landholding and personal details.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 w-full">
@@ -121,7 +137,14 @@ export const ProfileView: React.FC = () => {
               </h2>
               <div className="text-xs text-[#34443D] mt-0.5 flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5 text-[#075E43]" />
-                <span>{farmer.location.village}, Tehsil {farmer.location.tehsil}, District {farmer.location.district}, {farmer.location.state}</span>
+                <span>
+                  {[
+                    farmer.location.village,
+                    farmer.location.tehsil ? `Tehsil ${farmer.location.tehsil}` : null,
+                    farmer.location.district ? `District ${farmer.location.district}` : null,
+                    farmer.location.state
+                  ].filter(Boolean).join(', ') || 'Location not provided'}
+                </span>
               </div>
             </div>
           </div>
@@ -129,7 +152,7 @@ export const ProfileView: React.FC = () => {
           <div className="bg-[#F5F8F6] border border-[#CBD8D1] rounded-[6px] p-3 sm:text-right">
             <div className="text-[11px] font-bold text-[#66736D] uppercase">Official Farmer ID</div>
             <div className="text-lg font-mono font-bold text-[#063B2A] mt-0.5">
-              {farmer.farmerId}
+              {farmer.farmerId || 'Pending Assignment'}
             </div>
             <button
               onClick={handleCopyFarmerId}
@@ -156,9 +179,11 @@ export const ProfileView: React.FC = () => {
             <div className="text-[11px] font-bold uppercase text-[#063B2A]">Land Records (Jamabandi)</div>
             <div className="text-sm font-bold text-[#16803C] mt-1 flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4" />
-              Verified ({farmer.landHoldingAcres || 12.5} Acres)
+              {farmer.landHoldingAcres ? `Verified (${farmer.landHoldingAcres} Acres)` : 'Verified'}
             </div>
-            <div className="text-[11px] text-[#66736D] mt-0.5">Revenue Dept. Record #482/9</div>
+            <div className="text-[11px] text-[#66736D] mt-0.5">
+              {farmer.landHoldingAcres ? 'Revenue Dept. Record' : 'Record linked to Farmer Profile'}
+            </div>
           </div>
 
           <div className="bg-[#F4FAF6] border border-[#B7DCC5] rounded-[6px] p-3.5">
@@ -292,15 +317,24 @@ export const ProfileView: React.FC = () => {
                 </tr>
                 <tr>
                   <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Village & Tehsil</td>
-                  <td className="text-xs text-[#17231F]">{farmer.location.village}, Tehsil {farmer.location.tehsil}</td>
+                  <td className="text-xs text-[#17231F]">
+                    {farmer.location.village || 'Not provided'}
+                    {farmer.location.tehsil ? `, Tehsil ${farmer.location.tehsil}` : ''}
+                  </td>
                 </tr>
                 <tr>
                   <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">District & State</td>
-                  <td className="text-xs text-[#17231F]">{farmer.location.district}, {farmer.location.state} — {farmer.location.pincode}</td>
+                  <td className="text-xs text-[#17231F]">
+                    {farmer.location.district || 'Not provided'}
+                    {farmer.location.state ? `, ${farmer.location.state}` : ''}
+                    {farmer.location.pincode ? ` — ${farmer.location.pincode}` : ''}
+                  </td>
                 </tr>
                 <tr>
                   <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Landholding</td>
-                  <td className="text-xs font-bold text-[#075E43]">{farmer.landHoldingAcres || 12.5} Acres (Verified Revenue Khata)</td>
+                  <td className="text-xs font-bold text-[#075E43]">
+                    {farmer.landHoldingAcres ? `${farmer.landHoldingAcres} Acres (Revenue Khata)` : 'Not provided'}
+                  </td>
                 </tr>
               </tbody>
             </table>

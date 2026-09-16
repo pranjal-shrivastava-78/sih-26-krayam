@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { getOperatorText } from '../../i18n/operatorTranslations';
+import api, { BackendAnalyticsForecast } from '../../services/api';
 import { 
   Users, 
   Clock, 
@@ -14,7 +15,8 @@ import {
   WifiOff, 
   RefreshCw, 
   PhoneCall, 
-  TrendingUp
+  TrendingUp,
+  Sparkles
 } from 'lucide-react';
 
 export const OperatorDashboardTab: React.FC = () => {
@@ -23,6 +25,9 @@ export const OperatorDashboardTab: React.FC = () => {
     procurements, 
     payments, 
     operator, 
+    centres,
+    operatorDashboardData,
+    refreshOperatorDashboard,
     isOffline, 
     syncQueue, 
     lastSyncTime, 
@@ -34,27 +39,59 @@ export const OperatorDashboardTab: React.FC = () => {
 
   const ot = getOperatorText(language);
 
-  // Metrics Calculation from real state
-  const todayBookingsCount = bookings.length;
-  const waitingCount = bookings.filter(b => b.status === 'IN_QUEUE' || b.status === 'CHECKED_IN' || b.status === 'TURN_APPROACHING').length;
-  const processingCount = bookings.filter(b => b.status === 'PROCESSING' || b.status === 'WEIGHING' || b.status === 'QUALITY_CHECK').length;
-  const completedCount = bookings.filter(b => b.status === 'COMPLETED').length;
-  const pendingPaymentsCount = payments.filter(p => p.paymentStatus === 'Pending').length;
-  const pendingSyncCount = syncQueue.filter(q => q.status === 'PENDING').length;
+  // AI & Forecasting state
+  const [forecast, setForecast] = useState<BackendAnalyticsForecast | null>(null);
+  const [isLoadingForecast, setIsLoadingForecast] = useState<boolean>(false);
 
-  // Centre Load calculation (Max daily capacity ~ 25 vehicles simultaneously)
-  const centreLoadPct = Math.min(100, Math.round(((waitingCount + processingCount) / 12) * 100));
-
-  // Audio / Announcement simulated state
+  // Announcement audio simulated state
   const [announcementMsg, setAnnouncementMsg] = useState<string | null>(null);
 
-  const handleCallNext = () => {
-    const nextFarmer = operatorCallNext();
-    if (nextFarmer) {
-      setAnnouncementMsg(`Calling Token ${nextFarmer.id}: ${nextFarmer.farmerName} to Weighbridge Gate 1.`);
-      setTimeout(() => setAnnouncementMsg(null), 5000);
-    } else {
-      setAnnouncementMsg('No farmers currently waiting in queue.');
+  // Determine active centre ID
+  const activeCentreId = operator?.centreId || centres[0]?.id;
+
+  // Load dashboard overview & AI forecast on mount and active centre change
+  useEffect(() => {
+    refreshOperatorDashboard().catch(err => console.warn('Dashboard sync notice:', err.message));
+
+    if (activeCentreId) {
+      setIsLoadingForecast(true);
+      const todayStr = new Date().toISOString().split('T')[0];
+      api.analytics.getForecast(activeCentreId, todayStr)
+        .then(res => setForecast(res))
+        .catch(err => console.warn('Forecast sync notice:', err.message))
+        .finally(() => setIsLoadingForecast(false));
+    }
+  }, [activeCentreId, refreshOperatorDashboard]);
+
+  // Operational metrics derived with priority from authoritative backend dashboard overview
+  const todayBookingsCount = operatorDashboardData?.bookings_today_total ?? bookings.length;
+  const waitingCount = operatorDashboardData?.queue?.waiting_count ?? 
+    bookings.filter(b => b.status === 'IN_QUEUE' || b.status === 'CHECKED_IN' || b.status === 'TURN_APPROACHING').length;
+  const processingCount = operatorDashboardData?.queue?.processing_count ?? 
+    bookings.filter(b => b.status === 'PROCESSING' || b.status === 'WEIGHING' || b.status === 'QUALITY_CHECK').length;
+  const completedCount = operatorDashboardData?.procurement?.completed_today_count ?? 
+    bookings.filter(b => b.status === 'COMPLETED').length;
+  const pendingPaymentsCount = operatorDashboardData?.payments?.pending_count ?? 
+    payments.filter(p => p.paymentStatus === 'Pending' || p.paymentStatus === 'initiated' || p.paymentStatus === 'pending_verification').length;
+  
+  const centreLoadPct = operatorDashboardData?.capacity?.utilization_percent !== undefined
+    ? Math.round(operatorDashboardData.capacity.utilization_percent)
+    : Math.min(100, Math.round(((waitingCount + processingCount) / 12) * 100));
+
+  const pendingSyncCount = syncQueue.filter(q => q.status === 'PENDING').length;
+
+  const handleCallNext = async () => {
+    try {
+      const nextFarmer = await operatorCallNext();
+      if (nextFarmer) {
+        setAnnouncementMsg(`Calling Token ${nextFarmer.id}: ${nextFarmer.farmerName} to Weighbridge Gate 1.`);
+        setTimeout(() => setAnnouncementMsg(null), 5000);
+      } else {
+        setAnnouncementMsg('No farmers currently waiting in queue.');
+        setTimeout(() => setAnnouncementMsg(null), 4000);
+      }
+    } catch {
+      setAnnouncementMsg('Unable to call next farmer from backend.');
       setTimeout(() => setAnnouncementMsg(null), 4000);
     }
   };
@@ -99,7 +136,7 @@ export const OperatorDashboardTab: React.FC = () => {
           </div>
           <div className="text-2xl font-bold text-[#B45309] mt-1 font-mono flex items-center gap-1.5">
             <span>{waitingCount}</span>
-            <span className="w-2 h-2 rounded-full bg-[#EA8A0A] animate-ping"></span>
+            {waitingCount > 0 && <span className="w-2 h-2 rounded-full bg-[#EA8A0A] animate-ping" />}
           </div>
           <div className="text-[10px] text-[#66736D] font-medium mt-1">
             Waiting in Yard
@@ -155,8 +192,8 @@ export const OperatorDashboardTab: React.FC = () => {
           </div>
           <div className="w-full bg-[#EDF3EF] h-1.5 rounded-full mt-2 overflow-hidden">
             <div 
-              className={`h-full ${centreLoadPct > 80 ? 'bg-[#B42318]' : centreLoadPct > 50 ? 'bg-[#EA8A0A]' : 'bg-[#16803C]'}`}
-              style={{ width: `${centreLoadPct}%` }}
+              className={`h-full transition-all duration-500 ${centreLoadPct > 80 ? 'bg-[#B42318]' : centreLoadPct > 50 ? 'bg-[#EA8A0A]' : 'bg-[#16803C]'}`}
+              style={{ width: `${Math.min(100, Math.max(0, centreLoadPct))}%` }}
             />
           </div>
         </div>
@@ -178,7 +215,7 @@ export const OperatorDashboardTab: React.FC = () => {
             <div className="text-[11px] text-[#66736D] mt-0.5">
               {isOffline 
                 ? ot.offlineNotice
-                : 'All digital weighbridge intakes and DBT transfers are syncing in real time with the State Grid.'
+                : `Digital weighbridge intakes and DBT transfers are syncing in real time with ${operator?.centreName || 'State Mandi Grid'}.`
               }
             </div>
           </div>
@@ -217,7 +254,7 @@ export const OperatorDashboardTab: React.FC = () => {
                 <span>{ot.liveQueueTitle}</span>
               </h2>
               <p className="text-xs text-[#66736D]">
-                Vehicles currently inside Samrala Mandi Yard and Weighing Stations
+                Vehicles inside {operator?.centreName || 'APMC Mandi Yard'} and Weighing Stations
               </p>
             </div>
             <button
@@ -289,51 +326,102 @@ export const OperatorDashboardTab: React.FC = () => {
                     </td>
                   </tr>
                 ))}
+                {bookings.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-3 py-6 text-center text-[#66736D]">
+                      No active vehicles in the queue currently.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Right 1 Col: Yard Telemetry & Yard Load Alert */}
+        {/* Right 1 Col: Yard Telemetry & AI Forecast */}
         <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-[#17231F] flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#075E43]" />
-              <span>Yard Arrival Telemetry</span>
+              <Sparkles className="w-4 h-4 text-[#EA8A0A]" />
+              <span>AI Arrival Telemetry</span>
             </h2>
+            <span className="text-[10px] font-mono text-[#075E43] bg-[#E7F3EC] px-2 py-0.5 rounded font-bold">
+              FastAPI ML Model
+            </span>
           </div>
 
-          {/* High-load warning box */}
-          <div className="bg-[#FFF3DC] border border-[#F0C2C2] rounded-[6px] p-3 space-y-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#B45309]">
-              <AlertTriangle className="w-4 h-4 text-[#B45309]" />
-              <span>Peak Arrival Forecast (10:30 - 13:00)</span>
+          {/* Model Warning Box or Normal Advisory */}
+          <div className={`p-3 rounded-[6px] space-y-2 border ${
+            forecast?.warnings && forecast.warnings.length > 0
+              ? 'bg-[#FFF3DC] border-[#F0C2C2]'
+              : 'bg-[#E7F3EC] border-[#85E1A9]'
+          }`}>
+            <div className="flex items-center gap-1.5 text-xs font-bold">
+              {forecast?.warnings && forecast.warnings.length > 0 ? (
+                <>
+                  <AlertTriangle className="w-4 h-4 text-[#B45309]" />
+                  <span className="text-[#B45309]">Load Advisory ({forecast.expected_load_percent}% Projected)</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-[#16803C]" />
+                  <span className="text-[#063B2A]">Mandi Operating Status: Normal</span>
+                </>
+              )}
             </div>
-            <p className="text-[11px] text-[#34443D] leading-relaxed">
-              Wheat procurement volume is expected to spike by 35% around midday. 14 tractor-trolleys anticipated from Rampur Kalan and Machhiwara sectors.
-            </p>
-            <div className="text-[11px] font-semibold text-[#075E43] pt-1 border-t border-[#CBD8D1]">
-              💡 <strong>Action:</strong> Open Weighbridge Gate #2 to reduce wait times to &lt; 15 mins.
+
+            <div className="text-[11px] text-[#34443D] leading-relaxed space-y-1">
+              {forecast?.warnings && forecast.warnings.length > 0 ? (
+                forecast.warnings.map((w, idx) => (
+                  <p key={idx}>{w}</p>
+                ))
+              ) : (
+                <p>
+                  Produce volume is progressing within normal capacity. Projected arrivals: {forecast?.expected_arrivals ?? todayBookingsCount} farmers across scheduled windows.
+                </p>
+              )}
             </div>
+
+            {forecast?.predicted_wait_minutes !== undefined && (
+              <div className="text-[11px] font-semibold text-[#075E43] pt-1 border-t border-[#CBD8D1]">
+                💡 <strong>Model Projection:</strong> Yard wait time estimated at ~{forecast.predicted_wait_minutes} minutes.
+              </div>
+            )}
           </div>
 
           {/* Predictive Metrics Card */}
           <div className="space-y-2 text-xs">
             <div className="flex justify-between py-1.5 border-b border-[#CBD8D1]">
-              <span className="text-[#66736D]">Predicted Wait for Next Arrival:</span>
-              <span className="font-bold text-[#17231F] font-mono">~18 minutes</span>
+              <span className="text-[#66736D]">Predicted Wait Time:</span>
+              <span className="font-bold text-[#17231F] font-mono">
+                {forecast?.predicted_wait_minutes !== undefined
+                  ? `~${forecast.predicted_wait_minutes} minutes`
+                  : `${operatorDashboardData?.queue?.estimated_wait_minutes ?? 0} minutes`}
+              </span>
             </div>
             <div className="flex justify-between py-1.5 border-b border-[#CBD8D1]">
-              <span className="text-[#66736D]">Expected Total Quintals Today:</span>
-              <span className="font-bold text-[#17231F] font-mono">1,420 Qtl</span>
+              <span className="text-[#66736D]">Expected Total Produce:</span>
+              <span className="font-bold text-[#17231F] font-mono">
+                {forecast?.booked_quantity !== undefined
+                  ? `${forecast.booked_quantity.toLocaleString()} Qtl`
+                  : `${operatorDashboardData?.procurement?.total_tonnage_today ?? 0} Qtl`}
+              </span>
             </div>
             <div className="flex justify-between py-1.5 border-b border-[#CBD8D1]">
-              <span className="text-[#66736D]">Moisture Rejection Rate:</span>
-              <span className="font-bold text-[#16803C] font-mono">1.2% (Normal)</span>
+              <span className="text-[#66736D]">Expected Arrivals:</span>
+              <span className="font-bold text-[#075E43] font-mono">
+                {forecast?.expected_arrivals !== undefined
+                  ? `${forecast.expected_arrivals} vehicles`
+                  : `${todayBookingsCount} booked`}
+              </span>
             </div>
             <div className="flex justify-between py-1.5">
-              <span className="text-[#66736D]">DBT Settlement SLA:</span>
-              <span className="font-bold text-[#075E43] font-mono">100% within 48 hrs</span>
+              <span className="text-[#66736D]">Daily Centre Capacity:</span>
+              <span className="font-bold text-[#063B2A] font-mono">
+                {forecast?.capacity !== undefined
+                  ? `${forecast.capacity} slots`
+                  : `${operatorDashboardData?.capacity?.daily_capacity ?? 25} slots`}
+              </span>
             </div>
           </div>
 

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
-import { CropInfo, ProcurementCentre, SlotTimeWindow, Booking } from '../../types';
+import { CropInfo, ProcurementCentre, SlotTimeWindow, Booking, TimeSlot, RecommendedCentreItem } from '../../types';
+import { api } from '../../services/api';
+import { calculateDistanceKm, formatDistance } from '../../utils/geo';
 import { 
   Calendar, 
   MapPin, 
@@ -12,15 +14,16 @@ import {
   IndianRupee,
   Building2,
   CalendarCheck,
-  RotateCcw
+  RotateCcw,
+  Navigation,
+  Loader2,
+  AlertCircle,
+  Award,
+  SlidersHorizontal,
+  RefreshCw
 } from 'lucide-react';
 import { RescheduleModal } from './RescheduleModal';
-
-const TIME_SLOTS: { slot: SlotTimeWindow; desc: string }[] = [
-  { slot: 'Morning (08:00 AM - 11:30 AM)', desc: 'Fastest weighbridge clearance' },
-  { slot: 'Midday (11:30 AM - 02:30 PM)', desc: 'Standard turnaround time' },
-  { slot: 'Afternoon (02:30 PM - 05:30 PM)', desc: 'Late gate entry window' },
-];
+import { CentreComparisonModal } from './CentreComparisonModal';
 
 export const CreateBookingFlow: React.FC = () => {
   const { 
@@ -28,49 +31,284 @@ export const CreateBookingFlow: React.FC = () => {
     centres, 
     farmer, 
     createBooking, 
+    updateFarmerLocation,
     activeBooking, 
     setActiveView,
+    isLoadingData,
     t
   } = useApp();
 
   const [step, setStep] = useState<number>(1);
-  const [selectedCropId, setSelectedCropId] = useState<string>(crops[0]?.id || 'crop-wheat');
-  const [quantityQuintals, setQuantityQuintals] = useState<number>(65);
+  const [selectedCropId, setSelectedCropId] = useState<string>('');
+  const [quantityQuintals, setQuantityQuintals] = useState<number>(50);
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
   const [expectedDate, setExpectedDate] = useState<string>(tomorrowStr);
 
-  const [selectedCentreId, setSelectedCentreId] = useState<string>(centres[0]?.id || 'centre-samrala');
-  const [selectedSlot, setSelectedSlot] = useState<SlotTimeWindow>(TIME_SLOTS[0].slot);
+  const [selectedCentreId, setSelectedCentreId] = useState<string>('');
+  const [selectedSlotId, setSelectedSlotId] = useState<string>('');
+  const [selectedSlotWindow, setSelectedSlotWindow] = useState<SlotTimeWindow>('');
+
+  // Geolocation state
+  const [locationStatus, setLocationStatus] = useState<'idle' | 'detecting' | 'success' | 'error'>('idle');
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
+  const [locationErrorMsg, setLocationErrorMsg] = useState<string | null>(null);
+
+  // Recommendations state
+  const [recommendations, setRecommendations] = useState<RecommendedCentreItem[]>([]);
+  const [isRecommending, setIsRecommending] = useState<boolean>(false);
+  const [recommendError, setRecommendError] = useState<string | null>(null);
+
+  // Slots state
+  const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState<boolean>(false);
+  const [slotsError, setSlotsError] = useState<string | null>(null);
+
+  // Modals & submission state
+  const [isComparisonOpen, setIsComparisonOpen] = useState<boolean>(false);
   const [isRescheduleOpen, setIsRescheduleOpen] = useState<boolean>(false);
   const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [bookingError, setBookingError] = useState<string>('');
 
-  const selectedCrop = crops.find(c => c.id === selectedCropId) || crops[0];
-  const selectedCentre = centres.find(c => c.id === selectedCentreId) || centres[0];
+  // Initialize selected crop
+  useEffect(() => {
+    if (crops.length > 0 && !selectedCropId) {
+      setSelectedCropId(crops[0].id);
+    }
+  }, [crops, selectedCropId]);
 
-  const eligibleCentres = centres.filter(c => c.acceptedCropIds.includes(selectedCropId));
+  // Selected crop object
+  const selectedCrop = useMemo(() => {
+    return (
+      crops.find((c) => c.id === selectedCropId) ||
+      crops.find((c) => c.name.toLowerCase() === selectedCropId.toLowerCase()) ||
+      crops[0] || {
+        id: '',
+        name: 'Crop',
+        mspPerQuintal: 0,
+        unit: 'quintal',
+      }
+    );
+  }, [crops, selectedCropId]);
+
+  // Effective farmer coordinates (from state or profile)
+  const farmerLat = farmer?.location?.coordinates?.latitude ?? farmer?.location?.coordinates?.lat;
+  const farmerLng = farmer?.location?.coordinates?.longitude ?? farmer?.location?.coordinates?.lng;
+
+  // Initialize centre selection
+  useEffect(() => {
+    if (centres.length > 0 && !selectedCentreId) {
+      setSelectedCentreId(centres[0].id);
+    }
+  }, [centres, selectedCentreId]);
+
+  // Browser Geolocation Handler
+  const handleDetectLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocationStatus('error');
+      setLocationErrorMsg('Browser geolocation is not supported on this device.');
+      return;
+    }
+
+    setLocationStatus('detecting');
+    setLocationErrorMsg(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        setLocationStatus('success');
+        setLocationAccuracy(Math.round(accuracy));
+        updateFarmerLocation({
+          village: farmer?.location?.village,
+          tehsil: farmer?.location?.tehsil,
+          district: farmer?.location?.district,
+          state: farmer?.location?.state,
+          pincode: farmer?.location?.pincode,
+          coordinates: {
+            latitude,
+            longitude,
+            accuracy,
+            lat: latitude,
+            lng: longitude,
+          },
+        });
+      },
+      (err) => {
+        setLocationStatus('error');
+        if (err.code === 1) {
+          setLocationErrorMsg('Location permission denied. Please allow location access to find nearest mandis.');
+        } else if (err.code === 2) {
+          setLocationErrorMsg('Location position unavailable. Please check your GPS signal.');
+        } else {
+          setLocationErrorMsg('Location request timed out. Click retry to attempt again.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+    );
+  }, [farmer, updateFarmerLocation]);
+
+  // Fetch Centre Recommendations from FastAPI
+  const fetchRecommendations = useCallback(async () => {
+    if (!selectedCrop?.name || !expectedDate) return;
+
+    setIsRecommending(true);
+    setRecommendError(null);
+    try {
+      const recs = await api.bookings.recommend(selectedCrop.name, expectedDate);
+      setRecommendations(recs);
+      if (recs.length > 0 && recs[0]?.centre?.id) {
+        setSelectedCentreId(recs[0].centre.id);
+      }
+    } catch (err: any) {
+      console.warn('Backend recommend notice:', err.message);
+      setRecommendError(err.message || 'Unable to retrieve algorithmic recommendations.');
+    } finally {
+      setIsRecommending(false);
+    }
+  }, [selectedCrop?.name, expectedDate]);
+
+  // Trigger recommendation when entering Step 3
+  useEffect(() => {
+    if (step === 3) {
+      fetchRecommendations();
+    }
+  }, [step, fetchRecommendations]);
+
+  // Calculate distances & sort eligible centres
+  const eligibleCentres = useMemo(() => {
+    const cropName = selectedCrop?.name?.toLowerCase() || '';
+
+    // Filter centres that accept this crop
+    const filtered = centres.filter((c) => {
+      if (c.acceptedCropIds.length === 0) return true;
+      return c.acceptedCropIds.some(
+        (id) =>
+          id.toLowerCase() === cropName ||
+          id.toLowerCase().includes(cropName) ||
+          cropName.includes(id.toLowerCase())
+      );
+    });
+
+    // Compute distances & attach recommendations
+    return filtered.map((c) => {
+      const recItem = recommendations.find((r) => r.centre.id === c.id);
+      const cLat = c.location.coordinates?.latitude ?? c.location.coordinates?.lat;
+      const cLng = c.location.coordinates?.longitude ?? c.location.coordinates?.lng;
+
+      let dist = recItem?.distanceKm ?? c.distanceKm;
+      if (
+        (dist === null || dist === undefined) &&
+        farmerLat !== undefined &&
+        farmerLng !== undefined &&
+        cLat !== undefined &&
+        cLng !== undefined
+      ) {
+        dist = calculateDistanceKm(farmerLat, farmerLng, cLat, cLng);
+      }
+
+      return {
+        ...c,
+        computedDistance: dist,
+        recommendation: recItem,
+      };
+    }).sort((a, b) => {
+      // Prioritize backend recommendation score if available
+      if (a.recommendation && b.recommendation) {
+        return b.recommendation.score - a.recommendation.score;
+      }
+      if (a.recommendation) return -1;
+      if (b.recommendation) return 1;
+
+      // Fallback: sort by distance
+      if (a.computedDistance !== undefined && b.computedDistance !== undefined) {
+        return a.computedDistance - b.computedDistance;
+      }
+      return 0;
+    });
+  }, [centres, selectedCrop, recommendations, farmerLat, farmerLng]);
+
+  // Fetch Slots when entering Step 4 or when date/centre changes
+  useEffect(() => {
+    if (step !== 4 || !selectedCentreId) return;
+
+    let isMounted = true;
+    const fetchSlots = async () => {
+      setIsLoadingSlots(true);
+      setSlotsError(null);
+      try {
+        const liveSlots = await api.slots.getByCentreAndDate(selectedCentreId, expectedDate);
+        if (isMounted) {
+          setSlots(liveSlots);
+          const available = liveSlots.filter((s) => s.isAvailable);
+          if (available.length > 0) {
+            setSelectedSlotId(available[0].id);
+            setSelectedSlotWindow(available[0].formattedTimeWindow || available[0].timeWindow || '');
+          } else {
+            setSelectedSlotId('');
+            setSelectedSlotWindow('');
+          }
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setSlotsError(err.message || 'Unable to retrieve available slots for this date.');
+          setSlots([]);
+          setSelectedSlotId('');
+          setSelectedSlotWindow('');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingSlots(false);
+        }
+      }
+    };
+
+    fetchSlots();
+    return () => {
+      isMounted = false;
+    };
+  }, [step, selectedCentreId, expectedDate]);
+
+  // Selected centre object
+  const selectedCentre = useMemo(() => {
+    return (
+      centres.find((c) => c.id === selectedCentreId) ||
+      centres[0] || {
+        id: '',
+        name: 'Procurement Centre',
+        acceptedCropIds: [],
+        location: { address: '' },
+      }
+    );
+  }, [centres, selectedCentreId]);
+
+  // Estimated payout
   const estimatedTotalPayout = quantityQuintals * (selectedCrop?.mspPerQuintal || 0);
 
+  // Submit Booking to Backend
   const handleConfirm = async () => {
+    if (!selectedSlotId) {
+      setBookingError('Please select a valid time slot before confirming.');
+      return;
+    }
+
     setIsSubmitting(true);
     setBookingError('');
     try {
       const booking = await createBooking({
-        cropId: selectedCropId,
+        cropId: selectedCrop.id,
         quantityQuintals,
         expectedDate,
         centreId: selectedCentreId,
-        slot: selectedSlot
+        slotId: selectedSlotId,
+        slot: selectedSlotWindow || 'Designated Mandi Operating Window',
       });
       setConfirmedBooking(booking);
       setStep(5);
     } catch (err: any) {
       setBookingError(err.message || 'Failed to create booking on backend. Please check details.');
-      alert(err.message || 'Failed to create booking on backend.');
     } finally {
       setIsSubmitting(false);
     }
@@ -86,7 +324,6 @@ export const CreateBookingFlow: React.FC = () => {
 
   return (
     <div className="space-y-6 w-full">
-      
       {/* Existing Active Booking Banner */}
       {activeBooking && (
         <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
@@ -135,7 +372,7 @@ export const CreateBookingFlow: React.FC = () => {
               {t('procurementBooking')}
             </h1>
             <p className="text-xs sm:text-sm text-[#66736D] mt-1">
-              Ministry of Agriculture & Farmers Welfare — Digital Mandi Slot Allotment
+              Ministry of Agriculture & Farmers Welfare — Official Digital Mandi Allotment
             </p>
           </div>
           <span className="text-xs font-mono text-[#075E43] font-semibold hidden sm:inline">
@@ -143,9 +380,8 @@ export const CreateBookingFlow: React.FC = () => {
           </span>
         </div>
 
-        {/* Section 16: Adaptive Stepper */}
+        {/* Stepper */}
         <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-[#EDF3EF]">
-          {/* Mobile Stepper (< 640px): Compact progress bar & step indicator */}
           <div className="sm:hidden space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-[#063B2A] flex items-center gap-1.5">
@@ -158,39 +394,36 @@ export const CreateBookingFlow: React.FC = () => {
                 Step {step} of 5
               </span>
             </div>
-            <div className="w-full bg-[#EDF3EF] h-2 rounded-full overflow-hidden">
-              <div 
-                className="bg-[#075E43] h-full transition-all duration-300 rounded-full"
+            <div className="w-full bg-[#CBD8D1] h-1.5 rounded-full overflow-hidden">
+              <div
+                className="bg-[#0B6B4F] h-full transition-all duration-300 rounded-full"
                 style={{ width: `${(step / 5) * 100}%` }}
               />
             </div>
           </div>
 
-          {/* Desktop & Tablet Stepper (>= 640px): Full 5-column horizontal milestone view */}
-          <div className="hidden sm:grid sm:grid-cols-5 gap-2">
+          <div className="hidden sm:grid grid-cols-5 gap-2 text-center">
             {stepsList.map((s) => {
-              const isDone = step > s.num;
+              const isPast = step > s.num;
               const isCurrent = step === s.num;
               return (
-                <div key={s.num} className="text-left">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                      isDone 
-                        ? 'bg-[#16803C] text-[#FFFFFF]' 
-                        : isCurrent 
-                        ? 'bg-[#063B2A] text-[#FFFFFF] ring-2 ring-[#B7DCC5]' 
-                        : 'bg-[#EDF3EF] border border-[#CBD8D1] text-[#66736D]'
-                    }`}>
-                      {isDone ? <Check className="w-3.5 h-3.5" /> : s.num}
-                    </div>
-                    <div className={`h-[2px] flex-1 ${isDone ? 'bg-[#16803C]' : 'bg-[#CBD8D1]'} hidden md:block`} />
-                  </div>
-                  <div className={`text-xs font-semibold leading-tight ${isCurrent ? 'text-[#063B2A] font-bold' : 'text-[#17231F]'}`}>
-                    {t(s.titleKey)}
-                  </div>
-                  <div className="text-[10px] text-[#66736D] hidden sm:block">
-                    {s.titleEn}
-                  </div>
+                <div key={s.num} className="space-y-1">
+                  <div
+                    className={`h-1.5 rounded-full transition-colors ${
+                      isPast || isCurrent ? 'bg-[#0B6B4F]' : 'bg-[#CBD8D1]'
+                    }`}
+                  />
+                  <span
+                    className={`text-xs block font-bold ${
+                      isCurrent
+                        ? 'text-[#063B2A]'
+                        : isPast
+                        ? 'text-[#075E43]'
+                        : 'text-[#66736D]'
+                    }`}
+                  >
+                    {s.num}. {t(s.titleKey)}
+                  </span>
                 </div>
               );
             })}
@@ -198,8 +431,19 @@ export const CreateBookingFlow: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Form Content Container */}
-      <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-6 sm:p-8 shadow-sm">
+      {/* Global Booking Error Banner */}
+      {bookingError && (
+        <div className="bg-[#FFF5F5] border border-[#F0C2C2] rounded-[8px] p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-[#B42318] flex-shrink-0 mt-0.5" />
+          <div className="flex-1 text-xs text-[#B42318]">
+            <span className="font-bold block">Backend Submission Error:</span>
+            {bookingError}
+          </div>
+        </div>
+      )}
+
+      {/* Wizard Form Container */}
+      <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-5 sm:p-6 shadow-sm">
         
         {/* STEP 1: Select Crop */}
         {step === 1 && (
@@ -207,49 +451,60 @@ export const CreateBookingFlow: React.FC = () => {
             <div>
               <h2 className="text-lg font-bold text-[#17231F]">Step 1: Select Crop / फसल चुनें</h2>
               <p className="text-xs text-[#66736D] mt-0.5">
-                Choose the agriculture produce you intend to bring to the procurement centre
+                Select your agricultural produce for government procurement under Minimum Support Price (MSP)
               </p>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="cropSelect" className="block text-xs font-bold text-[#17231F] uppercase tracking-wide">
-                Crop Type / फसल का प्रकार
-              </label>
-              <select
-                id="cropSelect"
-                value={selectedCropId}
-                onChange={(e) => setSelectedCropId(e.target.value)}
-                className="w-full h-11 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-sm text-[#17231F] focus:outline-none focus:border-[#16845F]"
-              >
-                {crops.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} — Official MSP: ₹{c.mspPerQuintal.toLocaleString('en-IN')}/Qtl ({c.season} Season)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Selected Crop Government MSP Details Box */}
-            <div className="bg-[#F4FAF6] border border-[#B7DCC5] rounded-[6px] p-4 flex items-center justify-between">
-              <div>
-                <div className="text-xs font-bold text-[#063B2A] uppercase">Notified MSP Rate</div>
-                <div className="text-xl font-bold text-[#063B2A]">
-                  ₹{selectedCrop.mspPerQuintal.toLocaleString('en-IN')} <span className="text-xs font-normal text-[#34443D]">/ Quintal</span>
-                </div>
-                <div className="text-xs text-[#66736D] mt-0.5">
-                  Guaranteed Government of India Minimum Support Price
-                </div>
+            {isLoadingData && crops.length === 0 ? (
+              <div className="py-8 text-center flex flex-col items-center justify-center gap-2 text-xs text-[#66736D]">
+                <Loader2 className="w-6 h-6 animate-spin text-[#075E43]" />
+                <span>Loading crops catalog from mandis...</span>
               </div>
-              <div className="text-right">
-                <div className="text-xs font-bold text-[#34443D]">Season: {selectedCrop.season}</div>
-                <div className="text-xs text-[#16803C] font-semibold mt-0.5">Procurement Active</div>
+            ) : crops.length === 0 ? (
+              <div className="p-4 bg-[#FFF9ED] border border-[#F0D7A7] rounded-[6px] text-xs text-[#B45309]">
+                No operational crops found in active mandi registers. Please refresh or contact support.
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {crops.map((crop) => {
+                  const isSelected = selectedCropId === crop.id;
+                  return (
+                    <button
+                      key={crop.id}
+                      type="button"
+                      onClick={() => setSelectedCropId(crop.id)}
+                      className={`p-4 rounded-[6px] border text-left transition-all ${
+                        isSelected
+                          ? 'border-[#075E43] bg-[#E7F3EC] ring-1 ring-[#075E43]'
+                          : 'border-[#CBD8D1] bg-[#FFFFFF] hover:border-[#075E43] hover:bg-[#F3F9F5]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-[#17231F]">{crop.name}</span>
+                        {isSelected && <Check className="w-4 h-4 text-[#075E43]" />}
+                      </div>
+                      <div className="mt-2 flex items-baseline justify-between text-xs">
+                        <span className="text-[#66736D]">Official MSP / Rate:</span>
+                        <span className="font-bold text-[#063B2A] text-sm">
+                          ₹{crop.mspPerQuintal.toLocaleString('en-IN')}/{crop.unit || 'Qtl'}
+                        </span>
+                      </div>
+                      {crop.minPrice && crop.maxPrice && (
+                        <div className="text-[10px] text-[#66736D] mt-1">
+                          Range: ₹{crop.minPrice} – ₹{crop.maxPrice}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="pt-4 flex justify-end">
               <button
                 onClick={() => setStep(2)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
+                disabled={!selectedCropId}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors disabled:opacity-50"
               >
                 <span>Continue to Step 2</span>
                 <ArrowRight className="w-4 h-4" />
@@ -264,47 +519,53 @@ export const CreateBookingFlow: React.FC = () => {
             <div>
               <h2 className="text-lg font-bold text-[#17231F]">Step 2: Enter Quantity / उपज की मात्रा</h2>
               <p className="text-xs text-[#66736D] mt-0.5">
-                Specify expected crop quantity in quintals as per your registered landholding
+                Specify expected crop quantity in {selectedCrop.unit || 'quintals'} for {selectedCrop.name}
               </p>
             </div>
 
             <div className="space-y-2">
               <label htmlFor="quantityInput" className="block text-xs font-bold text-[#17231F] uppercase tracking-wide">
-                Quantity in Quintals (Qtl)
+                Quantity in {selectedCrop.unit || 'Quintals'}
               </label>
               <div className="flex items-center gap-3">
                 <input
                   id="quantityInput"
                   type="number"
-                  min="5"
-                  max="1000"
+                  min="1"
+                  max="10000"
+                  step="0.1"
                   value={quantityQuintals}
-                  onChange={(e) => setQuantityQuintals(Number(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    setQuantityQuintals(isNaN(val) ? 0 : val);
+                  }}
                   className="flex-1 h-11 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-base font-bold text-[#17231F] focus:outline-none focus:border-[#16845F]"
                 />
-                <span className="h-11 px-4 rounded-[6px] bg-[#EDF3EF] border border-[#CBD8D1] text-xs font-bold text-[#17231F] flex items-center justify-center">
-                  Quintals
+                <span className="h-11 px-4 rounded-[6px] bg-[#EDF3EF] border border-[#CBD8D1] text-xs font-bold text-[#17231F] flex items-center justify-center uppercase">
+                  {selectedCrop.unit || 'Quintals'}
                 </span>
               </div>
               <p className="text-[11px] text-[#66736D]">
-                Maximum allowed for verified landholding (12.5 acres): 250 Quintals
+                Enter a positive quantity greater than 0. Payout is calculated based on verified weighbridge slips.
               </p>
             </div>
 
             {/* Financial Estimate Strip */}
             <div className="bg-[#EDF3EF] border border-[#CBD8D1] rounded-[6px] p-4 flex items-center justify-between">
               <div>
-                <div className="text-xs text-[#66736D] font-bold uppercase">Estimated Gross DBT Payment</div>
+                <div className="text-xs text-[#66736D] font-bold uppercase">Estimated Gross DBT Payout</div>
                 <div className="text-2xl font-bold text-[#063B2A] mt-0.5">
                   ₹{estimatedTotalPayout.toLocaleString('en-IN')}
                 </div>
                 <div className="text-xs text-[#66736D] mt-0.5">
-                  {quantityQuintals} Qtl × ₹{selectedCrop.mspPerQuintal}/Qtl
+                  {quantityQuintals} {selectedCrop.unit || 'Qtl'} × ₹{selectedCrop.mspPerQuintal}/{selectedCrop.unit || 'Qtl'}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xs font-semibold text-[#17231F]">Linked Bank Account</div>
-                <div className="text-xs font-mono text-[#075E43] font-bold mt-0.5">{farmer?.bankAccountMasked}</div>
+                <div className="text-xs font-semibold text-[#17231F]">Disbursement Account</div>
+                <div className="text-xs font-mono text-[#075E43] font-bold mt-0.5">
+                  {farmer?.bankAccountMasked || 'PFMS / Aadhaar DBT Linked'}
+                </div>
               </div>
             </div>
 
@@ -328,59 +589,176 @@ export const CreateBookingFlow: React.FC = () => {
           </div>
         )}
 
-        {/* STEP 3: Select Centre */}
+        {/* STEP 3: Location & Centre Selection */}
         {step === 3 && (
           <div className="space-y-6 max-w-3xl">
             <div>
               <h2 className="text-lg font-bold text-[#17231F]">Step 3: Select Procurement Centre / क्रय केंद्र चुनें</h2>
               <p className="text-xs text-[#66736D] mt-0.5">
-                Choose the nearest government grain mandi or state warehouse accepting {selectedCrop.name}
+                Government grain mandis accepting {selectedCrop.name} ordered by proximity and live operational load
               </p>
             </div>
 
-            <div className="space-y-3">
-              {eligibleCentres.map((centre) => {
-                const isSelected = selectedCentreId === centre.id;
-                return (
-                  <label
-                    key={centre.id}
-                    className={`block p-4 rounded-[6px] border cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'border-[#075E43] bg-[#E7F3EC]'
-                        : 'border-[#CBD8D1] bg-[#FFFFFF] hover:bg-[#F3F9F5]'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        name="centreRadio"
-                        checked={isSelected}
-                        onChange={() => setSelectedCentreId(centre.id)}
-                        className="mt-1 text-[#075E43] focus:ring-[#075E43]"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-sm text-[#17231F]">{centre.name}</span>
-                          <span className="text-xs font-bold text-[#075E43] bg-[#FFFFFF] px-2 py-0.5 rounded border border-[#CBD8D1]">
-                            {centre.distanceKm} km away
-                          </span>
-                        </div>
-                        <div className="text-xs text-[#66736D] mt-0.5">
-                          {centre.location.address}, {centre.location.district}
-                        </div>
-                        <div className="flex items-center gap-4 mt-2 text-[11px] text-[#34443D]">
-                          <span>In-Charge: {centre.officerInCharge}</span>
-                          <span>•</span>
-                          <span>Operating Hours: {centre.operatingHours.opens} – {centre.operatingHours.closes}</span>
-                          <span>•</span>
-                          <span className="text-[#16803C] font-semibold">{centre.availableSlots || 24} slots available</span>
+            {/* Geolocation Strip */}
+            <div className="bg-[#F4FAF6] border border-[#B7DCC5] rounded-[6px] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <Navigation className="w-4 h-4 text-[#075E43] flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-xs font-bold text-[#17231F]">
+                    {locationStatus === 'detecting'
+                      ? 'Detecting your location...'
+                      : locationStatus === 'success' || (farmerLat !== undefined && farmerLng !== undefined)
+                      ? 'Location Detected'
+                      : locationStatus === 'error'
+                      ? 'Unable to access your location'
+                      : 'Use Current Location for Recommendations'}
+                  </div>
+                  <div className="text-[11px] text-[#66736D] mt-0.5">
+                    {farmerLat !== undefined && farmerLng !== undefined ? (
+                      <span>
+                        Lat: {farmerLat.toFixed(4)}, Lng: {farmerLng.toFixed(4)}
+                        {locationAccuracy ? ` (±${locationAccuracy}m)` : ''}
+                      </span>
+                    ) : (
+                      'Allow browser GPS location to calculate accurate distances to mandis'
+                    )}
+                  </div>
+                  {locationErrorMsg && (
+                    <div className="text-[11px] text-[#B42318] mt-1 font-medium">
+                      {locationErrorMsg}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDetectLocation}
+                  disabled={locationStatus === 'detecting'}
+                  className="h-9 px-3.5 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#EDF3EF] text-xs font-semibold text-[#075E43] flex items-center gap-1.5 flex-shrink-0"
+                >
+                  {locationStatus === 'detecting' ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Detecting...</span>
+                    </>
+                  ) : locationStatus === 'error' ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Retry GPS</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{farmerLat !== undefined ? 'Update Location' : 'Use Current Location'}</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsComparisonOpen(true)}
+                  className="h-9 px-3 rounded-[6px] bg-[#EDF3EF] border border-[#CBD8D1] hover:bg-[#CBD8D1]/40 text-xs font-semibold text-[#17231F] flex items-center gap-1 flex-shrink-0"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-[#075E43]" />
+                  <span>Compare Mandis</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Recommendations Banner */}
+            {isRecommending ? (
+              <div className="p-4 bg-[#EDF3EF] rounded-[6px] border border-[#CBD8D1] text-xs text-[#66736D] flex items-center gap-2 justify-center">
+                <Loader2 className="w-4 h-4 animate-spin text-[#075E43]" />
+                <span>Fetching algorithmic centre recommendation from Ministry backend...</span>
+              </div>
+            ) : recommendError ? (
+              <div className="p-3 bg-[#FFF9ED] border border-[#F0D7A7] rounded-[6px] text-xs text-[#B45309]">
+                Recommendation service notice: {recommendError} (Sorted by geographic proximity)
+              </div>
+            ) : null}
+
+            {/* Centres List */}
+            {eligibleCentres.length === 0 ? (
+              <div className="p-6 bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] text-center space-y-2">
+                <p className="text-sm font-bold text-[#17231F]">No Authorized Mandis Found</p>
+                <p className="text-xs text-[#66736D]">
+                  None of the registered government mandis are currently configured to procure {selectedCrop.name}. Please check alternative crops.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {eligibleCentres.map((centre) => {
+                  const isSelected = selectedCentreId === centre.id;
+                  const rec = centre.recommendation;
+                  const isRecommended = rec && rec.score > 0;
+
+                  return (
+                    <label
+                      key={centre.id}
+                      className={`block p-4 rounded-[6px] border cursor-pointer transition-colors ${
+                        isSelected
+                          ? 'border-[#075E43] bg-[#E7F3EC]'
+                          : 'border-[#CBD8D1] bg-[#FFFFFF] hover:bg-[#F3F9F5]'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          name="centreRadio"
+                          checked={isSelected}
+                          onChange={() => setSelectedCentreId(centre.id)}
+                          className="mt-1 text-[#075E43] focus:ring-[#075E43]"
+                        />
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center justify-between gap-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm text-[#17231F]">{centre.name}</span>
+                              {isRecommended && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#16803C] bg-[#FFFFFF] px-2 py-0.5 rounded border border-[#B7DCC5]">
+                                  <Award className="w-3 h-3" />
+                                  Recommended
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs font-bold text-[#075E43] bg-[#FFFFFF] px-2 py-0.5 rounded border border-[#CBD8D1]">
+                              {formatDistance(centre.computedDistance)}
+                            </span>
+                          </div>
+
+                          {rec && rec.reasons && rec.reasons.length > 0 && (
+                            <div className="text-[11px] text-[#075E43] font-semibold mt-1">
+                              {rec.reasons.join(' • ')}
+                            </div>
+                          )}
+
+                          <div className="text-xs text-[#66736D] mt-0.5">
+                            {centre.location.address || `${centre.location.village ? centre.location.village + ', ' : ''}${centre.location.district}`}
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-2 text-[11px] text-[#34443D]">
+                            <span>Operating Hours: {centre.operatingHours.opens} – {centre.operatingHours.closes}</span>
+                            <span>•</span>
+                            <span>
+                              {rec?.loadPercent !== undefined && rec.loadPercent > 0
+                                ? `Load: ${rec.loadPercent}%`
+                                : `${centre.currentQueue.loadLevel} Load`}
+                            </span>
+                            <span>•</span>
+                            <span className="text-[#16803C] font-semibold">
+                              {rec?.estWaitUnits !== undefined && rec.estWaitUnits > 0
+                                ? `~${rec.estWaitUnits}m wait`
+                                : 'Live wait info on check-in'}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <button
@@ -392,7 +770,8 @@ export const CreateBookingFlow: React.FC = () => {
               </button>
               <button
                 onClick={() => setStep(4)}
-                className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
+                disabled={!selectedCentreId || eligibleCentres.length === 0}
+                className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors disabled:opacity-50"
               >
                 <span>Continue to Step 4</span>
                 <ArrowRight className="w-4 h-4" />
@@ -401,13 +780,13 @@ export const CreateBookingFlow: React.FC = () => {
           </div>
         )}
 
-        {/* STEP 4: Select Date & Time */}
+        {/* STEP 4: Select Date & Time Slots */}
         {step === 4 && (
           <div className="space-y-6 max-w-2xl">
             <div>
               <h2 className="text-lg font-bold text-[#17231F]">Step 4: Select Date & Time / तारीख एवं समय चुनें</h2>
               <p className="text-xs text-[#66736D] mt-0.5">
-                Reserve your designated arrival window to ensure direct weighbridge access
+                Reserve your designated weighbridge clearance slot at <strong>{selectedCentre.name}</strong>
               </p>
             </div>
 
@@ -426,43 +805,88 @@ export const CreateBookingFlow: React.FC = () => {
               />
             </div>
 
-            {/* Time Slots */}
+            {/* Available Backend Slots */}
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-[#17231F] uppercase tracking-wide">
-                Time Window / समय स्लॉट
-              </label>
-              <div className="space-y-2.5">
-                {TIME_SLOTS.map((tSlot) => {
-                  const isSelected = selectedSlot === tSlot.slot;
-                  return (
-                    <label
-                      key={tSlot.slot}
-                      className={`block p-3.5 rounded-[6px] border cursor-pointer transition-colors ${
-                        isSelected
-                          ? 'border-[#075E43] bg-[#E7F3EC]'
-                          : 'border-[#CBD8D1] bg-[#FFFFFF] hover:bg-[#F3F9F5]'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="slotRadio"
-                          checked={isSelected}
-                          onChange={() => setSelectedSlot(tSlot.slot)}
-                          className="text-[#075E43] focus:ring-[#075E43]"
-                        />
-                        <div className="flex-1 flex items-center justify-between">
-                          <div>
-                            <span className="text-xs font-bold text-[#17231F]">{tSlot.slot}</span>
-                            <div className="text-[11px] text-[#66736D]">{tSlot.desc}</div>
-                          </div>
-                          <span className="text-[11px] font-semibold text-[#16803C]">Available</span>
-                        </div>
-                      </div>
-                    </label>
-                  );
-                })}
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-[#17231F] uppercase tracking-wide">
+                  Mandi Time Slots for {expectedDate}
+                </label>
+                {isLoadingSlots && (
+                  <span className="text-xs text-[#66736D] flex items-center gap-1">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#075E43]" />
+                    <span>Checking availability...</span>
+                  </span>
+                )}
               </div>
+
+              {slotsError && (
+                <div className="p-3 bg-[#FFF5F5] border border-[#F0C2C2] rounded-[6px] text-xs text-[#B42318]">
+                  {slotsError}
+                </div>
+              )}
+
+              {isLoadingSlots ? (
+                <div className="py-6 text-center text-xs text-[#66736D]">
+                  Loading official slots from {selectedCentre.name}...
+                </div>
+              ) : slots.length === 0 ? (
+                <div className="p-4 bg-[#FFF9ED] border border-[#F0D7A7] rounded-[6px] text-xs text-[#B45309] text-center">
+                  No operational slots available on {expectedDate} at this centre. Please choose another date.
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {slots.map((s) => {
+                    const isSelected = selectedSlotId === s.id;
+                    const isFull = !s.isAvailable || s.currentBookings >= s.maxBookings;
+                    const remaining = Math.max(0, s.maxBookings - s.currentBookings);
+                    const labelText = s.formattedTimeWindow || s.timeWindow || `${s.startTime} - ${s.endTime}`;
+
+                    return (
+                      <label
+                        key={s.id}
+                        className={`block p-3.5 rounded-[6px] border cursor-pointer transition-colors ${
+                          isFull
+                            ? 'bg-[#F9FAFB] border-[#E5E7EB] opacity-60 cursor-not-allowed'
+                            : isSelected
+                            ? 'border-[#075E43] bg-[#E7F3EC]'
+                            : 'border-[#CBD8D1] bg-[#FFFFFF] hover:bg-[#F3F9F5]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name="slotRadio"
+                            disabled={isFull}
+                            checked={isSelected}
+                            onChange={() => {
+                              setSelectedSlotId(s.id);
+                              setSelectedSlotWindow(labelText);
+                            }}
+                            className="text-[#075E43] focus:ring-[#075E43]"
+                          />
+                          <div className="flex-1 flex items-center justify-between text-xs">
+                            <div>
+                              <span className="font-bold text-sm text-[#17231F]">{labelText}</span>
+                              <div className="text-[11px] text-[#66736D] mt-0.5">
+                                {isFull ? 'Capacity Reached' : `${remaining} slots remaining (Cap: ${s.maxBookings})`}
+                              </div>
+                            </div>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                                isFull
+                                  ? 'bg-[#FEE2E2] text-[#B91C1C]'
+                                  : 'bg-[#DCFCE7] text-[#15803D]'
+                              }`}
+                            >
+                              {isFull ? 'Closed' : 'Available'}
+                            </span>
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
@@ -475,13 +899,22 @@ export const CreateBookingFlow: React.FC = () => {
               </button>
               <button
                 onClick={handleConfirm}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !selectedSlotId}
                 className={`inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] ${
                   isSubmitting ? 'bg-[#66736D] cursor-not-allowed' : 'bg-[#0B6B4F] hover:bg-[#075E43]'
-                } text-[#FFFFFF] font-semibold text-sm transition-colors`}
+                } text-[#FFFFFF] font-semibold text-sm transition-colors disabled:opacity-50`}
               >
-                <span>{isSubmitting ? 'Submitting to Backend...' : 'Confirm & Generate Token'}</span>
-                <CheckCircle className="w-4 h-4" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Creating booking...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Confirm & Generate Token</span>
+                    <CheckCircle className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -496,14 +929,16 @@ export const CreateBookingFlow: React.FC = () => {
 
             <div>
               <span className="text-xs uppercase tracking-wider font-bold text-[#16803C] bg-[#E7F3EC] px-2.5 py-1 rounded-[4px] border border-[#CBD8D1]">
-                Booking Confirmed & Token Generated
+                Booking Confirmed & Mandi Token Allotted
               </span>
               <h2 className="text-2xl font-bold text-[#17231F] mt-2">
-                Token No: <span className="font-mono text-[#063B2A]">{confirmedBooking?.id || 'BK-2026-9481'}</span>
+                Token No: <span className="font-mono text-[#063B2A]">{confirmedBooking?.id}</span>
               </h2>
-              <p className="text-xs text-[#66736D] mt-1">
-                An official SMS confirmation has been dispatched to {farmer?.mobileNumber}
-              </p>
+              {farmer?.mobileNumber && (
+                <p className="text-xs text-[#66736D] mt-1">
+                  Official confirmation dispatched to {farmer.mobileNumber}
+                </p>
+              )}
             </div>
 
             {/* Booking Summary Table */}
@@ -512,7 +947,9 @@ export const CreateBookingFlow: React.FC = () => {
                 <tbody>
                   <tr>
                     <td className="w-2/5 bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Crop & Quantity</td>
-                    <td className="font-bold text-xs text-[#17231F]">{selectedCrop.name} — {quantityQuintals} Qtl</td>
+                    <td className="font-bold text-xs text-[#17231F]">
+                      {selectedCrop.name} — {quantityQuintals} {selectedCrop.unit || 'Qtl'}
+                    </td>
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Procurement Mandi</td>
@@ -520,11 +957,13 @@ export const CreateBookingFlow: React.FC = () => {
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Allotted Date & Slot</td>
-                    <td className="text-xs text-[#17231F]">{expectedDate} ({selectedSlot.split('(')[0].trim()})</td>
+                    <td className="text-xs text-[#17231F]">{expectedDate} ({selectedSlotWindow})</td>
                   </tr>
                   <tr>
-                    <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Estimated DBT Payout</td>
-                    <td className="text-xs font-bold text-[#063B2A]">₹{estimatedTotalPayout.toLocaleString('en-IN')} (MSP ₹{selectedCrop.mspPerQuintal}/Qtl)</td>
+                    <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Estimated Gross DBT</td>
+                    <td className="text-xs font-bold text-[#063B2A]">
+                      ₹{estimatedTotalPayout.toLocaleString('en-IN')} (MSP ₹{selectedCrop.mspPerQuintal}/{selectedCrop.unit || 'Qtl'})
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -539,7 +978,10 @@ export const CreateBookingFlow: React.FC = () => {
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button
-                onClick={() => setStep(1)}
+                onClick={() => {
+                  setConfirmedBooking(null);
+                  setStep(1);
+                }}
                 className="w-full sm:w-auto h-11 px-5 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] font-semibold text-xs"
               >
                 Book Another Slot
@@ -550,6 +992,18 @@ export const CreateBookingFlow: React.FC = () => {
 
       </div>
 
+      {/* Comparison Modal */}
+      <CentreComparisonModal
+        isOpen={isComparisonOpen}
+        onClose={() => setIsComparisonOpen(false)}
+        centres={centres}
+        recommendations={recommendations}
+        selectedCrop={selectedCrop}
+        selectedCentreId={selectedCentreId}
+        onSelectCentre={(id) => setSelectedCentreId(id)}
+        farmerCoordinates={farmer?.location?.coordinates}
+      />
+
       {/* Reschedule Modal */}
       {activeBooking && (
         <RescheduleModal
@@ -558,7 +1012,6 @@ export const CreateBookingFlow: React.FC = () => {
           onClose={() => setIsRescheduleOpen(false)}
         />
       )}
-
     </div>
   );
 };

@@ -12,21 +12,60 @@ import {
 } from 'lucide-react';
 
 export const ProcurementPaymentView: React.FC = () => {
-  const { procurements, payments, farmer } = useApp();
-  const [selectedRecord, setSelectedRecord] = useState<ProcurementRecord>(procurements[0]);
+  const { procurements, payments, farmer, setActiveView } = useApp();
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+
+  const selectedRecord = (selectedRecordId 
+    ? procurements.find(p => p.id === selectedRecordId) 
+    : procurements[0]) || null;
 
   // Lifecycle stages based on Section 18
   const getLifecycleStages = (record: ProcurementRecord) => {
-    const isCompleted = record.procurementStatus === 'Accepted';
+    const isCompleted = record.procurementStatus === 'Accepted' || record.procurementStatus === 'completed';
+    const isPaid = record.paymentStatus === 'Credited' || record.paymentStatus === 'confirmed';
     return [
       { name: 'Vehicle Entry', nameHi: 'वाहन प्रवेश', status: 'done' },
       { name: 'Document Check', nameHi: 'दस्तावेज जांच', status: 'done' },
       { name: 'Weighing', nameHi: 'तौल (कांटा)', status: 'done' },
       { name: 'Quality Check', nameHi: 'गुणवत्ता जांच', status: isCompleted ? 'done' : 'current' },
       { name: 'Procurement', nameHi: 'क्रय अभिलेख', status: isCompleted ? 'done' : 'upcoming' },
-      { name: 'Payment / DBT', nameHi: 'प्रत्यक्ष लाभ अंतरण', status: record.paymentStatus === 'Credited' ? 'done' : 'upcoming' },
+      { name: 'Payment / DBT', nameHi: 'प्रत्यक्ष लाभ अंतरण', status: isPaid ? 'done' : 'upcoming' },
     ];
   };
+
+  if (!selectedRecord || procurements.length === 0) {
+    return (
+      <div className="space-y-6 w-full">
+        <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-5 sm:p-6 shadow-sm">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#17231F]">
+            Procurement & DBT Clearance / तौल एवं भुगतान
+          </h1>
+          <p className="text-xs sm:text-sm text-[#66736D] mt-0.5">
+            Verified mandi intake weighbridge slips, moisture grading, and automated bank disbursement
+          </p>
+        </div>
+
+        <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-8 sm:p-12 text-center max-w-xl mx-auto shadow-sm">
+          <div className="w-12 h-12 rounded-[6px] bg-[#E7F3EC] text-[#075E43] border border-[#CBD8D1] flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-6 h-6" />
+          </div>
+          <h2 className="text-xl font-bold text-[#17231F]">
+            No Procurement Records Found
+          </h2>
+          <p className="text-xs text-[#66736D] mt-2 mb-6">
+            Procurement weighbridge slips and DBT payment receipts will appear here once your produce is verified at the procurement centre.
+          </p>
+          <button
+            onClick={() => setActiveView('booking')}
+            className="inline-flex items-center gap-2 h-10 px-5 rounded-[6px] bg-[#075E43] hover:bg-[#063B2A] text-[#FFFFFF] font-semibold text-xs transition-colors"
+          >
+            <span>Book Procurement Slot</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 w-full">
@@ -61,7 +100,7 @@ export const ProcurementPaymentView: React.FC = () => {
               {procurements.map((p) => (
                 <button
                   key={p.id}
-                  onClick={() => setSelectedRecord(p)}
+                  onClick={() => setSelectedRecordId(p.id)}
                   className={`px-3 py-1.5 rounded-[4px] text-xs font-semibold border transition-colors ${
                     selectedRecord.id === p.id
                       ? 'bg-[#063B2A] text-[#FFFFFF] border-[#063B2A]'
@@ -203,11 +242,11 @@ export const ProcurementPaymentView: React.FC = () => {
                     </td>
                     <td>
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-xs font-bold border ${
-                        selectedRecord.paymentStatus === 'Credited'
+                        selectedRecord.paymentStatus === 'Credited' || selectedRecord.paymentStatus === 'confirmed'
                           ? 'bg-[#E7F3EC] text-[#16803C] border-[#B7DCC5]'
                           : 'bg-[#FFF9ED] text-[#B45309] border-[#F0D7A7]'
                       }`}>
-                        {selectedRecord.paymentStatus === 'Credited' ? '● CREDITED VIA DBT' : '● PROCESSING VIA PFMS'}
+                        {selectedRecord.paymentStatus === 'Credited' || selectedRecord.paymentStatus === 'confirmed' ? '● CREDITED VIA DBT' : '● PROCESSING VIA PFMS'}
                       </span>
                     </td>
                   </tr>

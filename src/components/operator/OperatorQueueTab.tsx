@@ -21,8 +21,12 @@ export const OperatorQueueTab: React.FC = () => {
     operatorCheckIn, 
     operatorCallNext, 
     operatorStartProcessing, 
+    operatorCompleteProcessing,
     operatorMarkNoShow, 
     setOperatorActiveTab, 
+    queueSummary,
+    realtimeStatus,
+    lastQueueUpdate,
     language 
   } = useApp();
 
@@ -33,6 +37,8 @@ export const OperatorQueueTab: React.FC = () => {
   const [checkInModalOpen, setCheckInModalOpen] = useState(false);
   const [checkInBookingId, setCheckInBookingId] = useState('');
   const [announcementMsg, setAnnouncementMsg] = useState<string | null>(null);
+  const [isActionLoading, setIsActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const filteredBookings = bookings.filter(b => {
     if (filter === 'ALL') return true;
@@ -43,29 +49,122 @@ export const OperatorQueueTab: React.FC = () => {
     return true;
   });
 
-  const handleCallNext = () => {
-    const nextFarmer = operatorCallNext();
-    if (nextFarmer) {
-      setAnnouncementMsg(`📢 ${ot.callingFarmerNotice}: ${nextFarmer.farmerName} (${nextFarmer.id})`);
-      setTimeout(() => setAnnouncementMsg(null), 5000);
-    } else {
-      setAnnouncementMsg('No waiting farmers in queue.');
-      setTimeout(() => setAnnouncementMsg(null), 3000);
+  const handleCallNext = async () => {
+    setIsActionLoading(true);
+    setActionError(null);
+    try {
+      const nextFarmer = await operatorCallNext();
+      if (nextFarmer) {
+        setAnnouncementMsg(`📢 ${ot.callingFarmerNotice}: ${nextFarmer.farmerName} (${nextFarmer.id})`);
+        setTimeout(() => setAnnouncementMsg(null), 6000);
+      } else {
+        setAnnouncementMsg('No waiting farmers in queue.');
+        setTimeout(() => setAnnouncementMsg(null), 3000);
+      }
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to call next farmer from backend.');
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
-  const handleManualCheckIn = (e: React.FormEvent) => {
+  const handleManualCheckIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!checkInBookingId.trim()) return;
-    operatorCheckIn(checkInBookingId.trim());
-    setCheckInBookingId('');
-    setCheckInModalOpen(false);
-    setAnnouncementMsg(`✅ ${checkInBookingId} — ${ot.checkInFarmerBtn}`);
-    setTimeout(() => setAnnouncementMsg(null), 4000);
+    setIsActionLoading(true);
+    setActionError(null);
+    try {
+      await operatorCheckIn(checkInBookingId.trim());
+      const checkedToken = checkInBookingId.trim();
+      setCheckInBookingId('');
+      setCheckInModalOpen(false);
+      setAnnouncementMsg(`✅ ${checkedToken} — ${ot.checkInFarmerBtn}`);
+      setTimeout(() => setAnnouncementMsg(null), 4000);
+    } catch (err: any) {
+      setActionError(err.message || 'Check-in failed. Please verify booking ID.');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleStartProcessing = async (id: string) => {
+    setIsActionLoading(true);
+    setActionError(null);
+    try {
+      await operatorStartProcessing(id);
+      setAnnouncementMsg(`⚙️ Started processing weighbridge for token #${id}`);
+      setTimeout(() => setAnnouncementMsg(null), 4000);
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to start processing.');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleCompleteProcessing = async (id: string) => {
+    setIsActionLoading(true);
+    setActionError(null);
+    try {
+      await operatorCompleteProcessing(id);
+      setAnnouncementMsg(`✅ Completed queue processing for token #${id}`);
+      setTimeout(() => setAnnouncementMsg(null), 4000);
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to complete processing.');
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleMarkNoShow = async (id: string) => {
+    if (!window.confirm('Mark this farmer as NO-SHOW on the mandi backend?')) return;
+    setIsActionLoading(true);
+    setActionError(null);
+    try {
+      await operatorMarkNoShow(id);
+      setAnnouncementMsg(`⚠️ Marked token #${id} as NO-SHOW`);
+      setTimeout(() => setAnnouncementMsg(null), 4000);
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to mark no-show.');
+    } finally {
+      setIsActionLoading(false);
+    }
   };
 
   return (
     <div className="space-y-6">
+      {/* Telemetry Strip: Realtime Status & Summary Metrics */}
+      <div className="bg-[#EDF3EF] border border-[#CBD8D1] rounded-[8px] p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <span className={`w-2.5 h-2.5 rounded-full ${realtimeStatus === 'connected' ? 'bg-[#16803C] animate-pulse' : realtimeStatus === 'reconnecting' ? 'bg-[#EA8A0A] animate-ping' : 'bg-[#66736D]'}`} />
+            <span className="font-bold text-[#17231F]">
+              {realtimeStatus === 'connected' ? 'Live Mandi SSE Active' : realtimeStatus === 'reconnecting' ? 'Reconnecting to Mandi Stream...' : 'Auto-polling Active'}
+            </span>
+          </div>
+          <span className="text-[#66736D]">|</span>
+          <div className="text-[#34443D]">
+            Total Waiting: <span className="font-bold font-mono text-[#075E43]">{queueSummary?.total_waiting ?? 0}</span>
+          </div>
+          <span className="text-[#66736D]">|</span>
+          <div className="text-[#34443D]">
+            Est. Wait Time: <span className="font-bold text-[#075E43]">{queueSummary?.estimated_wait_minutes !== undefined && queueSummary.estimated_wait_minutes !== null ? `${queueSummary.estimated_wait_minutes} min` : '—'}</span>
+          </div>
+        </div>
+
+        <div className="text-[11px] text-[#66736D]">
+          Last updated: <span className="font-mono font-semibold text-[#17231F]">{lastQueueUpdate || 'Just now'}</span>
+        </div>
+      </div>
+
+      {actionError && (
+        <div className="bg-[#FFF5F5] text-[#B42318] border border-[#F0C2C2] px-4 py-3 rounded-[8px] flex items-center justify-between text-xs font-semibold">
+          <span>⚠️ {actionError}</span>
+          <button onClick={() => setActionError(null)} className="text-[#B42318] hover:underline font-bold">
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Header with Call Next and Check-in Action Buttons */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-4">
         <div>
@@ -81,8 +180,9 @@ export const OperatorQueueTab: React.FC = () => {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             type="button"
+            disabled={isActionLoading}
             onClick={() => setCheckInModalOpen(true)}
-            className="flex-1 sm:flex-initial bg-[#EDF3EF] hover:bg-[#CBD8D1] text-[#063B2A] text-xs font-bold px-3.5 py-2 rounded-[6px] border border-[#CBD8D1] transition-colors flex items-center justify-center gap-1.5"
+            className="flex-1 sm:flex-initial bg-[#EDF3EF] hover:bg-[#CBD8D1] text-[#063B2A] text-xs font-bold px-3.5 py-2 rounded-[6px] border border-[#CBD8D1] transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
           >
             <UserPlus className="w-4 h-4 text-[#075E43]" />
             <span>{ot.checkInFarmerBtn}</span>
@@ -90,11 +190,12 @@ export const OperatorQueueTab: React.FC = () => {
 
           <button
             type="button"
+            disabled={isActionLoading}
             onClick={handleCallNext}
-            className="flex-1 sm:flex-initial bg-[#063B2A] hover:bg-[#075E43] text-[#FFFFFF] text-xs font-bold px-4 py-2 rounded-[6px] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+            className="flex-1 sm:flex-initial bg-[#063B2A] hover:bg-[#075E43] text-[#FFFFFF] text-xs font-bold px-4 py-2 rounded-[6px] transition-colors flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
           >
             <PhoneCall className="w-4 h-4 text-[#85E1A9]" />
-            <span>{ot.callNextFarmerBtn}</span>
+            <span>{isActionLoading ? 'Calling...' : ot.callNextFarmerBtn}</span>
           </button>
         </div>
       </div>
@@ -218,16 +319,18 @@ export const OperatorQueueTab: React.FC = () => {
                   <>
                     <button
                       type="button"
-                      onClick={() => operatorStartProcessing(b.id)}
-                      className="bg-[#075E43] hover:bg-[#063B2A] text-white text-xs font-bold px-3 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm"
+                      disabled={isActionLoading}
+                      onClick={() => handleStartProcessing(b.uuid || b.id)}
+                      className="bg-[#075E43] hover:bg-[#063B2A] text-white text-xs font-bold px-3 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50"
                     >
                       <Play className="w-3.5 h-3.5" />
                       <span>{ot.startProcessingBtn}</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => operatorMarkNoShow(b.id)}
-                      className="bg-[#FFF5F5] hover:bg-[#FEE4E2] text-[#B42318] text-xs font-semibold px-2.5 py-1.5 rounded-[6px] border border-[#F0C2C2] transition-colors flex items-center gap-1"
+                      disabled={isActionLoading}
+                      onClick={() => handleMarkNoShow(b.uuid || b.id)}
+                      className="bg-[#FFF5F5] hover:bg-[#FEE4E2] text-[#B42318] text-xs font-semibold px-2.5 py-1.5 rounded-[6px] border border-[#F0C2C2] transition-colors flex items-center gap-1 disabled:opacity-50"
                     >
                       <UserX className="w-3.5 h-3.5" />
                       <span>{ot.markNoShowBtn}</span>
@@ -236,19 +339,30 @@ export const OperatorQueueTab: React.FC = () => {
                 )}
 
                 {b.status === 'PROCESSING' && (
-                  <button
-                    type="button"
-                    onClick={() => setOperatorActiveTab('procurement')}
-                    className="bg-[#175CD3] hover:bg-[#154fb8] text-white text-xs font-bold px-3.5 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm"
-                  >
-                    <Scale className="w-3.5 h-3.5" />
-                    <span>{ot.tabProcurement}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={isActionLoading}
+                      onClick={() => handleCompleteProcessing(b.uuid || b.id)}
+                      className="bg-[#16803C] hover:bg-[#0F5A2A] text-white text-xs font-bold px-3 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Complete Queue</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOperatorActiveTab('procurement')}
+                      className="bg-[#175CD3] hover:bg-[#154fb8] text-white text-xs font-bold px-3 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm"
+                    >
+                      <Scale className="w-3.5 h-3.5" />
+                      <span>{ot.tabProcurement}</span>
+                    </button>
+                  </div>
                 )}
 
                 {b.status === 'COMPLETED' && (
                   <span className="text-xs font-bold text-[#16803C] flex items-center gap-1 bg-[#E7F3EC] px-2.5 py-1 rounded-[6px]">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> J-Form Done
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Done
                   </span>
                 )}
               </div>

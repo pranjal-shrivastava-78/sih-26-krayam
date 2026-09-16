@@ -9,7 +9,8 @@ import {
   Calculator, 
   ArrowRight, 
   History,
-  Download
+  Download,
+  Loader2
 } from 'lucide-react';
 
 export const OperatorProcurementTab: React.FC = () => {
@@ -17,6 +18,7 @@ export const OperatorProcurementTab: React.FC = () => {
     bookings, 
     procurements, 
     operatorCompleteProcurement, 
+    crops,
     language 
   } = useApp();
 
@@ -34,7 +36,7 @@ export const OperatorProcurementTab: React.FC = () => {
     readyCandidates[0]?.id || bookings[0]?.id || ''
   );
 
-  const currentBooking = bookings.find(b => b.id === selectedBookingId) || readyCandidates[0] || bookings[0];
+  const currentBooking = bookings.find(b => b.id === selectedBookingId || b.uuid === selectedBookingId) || readyCandidates[0] || bookings[0];
 
   // Weighbridge Form State
   const [grossWeightKg, setGrossWeightKg] = useState<number>(8250); // Vehicle + Grain in kg
@@ -44,30 +46,47 @@ export const OperatorProcurementTab: React.FC = () => {
   const [qualityGrade, setQualityGrade] = useState<'Grade A' | 'Grade B' | 'Standard'>('Grade A');
   const [deductionsInr, setDeductionsInr] = useState<number>(0);
   const [completedRecordId, setCompletedRecordId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Auto-calculations
   const netWeightKg = Math.max(0, grossWeightKg - tareWeightKg);
   const netWeightQuintals = Number((netWeightKg / 100).toFixed(2));
-  const mspRate = 2275; // Standard Rabi Wheat MSP (₹/Qtl)
+  
+  // Dynamic MSP rate from official crops catalog
+  const matchedCrop = crops.find(c => 
+    c.id.toLowerCase() === currentBooking?.cropId?.toLowerCase() ||
+    c.name.toLowerCase() === currentBooking?.cropName?.toLowerCase()
+  );
+  const mspRate = matchedCrop?.mspPerQuintal || 2275;
   const grossPayableAmount = Math.round(netWeightQuintals * mspRate);
   const netPayableAmount = Math.max(0, grossPayableAmount - deductionsInr);
 
-  const handleCompleteIntake = (e: React.FormEvent) => {
+  const handleCompleteIntake = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentBooking) return;
+    if (!currentBooking || isSubmitting) return;
 
-    const record = operatorCompleteProcurement({
-      bookingId: currentBooking.id,
-      grossWeight: Number((grossWeightKg / 100).toFixed(2)),
-      tareWeight: Number((tareWeightKg / 100).toFixed(2)),
-      netWeight: netWeightQuintals,
-      moisturePercent,
-      qualityGrade,
-      deductions: deductionsInr,
-      deductionReason: deductionsInr > 0 ? 'Moisture variance deduction' : 'Quality standards met'
-    });
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const record = await operatorCompleteProcurement({
+        bookingId: currentBooking.uuid || currentBooking.id,
+        grossWeight: Number((grossWeightKg / 100).toFixed(2)),
+        tareWeight: Number((tareWeightKg / 100).toFixed(2)),
+        netWeight: netWeightQuintals,
+        moisturePercent,
+        qualityGrade,
+        deductions: deductionsInr,
+        deductionReason: deductionsInr > 0 ? 'Moisture variance deduction' : 'Quality standards met'
+      });
 
-    setCompletedRecordId(record.id);
+      setCompletedRecordId(record.id);
+    } catch (err: any) {
+      console.error('Procurement completion error:', err);
+      setSubmitError(err.message || 'Failed to complete procurement intake on backend.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -308,12 +327,29 @@ export const OperatorProcurementTab: React.FC = () => {
                   </div>
                 </div>
 
+                {submitError && (
+                  <div className="p-3 bg-[#FFF3DC] border border-[#F0D7A7] rounded-[6px] text-xs text-[#B42318] flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                    <span>{submitError}</span>
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full bg-[#063B2A] hover:bg-[#075E43] text-white font-bold text-sm py-3 rounded-[6px] transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm"
+                  disabled={isSubmitting}
+                  className="w-full bg-[#063B2A] hover:bg-[#075E43] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm py-3 rounded-[6px] transition-colors flex items-center justify-center gap-2 mt-4 shadow-sm"
                 >
-                  <FileText className="w-4 h-4" />
-                  <span>{ot.completeProcurementBtn}</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Processing Procurement...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4" />
+                      <span>{ot.completeProcurementBtn}</span>
+                    </>
+                  )}
                 </button>
               </form>
             )}

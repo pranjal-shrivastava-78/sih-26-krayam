@@ -111,12 +111,14 @@ export const DashboardView: React.FC = () => {
             <span className="text-xs uppercase font-bold tracking-wider text-[#075E43] bg-[#E7F3EC] px-2 py-0.5 rounded-[4px] border border-[#CBD8D1]">
               {t('verifiedFarmer')}
             </span>
-            <span className="text-xs text-[#66736D]">
-              ID: {farmer?.farmerId || 'MP-2024-7842'}
-            </span>
+            {farmer?.farmerId && (
+              <span className="text-xs text-[#66736D] font-mono">
+                ID: {farmer.farmerId}
+              </span>
+            )}
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#17231F] mt-1.5">
-            {t('goodMorning')}, {farmer?.fullName || 'Sardar Gurpreet Singh'}
+            {t('goodMorning')}{farmer?.fullName ? `, ${farmer.fullName}` : ''}
           </h1>
           <p className="text-sm text-[#34443D] mt-0.5">
             {t('govOfIndia')} — Direct Mandi Procurement & Allocation Service
@@ -191,23 +193,25 @@ export const DashboardView: React.FC = () => {
               <div className="bg-[#F4FAF6] border border-[#B7DCC5] rounded-[6px] p-3 flex items-center justify-around text-center">
                 <div>
                   <div className="text-[11px] font-bold text-[#66736D] uppercase">{t('liveQueuePosition')}</div>
-                  <div className="text-2xl font-black text-[#063B2A] font-mono">
-                    #{activeBooking.queuePosition || 3}
+                  <div className="text-xl sm:text-2xl font-black text-[#063B2A] font-mono">
+                    {activeBooking.queuePosition ? `#${activeBooking.queuePosition}` : 'Scheduled'}
                   </div>
                 </div>
                 <div className="w-[1px] h-8 bg-[#CBD8D1]" />
                 <div>
                   <div className="text-[11px] font-bold text-[#66736D] uppercase">{t('aheadBadge')}</div>
-                  <div className="text-2xl font-black text-[#063B2A] font-mono">
-                    {activeBooking.farmersAhead !== undefined ? activeBooking.farmersAhead : 2}
+                  <div className="text-xl sm:text-2xl font-black text-[#063B2A] font-mono">
+                    {activeBooking.farmersAhead !== undefined ? activeBooking.farmersAhead : '—'}
                   </div>
                 </div>
                 <div className="w-[1px] h-8 bg-[#CBD8D1]" />
                 <div>
                   <div className="text-[11px] font-bold text-[#66736D] uppercase">{t('estWaitBadge')}</div>
-                  <div className="text-sm font-bold text-[#063B2A] mt-1 flex items-center gap-1 justify-center">
+                  <div className="text-xs sm:text-sm font-bold text-[#063B2A] mt-1 flex items-center gap-1 justify-center">
                     <Clock className="w-3.5 h-3.5" />
-                    ~{activeBooking.estimatedWaitMinutes || 25}{t('minutesAbbr')}
+                    {activeBooking.estimatedWaitMinutes
+                      ? `~${activeBooking.estimatedWaitMinutes} ${t('minutesAbbr')}`
+                      : 'Pending Check-in'}
                   </div>
                 </div>
               </div>

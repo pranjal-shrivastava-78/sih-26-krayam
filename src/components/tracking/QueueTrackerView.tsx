@@ -16,7 +16,8 @@ export const QueueTrackerView: React.FC = () => {
   const { 
     activeBooking, 
     cancelBooking, 
-    advanceQueue, 
+    realtimeStatus,
+    lastQueueUpdate,
     setActiveView,
     t
   } = useApp();
@@ -49,58 +50,69 @@ export const QueueTrackerView: React.FC = () => {
     );
   }
 
-  const queuePos = activeBooking.queuePosition || 3;
-  const farmersAhead = activeBooking.farmersAhead !== undefined ? activeBooking.farmersAhead : Math.max(0, queuePos - 1);
-  const waitMinutes = activeBooking.estimatedWaitMinutes || 25;
+  const queuePos = activeBooking.queuePosition ?? null;
+  const farmersAhead = activeBooking.farmersAhead !== undefined && activeBooking.farmersAhead !== null 
+    ? activeBooking.farmersAhead 
+    : (queuePos !== null ? Math.max(0, queuePos - 1) : null);
+  const waitMinutes = activeBooking.estimatedWaitMinutes ?? null;
 
-  // Timeline stages based on Section 12
+  const status = activeBooking.status;
+  const isCheckedIn = status === 'CHECKED_IN' || status === 'IN_QUEUE' || status === 'TURN_APPROACHING' || status === 'PROCESSING' || status === 'COMPLETED';
+  const isProcessing = status === 'PROCESSING' || status === 'COMPLETED';
+  const isCompleted = status === 'COMPLETED';
+
+  // Real backend-driven timeline stages
   const timelineStages = [
     { 
       number: 1, 
-      titleEn: 'Token Issued', 
-      titleHi: 'टोकन जारी', 
-      time: '08 Sep 2026 · 08:10 AM', 
+      titleEn: 'Token Issued & Slot Confirmed', 
+      titleHi: 'टोकन जारी एवं स्लॉट पुष्ट', 
+      time: activeBooking.createdAt ? new Date(activeBooking.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Confirmed', 
       isDone: true, 
-      isCurrent: false 
+      isCurrent: status === 'CONFIRMED' || status === 'RESCHEDULED' 
     },
     { 
       number: 2, 
-      titleEn: 'Document Verification', 
-      titleHi: 'दस्तावेज सत्यापन', 
-      time: '08:35 AM', 
-      isDone: true, 
+      titleEn: 'Mandi Gate Check-in', 
+      titleHi: 'मंडी गेट आगमन व सत्यापन', 
+      time: isCheckedIn ? 'Checked in by Mandi Operator' : 'Awaiting farmer arrival at mandi', 
+      isDone: isCheckedIn, 
       isCurrent: false 
     },
     { 
       number: 3, 
       titleEn: 'In Queue for Weighbridge', 
       titleHi: 'तौल कांटे के लिए कतार में', 
-      time: 'Current stage', 
-      isDone: queuePos < 3, 
-      isCurrent: queuePos >= 3 || queuePos === 3 
+      time: status === 'TURN_APPROACHING' 
+        ? 'Your turn is approaching — Proceed to gate' 
+        : (queuePos !== null ? `Position #${queuePos} in official queue` : (isCheckedIn ? 'Waiting in Mandi Queue' : 'Upcoming stage')), 
+      isDone: isProcessing, 
+      isCurrent: status === 'IN_QUEUE' || status === 'CHECKED_IN' || status === 'TURN_APPROACHING' 
     },
     { 
       number: 4, 
-      titleEn: 'Weighing in Progress', 
-      titleHi: 'तौल की प्रक्रिया', 
-      time: 'Upcoming stage', 
-      isDone: activeBooking.status === 'PROCESSING' || activeBooking.status === 'COMPLETED', 
-      isCurrent: activeBooking.status === 'PROCESSING' 
+      titleEn: 'Weighbridge & Quality Verification', 
+      titleHi: 'तौल एवं गुणवत्ता जांच', 
+      time: status === 'PROCESSING' 
+        ? 'Produce currently being weighed on weighbridge' 
+        : (isCompleted ? 'Weighbridge & Quality Grade Completed' : 'Upcoming stage'), 
+      isDone: isCompleted, 
+      isCurrent: status === 'PROCESSING' 
     },
     { 
       number: 5, 
-      titleEn: 'Quality Check', 
-      titleHi: 'गुणवत्ता जांच', 
-      time: 'Upcoming stage', 
-      isDone: activeBooking.status === 'COMPLETED', 
+      titleEn: 'Procurement Completion & J-Form', 
+      titleHi: 'क्रय पूर्णता एवं जे-फॉर्म जारी', 
+      time: isCompleted ? 'J-Form Generated' : 'Upcoming stage', 
+      isDone: isCompleted, 
       isCurrent: false 
     },
     { 
       number: 6, 
-      titleEn: 'Procurement & Payment', 
-      titleHi: 'क्रय एवं भुगतान', 
-      time: 'Direct Benefit Transfer', 
-      isDone: activeBooking.status === 'COMPLETED', 
+      titleEn: 'DBT Payment Disbursement', 
+      titleHi: 'प्रत्यक्ष लाभ अंतरण (DBT)', 
+      time: isCompleted ? 'DBT payment verification initiated' : 'Upcoming stage', 
+      isDone: isCompleted, 
       isCurrent: false 
     },
   ];
@@ -179,6 +191,23 @@ export const QueueTrackerView: React.FC = () => {
         </div>
       </div>
 
+      {/* Turn Approaching Urgent Mandi Banner */}
+      {status === 'TURN_APPROACHING' && (
+        <div className="bg-[#FFFDF5] border-2 border-[#EA8A0A] rounded-[8px] p-4 flex items-center gap-3.5 shadow-md animate-pulse">
+          <div className="w-10 h-10 rounded-full bg-[#EA8A0A] text-white flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-sm text-[#B45309]">
+              Your Turn is Approaching! / आपकी बारी आने वाली है
+            </h3>
+            <p className="text-xs text-[#92400E] mt-0.5 leading-relaxed">
+              Mandi operator has called your token. Please proceed to the weighbridge gate immediately with your transport vehicle.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* 11. Queue Status Summary: Horizontal Information Strip */}
       <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] overflow-hidden shadow-sm">
         <div className="bg-[#EDF3EF] px-5 py-2.5 border-b border-[#CBD8D1] flex items-center justify-between">
@@ -196,8 +225,8 @@ export const QueueTrackerView: React.FC = () => {
             <div className="text-xs uppercase font-bold tracking-wider text-[#66736D]">
               Queue Position / कतार संख्या
             </div>
-            <div className="text-3xl sm:text-4xl font-bold text-[#063B2A] font-mono mt-1">
-              #{queuePos}
+            <div className="text-2xl sm:text-3xl font-bold text-[#063B2A] font-mono mt-1">
+              {queuePos !== null ? `#${queuePos}` : (status === 'CONFIRMED' || status === 'RESCHEDULED' ? 'Pending Check-in' : 'Not available')}
             </div>
             <div className="text-xs text-[#66736D] mt-1">
               Official Token Order
@@ -209,8 +238,8 @@ export const QueueTrackerView: React.FC = () => {
             <div className="text-xs uppercase font-bold tracking-wider text-[#66736D]">
               {t('farmersAhead')}
             </div>
-            <div className="text-3xl sm:text-4xl font-bold text-[#063B2A] font-mono mt-1">
-              {farmersAhead}
+            <div className="text-2xl sm:text-3xl font-bold text-[#063B2A] font-mono mt-1">
+              {farmersAhead !== null ? farmersAhead : (status === 'CONFIRMED' || status === 'RESCHEDULED' ? 'Pending Check-in' : 'Not available')}
             </div>
             <div className="text-xs text-[#66736D] mt-1">
               {t('people')}
@@ -222,27 +251,26 @@ export const QueueTrackerView: React.FC = () => {
             <div className="text-xs uppercase font-bold tracking-wider text-[#66736D]">
               {t('estimatedWaitTime')}
             </div>
-            <div className="text-3xl sm:text-4xl font-bold text-[#063B2A] mt-1">
-              ~{waitMinutes} {t('minutesAbbr')}
+            <div className="text-2xl sm:text-3xl font-bold text-[#063B2A] mt-1">
+              {waitMinutes !== null ? `~${waitMinutes} ${t('minutesAbbr')}` : (status === 'CONFIRMED' || status === 'RESCHEDULED' ? 'Pending Check-in' : 'Not available')}
             </div>
             <div className="text-xs text-[#66736D] mt-1">
-              Average weighbridge pace
+              Weighbridge processing pace
             </div>
           </div>
         </div>
 
-        {/* Queue Simulation Trigger Bar */}
+        {/* Realtime Live Telemetry Bar */}
         <div className="bg-[#F5F8F6] border-t border-[#CBD8D1] px-4 sm:px-5 py-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-[#66736D]">
-          <span>
-            Queue Simulation Tool
-          </span>
-          <button
-            onClick={advanceQueue}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] bg-[#075E43] hover:bg-[#063B2A] text-[#FFFFFF] text-xs font-semibold transition-colors"
-          >
-            <FastForward className="w-3.5 h-3.5" />
-            <span>Advance Queue</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <span className={`w-2 h-2 rounded-full ${realtimeStatus === 'connected' ? 'bg-[#16803C] animate-pulse' : realtimeStatus === 'reconnecting' ? 'bg-[#EA8A0A] animate-ping' : 'bg-[#66736D]'}`} />
+            <span className="font-semibold text-[#17231F]">
+              {realtimeStatus === 'connected' ? 'Live Mandi SSE Stream' : realtimeStatus === 'reconnecting' ? 'Reconnecting to Mandi Stream...' : 'Auto-polling Active'}
+            </span>
+          </div>
+          <div className="text-[11px] text-[#66736D]">
+            Last updated: <span className="font-semibold text-[#17231F]">{lastQueueUpdate || 'Just now'}</span>
+          </div>
         </div>
       </div>
 

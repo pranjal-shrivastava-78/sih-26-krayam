@@ -14,8 +14,10 @@ import {
   AppNotification,
   SlotTimeWindow,
   OperatorProfile,
-  TimeSlot
+  TimeSlot,
+  RecommendedCentreItem
 } from '../types';
+import { formatSlotWindow } from '../utils/geo';
 
 // Normalize Base URL to ensure /api/v1 routing
 export function resolveApiBaseUrl(): string {
@@ -42,7 +44,29 @@ export function resolveApiBaseUrl(): string {
 
 export const API_BASE_URL = resolveApiBaseUrl();
 
-// --- FastAPI Data Contracts (OpenAPI Schemas) ---
+// --- Standardized API Error Handling ---
+export type ApiErrorCode =
+  | 'NETWORK_ERROR'
+  | 'AUTH_ERROR'
+  | 'VALIDATION_ERROR'
+  | 'NOT_FOUND'
+  | 'SERVER_ERROR'
+  | 'NOT_IMPLEMENTED'
+  | 'UNKNOWN_ERROR';
+
+export class ApiError extends Error {
+  public code: ApiErrorCode;
+  public status?: number;
+  public details?: any;
+
+  constructor(message: string, code: ApiErrorCode = 'UNKNOWN_ERROR', status?: number, details?: any) {
+    super(message);
+    this.name = 'ApiError';
+    this.code = code;
+    this.status = status;
+    this.details = details;
+  }
+}
 export interface BackendHealthResponse {
   status: string;
 }
@@ -162,11 +186,14 @@ export interface BackendPayment {
   id: string;
   payment_id: string;
   procurement_id: string;
+  booking_id?: string;
   farmer_id: string;
+  farmer_name?: string;
+  farmer_phone?: string;
   quantity: number;
   rate: number;
   amount: number;
-  status: 'pending' | 'verified' | 'initiated' | 'credited' | 'failed';
+  status: 'initiated' | 'pending_verification' | 'confirmed' | 'failed' | 'cancelled' | 'pending' | 'verified' | 'credited';
   verified_by?: string | null;
   verified_at?: string | null;
   confirmed_at?: string | null;
@@ -190,6 +217,159 @@ export interface BackendNotificationItem {
   message: string;
   is_read: boolean;
   created_at: string;
+}
+
+export interface BackendQueueOverview {
+  waiting_count: number;
+  called_count: number;
+  processing_count: number;
+  estimated_wait_minutes: number;
+}
+
+export interface BackendProcurementOverview {
+  completed_today_count: number;
+  total_tonnage_today: number;
+}
+
+export interface BackendPaymentOverview {
+  pending_count: number;
+  pending_amount: number;
+  flagged_count: number;
+}
+
+export interface BackendCapacityOverview {
+  daily_capacity: number;
+  utilization_percent: number;
+}
+
+export interface BackendSyncOverview {
+  max_outbox_id: number;
+}
+
+export interface OperatorDashboardData {
+  centre_id: string;
+  today: string;
+  bookings_today_total: number;
+  queue: BackendQueueOverview;
+  procurement: BackendProcurementOverview;
+  payments: BackendPaymentOverview;
+  capacity: BackendCapacityOverview;
+  sync: BackendSyncOverview;
+}
+
+export interface BackendAnalyticsSummary {
+  centre_id: string;
+  from_date: string;
+  to_date: string;
+  farmers_served: number;
+  total_quantity_procured: number;
+  avg_waiting_minutes: number | null;
+  avg_processing_minutes: number | null;
+  no_shows: number;
+  cancellations: number;
+  pending_payments_count: number;
+  pending_payments_amount: number;
+  completed_payments_count: number;
+  completed_payments_amount: number;
+  arrivals_by_hour?: Record<string, number>;
+  peak_hour?: number | null;
+}
+
+export interface BackendAnalyticsForecast {
+  centre_id: string;
+  date: string;
+  capacity: number;
+  active_bookings: number;
+  booked_quantity: number;
+  historical_avg_arrivals: number;
+  expected_arrivals: number;
+  expected_load_percent: number;
+  predicted_wait_minutes: number;
+  warnings: string[];
+}
+
+export interface SyncCentreInfo {
+  id: string;
+  name: string;
+  code: string;
+  district: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  capacity: number;
+  operating_start: string;
+  operating_end: string;
+  is_active: boolean;
+}
+
+export interface SyncCropInfo {
+  id: string;
+  name: string;
+  category: string;
+  variety?: string;
+  season?: string;
+  is_active: boolean;
+}
+
+export interface SyncSlotInfo {
+  id: string;
+  centre_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  max_bookings: number;
+  current_bookings: number;
+  is_available: boolean;
+}
+
+export interface SyncSnapshotResponse {
+  centre: SyncCentreInfo;
+  crops: SyncCropInfo[];
+  slots: SyncSlotInfo[];
+  bookings: BackendBooking[];
+  waitlist: BackendQueueEntry[];
+}
+
+export interface OutboxEventResponse {
+  id: number;
+  centre_id?: string | null;
+  farmer_id?: string | null;
+  event_type: string;
+  entity_type: string;
+  entity_id?: string | null;
+  data?: Record<string, any> | null;
+  actor_type?: string | null;
+  actor_id?: string | null;
+  client_event_id?: string | null;
+  created_at: string;
+}
+
+export interface SyncPullResponse {
+  events: OutboxEventResponse[];
+  next_cursor: number;
+  has_more: boolean;
+}
+
+export interface SyncEventIn {
+  client_event_id: string;
+  type: string;
+  expected_current_state?: Record<string, any>;
+  payload?: Record<string, any>;
+}
+
+export interface SyncEventResult {
+  client_event_id: string;
+  status: 'accepted' | 'duplicate' | 'conflicting' | 'rejected';
+  error?: string | null;
+  server_current_state?: Record<string, any> | null;
+}
+
+export interface SyncBatchRequest {
+  events: SyncEventIn[];
+}
+
+export interface SyncBatchResponse {
+  results: SyncEventResult[];
 }
 
 class ApiClient {
@@ -272,7 +452,19 @@ class ApiClient {
         } else {
           message = `HTTP Error ${response.status}: ${response.statusText}`;
         }
-        throw new Error(message);
+
+        let errorCode: ApiErrorCode = 'UNKNOWN_ERROR';
+        if (response.status === 401 || response.status === 403) {
+          errorCode = 'AUTH_ERROR';
+        } else if (response.status === 404) {
+          errorCode = 'NOT_FOUND';
+        } else if (response.status === 422) {
+          errorCode = 'VALIDATION_ERROR';
+        } else if (response.status >= 500) {
+          errorCode = 'SERVER_ERROR';
+        }
+
+        throw new ApiError(message, errorCode, response.status, errorData);
       }
 
       // Handle 204 No Content
@@ -283,10 +475,13 @@ class ApiClient {
       return await response.json();
     } catch (err: any) {
       clearTimeout(timeoutId);
-      if (err.name === 'AbortError') {
-        throw new Error('Request timed out while connecting to the backend.');
+      if (err instanceof ApiError) {
+        throw err;
       }
-      throw err;
+      if (err.name === 'AbortError') {
+        throw new ApiError('Request timed out while connecting to the backend.', 'NETWORK_ERROR');
+      }
+      throw new ApiError(err.message || 'Network connection failure.', 'NETWORK_ERROR');
     }
   }
 
@@ -299,7 +494,12 @@ class ApiClient {
   // --- Authentication Endpoints ---
   public auth = {
     sendOtp: async (phone: string): Promise<{ success: boolean; message: string }> => {
-      const cleanPhone = phone.replace(/[^\d+]/g, '');
+      let cleanPhone = phone.replace(/[^\d+]/g, '');
+      if (!cleanPhone.startsWith('+')) {
+        if (cleanPhone.length === 10) {
+          cleanPhone = `+91${cleanPhone}`;
+        }
+      }
       const data = await this.request<{ message: string }>('/auth/otp/send', {
         method: 'POST',
         body: JSON.stringify({ phone: cleanPhone }),
@@ -313,7 +513,12 @@ class ApiClient {
       isRegistered: boolean;
       farmerProfile?: FarmerProfile;
     }> => {
-      const cleanPhone = phone.replace(/[^\d+]/g, '');
+      let cleanPhone = phone.replace(/[^\d+]/g, '');
+      if (!cleanPhone.startsWith('+')) {
+        if (cleanPhone.length === 10) {
+          cleanPhone = `+91${cleanPhone}`;
+        }
+      }
       const data = await this.request<{
         access_token: string;
         token_type: string;
@@ -332,7 +537,7 @@ class ApiClient {
           const profile = await this.auth.getMe();
           if (profile) farmerProfile = profile;
         } catch {
-          // If fetching profile fails immediately, it can be retried on dashboard mount
+          // If profile fetch fails immediately, it can be retried by state manager
         }
       }
 
@@ -365,7 +570,7 @@ class ApiClient {
         const backendFarmer = await this.request<BackendFarmer>('/farmers/me', { method: 'GET' });
         return this.transformFarmer(backendFarmer);
       } catch (err: any) {
-        if (err.message && err.message.includes('401')) {
+        if (err.status === 401 || (err.message && err.message.includes('401'))) {
           this.setToken(null);
         }
         throw err;
@@ -386,6 +591,16 @@ class ApiClient {
         body: JSON.stringify(data),
       });
       return this.transformFarmer(updated);
+    },
+
+    logout: (): void => {
+      this.setToken(null);
+      this.setOperatorToken(null);
+      try {
+        localStorage.removeItem('krayam_operator_profile');
+      } catch (e) {
+        // ignore
+      }
     },
 
     operatorLogin: async (phone: string, password: string): Promise<{
@@ -413,10 +628,39 @@ class ApiClient {
         shift: 'Day Shift (08:00 AM - 06:00 PM)',
       };
 
+      try {
+        localStorage.setItem('krayam_operator_profile', JSON.stringify(opProfile));
+      } catch (e) {
+        // ignore
+      }
+
       return {
         token: data.access_token,
         operator: opProfile,
       };
+    },
+
+    operatorRegister: async (payload: {
+      name: string;
+      phone: string;
+      password: string;
+      centre_id: string;
+      serviceKey?: string;
+    }): Promise<BackendOperator> => {
+      const headers: Record<string, string> = {};
+      if (payload.serviceKey?.trim()) {
+        headers['x-service-key'] = payload.serviceKey.trim();
+      }
+      return await this.request<BackendOperator>('/operator/register', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          name: payload.name.trim(),
+          phone: payload.phone.trim(),
+          password: payload.password,
+          centre_id: payload.centre_id,
+        }),
+      });
     },
   };
 
@@ -503,11 +747,22 @@ class ApiClient {
       return await this.request<BackendQRCodeResponse>(`/bookings/${bookingId}/qr`, { method: 'GET' });
     },
 
-    recommend: async (crop: string, expectedDate: string): Promise<any[]> => {
-      return await this.request<any[]>(
+    recommend: async (crop: string, expectedDate: string): Promise<RecommendedCentreItem[]> => {
+      const data = await this.request<any[]>(
         `/bookings/recommend?crop=${encodeURIComponent(crop)}&expected_date=${encodeURIComponent(expectedDate)}`,
         { method: 'POST' }
       );
+      return (data || []).map((item) => ({
+        centre: this.transformCentre(item.centre),
+        distanceKm: item.distance_km !== undefined && item.distance_km !== null ? item.distance_km : null,
+        accepted: item.accepted ?? true,
+        currentQueue: item.current_queue ?? 0,
+        estWaitUnits: item.est_wait_units ?? 0,
+        loadPercent: item.load_percent ?? 0,
+        hasSlots: item.has_slots ?? false,
+        score: item.score ?? 0,
+        reasons: item.reasons || [],
+      }));
     },
   };
 
@@ -573,21 +828,34 @@ class ApiClient {
         method: 'POST',
       }, true);
     },
+
+    review: async (procurementId: string): Promise<any> => {
+      return await this.request<any>(`/operator/procurements/${procurementId}/review`, { method: 'GET' }, true);
+    },
   };
 
   // --- Payments Endpoints ---
   public payments = {
     getAll: async (params: { status?: string; limit?: number; offset?: number } = {}): Promise<{
-      items: any[];
+      items: BackendPayment[];
       total: number;
       limit: number;
       offset: number;
     }> => {
-      const q = new URLSearchParams(params as any).toString();
-      return await this.request(`/operator/payments?${q}`, { method: 'GET' }, true);
+      const q = new URLSearchParams();
+      if (params.status) q.append('status', params.status);
+      if (params.limit) q.append('limit', String(params.limit));
+      if (params.offset) q.append('offset', String(params.offset));
+      const queryStr = q.toString() ? `?${q.toString()}` : '';
+      return await this.request<{
+        items: BackendPayment[];
+        total: number;
+        limit: number;
+        offset: number;
+      }>(`/operator/payments${queryStr}`, { method: 'GET' }, true);
     },
 
-    verify: async (paymentId: string, confirmed: boolean, verifiedBy = 'Operator'): Promise<BackendPayment> => {
+    verify: async (paymentId: string, confirmed = true, verifiedBy = 'Operator'): Promise<BackendPayment> => {
       return await this.request<BackendPayment>(`/operator/payments/${paymentId}/verify`, {
         method: 'POST',
         body: JSON.stringify({ confirmed, verified_by: verifiedBy }),
@@ -630,20 +898,212 @@ class ApiClient {
 
   // --- Operator Dashboard & Analytics ---
   public operator = {
-    getDashboard: async (): Promise<any> => {
-      return await this.request('/operator/dashboard', { method: 'GET' }, true);
+    getDashboard: async (): Promise<OperatorDashboardData> => {
+      return await this.request<OperatorDashboardData>('/operator/dashboard', { method: 'GET' }, true);
     },
 
-    getBookings: async (params: any = {}): Promise<any> => {
+    getBookings: async (params: any = {}): Promise<Booking[]> => {
       const q = new URLSearchParams(params).toString();
-      return await this.request(`/operator/bookings?${q}`, { method: 'GET' }, true);
+      const endpoint = q ? `/operator/bookings?${q}` : '/operator/bookings';
+      const data = await this.request<{ items: any[]; total: number }>(endpoint, { method: 'GET' }, true);
+      return (data.items || []).map((item) => {
+        const rawStatus = (item.status || 'confirmed').toLowerCase();
+        const statusMap: Record<string, Booking['status']> = {
+          pending: 'CONFIRMED',
+          confirmed: 'CONFIRMED',
+          checked_in: 'CHECKED_IN',
+          processing: 'PROCESSING',
+          completed: 'COMPLETED',
+          cancelled: 'CANCELLED',
+          no_show: 'NO_SHOW',
+          rescheduled: 'RESCHEDULED',
+          expired: 'CANCELLED',
+        };
+        return {
+          id: item.booking_id || item.id,
+          uuid: item.id,
+          farmerId: item.farmer_code || item.farmer_id || '',
+          farmerName: item.farmer_name || 'Farmer',
+          farmerMobile: item.farmer_phone || '',
+          cropId: (item.crop || 'grain').toLowerCase(),
+          cropName: item.crop || 'Crop',
+          quantityQuintals: item.quantity,
+          unit: item.unit || 'quintal',
+          expectedDate: item.expected_date,
+          centreId: item.centre_id || '',
+          centreName: 'Procurement Mandi',
+          centreLocation: 'APMC Yard',
+          slotId: item.slot_id || null,
+          slot: 'Operating Window',
+          status: statusMap[rawStatus] || 'CONFIRMED',
+          createdAt: item.created_at,
+        };
+      });
     },
 
-    getAnalytics: async (from?: string, to?: string): Promise<any> => {
+    getAnalytics: async (from?: string, to?: string): Promise<BackendAnalyticsSummary> => {
       const q = new URLSearchParams({ ...(from ? { from } : {}), ...(to ? { to } : {}) }).toString();
-      return await this.request(`/operator/analytics?${q}`, { method: 'GET' }, true);
+      const endpoint = q ? `/operator/analytics?${q}` : '/operator/analytics';
+      return await this.request<BackendAnalyticsSummary>(endpoint, { method: 'GET' }, true);
     },
   };
+
+  // --- Analytics & AI Forecasting ---
+  public analytics = {
+    getSummary: async (centreId: string, from: string, to: string): Promise<BackendAnalyticsSummary> => {
+      const q = new URLSearchParams({
+        centre_id: centreId,
+        from,
+        to,
+      }).toString();
+      return await this.request<BackendAnalyticsSummary>(`/analytics/summary?${q}`, { method: 'GET' }, true);
+    },
+
+    getForecast: async (centreId: string, date?: string): Promise<BackendAnalyticsForecast> => {
+      const q = new URLSearchParams({
+        centre_id: centreId,
+        ...(date ? { date } : {}),
+      }).toString();
+      return await this.request<BackendAnalyticsForecast>(`/analytics/forecast?${q}`, { method: 'GET' }, true);
+    },
+  };
+
+  // --- Crops Endpoints ---
+  public crops = {
+    getAll: async (): Promise<CropInfo[]> => {
+      try {
+        const backendCentres = await this.request<BackendCentre[]>('/centres', { method: 'GET' });
+        const cropMap = new Map<string, CropInfo>();
+        
+        backendCentres.forEach((centre) => {
+          (centre.crops || []).forEach((crop) => {
+            const cropKey = crop.crop_name.trim();
+            if (!cropMap.has(cropKey)) {
+              cropMap.set(cropKey, {
+                id: crop.id || `crop-${cropKey.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+                name: cropKey,
+                mspPerQuintal: crop.rate_per_unit || 0,
+                minPrice: crop.min_price_per_unit,
+                maxPrice: crop.max_price_per_unit,
+                ratePerUnit: crop.rate_per_unit,
+                unit: crop.unit || 'quintal',
+              });
+            }
+          });
+        });
+
+        return Array.from(cropMap.values());
+      } catch (err: any) {
+        throw new ApiError(err.message || 'Failed to fetch crops catalog', 'SERVER_ERROR');
+      }
+    },
+  };
+
+  // --- Slots Endpoints ---
+  public slots = {
+    getByCentreAndDate: async (centreId: string, onDate?: string): Promise<TimeSlot[]> => {
+      const backendSlots = await this.centres.getSlots(centreId, onDate);
+      return backendSlots.map((s) => ({
+        id: s.id,
+        centreId: s.centre_id,
+        date: s.date,
+        startTime: s.start_time,
+        endTime: s.end_time,
+        maxBookings: s.max_bookings,
+        currentBookings: s.current_bookings,
+        isAvailable: s.is_available && s.current_bookings < s.max_bookings,
+        timeWindow: formatSlotWindow(s.start_time, s.end_time),
+        formattedTimeWindow: formatSlotWindow(s.start_time, s.end_time),
+      }));
+    },
+  };
+
+  public ai = {
+    getForecast: (centreId: string, date?: string) => this.analytics.getForecast(centreId, date),
+    getCenterInsights: (centreId: string) => this.analytics.getForecast(centreId),
+  };
+
+  public farmers = {
+    getMe: () => this.auth.getMe(),
+    updateMe: (data: {
+      name?: string;
+      village?: string;
+      district?: string;
+      state?: string;
+      pincode?: string;
+      latitude?: number;
+      longitude?: number;
+    }) => this.auth.updateMe(data),
+  };
+
+  // --- Sync Endpoints ---
+  public sync = {
+    getSnapshot: async (centreId: string): Promise<SyncSnapshotResponse> => {
+      return this.request<SyncSnapshotResponse>(`/sync/${centreId}/snapshot`, {
+        method: 'GET',
+      });
+    },
+
+    pullEvents: async (centreId: string, cursor = 0, limit = 200): Promise<SyncPullResponse> => {
+      return this.request<SyncPullResponse>(`/sync/${centreId}/events?cursor=${cursor}&limit=${limit}`, {
+        method: 'GET',
+      });
+    },
+
+    applyEvents: async (centreId: string, events: SyncEventIn[]): Promise<SyncBatchResponse> => {
+      return this.request<SyncBatchResponse>(`/sync/${centreId}/events`, {
+        method: 'POST',
+        body: JSON.stringify({ events }),
+      });
+    },
+  };
+
+  // --- SMS Endpoints (Root Webhook /sms/incoming) ---
+  public sms = {
+    sendIncoming: async (
+      message: string,
+      sender = '+919876543210',
+      recipient = '+919999999999'
+    ): Promise<{ status: string; [key: string]: any }> => {
+      const rootUrl = this.baseUrl.replace(/\/api\/v1\/?$/, '');
+      const response = await fetch(`${rootUrl}/sms/incoming`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: message.trim(),
+          sender: sender.trim(),
+          recipient: recipient.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        let errMessage = `SMS request failed: ${response.statusText}`;
+        try {
+          const errData = await response.json();
+          errMessage = errData.error?.message || errData.message || errMessage;
+        } catch {
+          // ignore
+        }
+        throw new Error(errMessage);
+      }
+
+      return response.json();
+    },
+  };
+
+  // --- Health Check / Network Reachability ---
+  public async checkBackendHealth(): Promise<boolean> {
+    try {
+      const res = await this.request<{ status: string }>('/health', {
+        method: 'GET',
+      });
+      return res?.status === 'ok';
+    } catch {
+      return false;
+    }
+  }
 
   // --- Transformers (Backend Schema -> Frontend UI Models) ---
   public transformCentre(c: BackendCentre): ProcurementCentre {
@@ -652,55 +1112,63 @@ class ApiClient {
     return {
       id: c.id,
       name: c.name,
-      officerInCharge: `Mandi Secretary (${c.code})`,
-      contactNumber: '+91 1800-180-1551',
+      code: c.code,
+      officerInCharge: c.code ? `Mandi Secretary (${c.code})` : undefined,
+      contactNumber: undefined,
       location: {
         address: c.address || `${c.village || ''}, ${c.district || ''}, ${c.state || ''}`.trim(),
-        village: c.village || c.name,
-        district: c.district || 'District Mandi',
-        state: c.state || 'India',
-        coordinates: { lat: c.latitude, lng: c.longitude },
+        village: c.village || undefined,
+        district: c.district || undefined,
+        state: c.state || undefined,
+        coordinates: {
+          latitude: c.latitude,
+          longitude: c.longitude,
+          lat: c.latitude,
+          lng: c.longitude,
+        },
       },
-      distanceKm: 8.5,
-      acceptedCropIds: acceptedCropIds.length > 0 ? acceptedCropIds : ['Wheat', 'Paddy', 'Soybean', 'Mustard', 'Onion'],
+      distanceKm: undefined,
+      acceptedCropIds: acceptedCropIds.length > 0 ? acceptedCropIds : [],
       operatingHours: {
         opens: (c.operating_start || '08:00:00').slice(0, 5),
         closes: (c.operating_end || '18:00:00').slice(0, 5),
-        lunchBreak: '01:00 PM - 02:00 PM',
         days: 'Mon - Sat',
       },
       currentQueue: {
-        activeVehicles: Math.max(1, Math.min(15, Math.round(c.capacity * 0.08))),
-        loadLevel: c.capacity > 250 ? 'Low' : 'Moderate',
-        estimatedWaitMins: Math.max(10, Math.min(45, Math.round(c.capacity * 0.1))),
+        activeVehicles: 0,
+        loadLevel: 'Low',
+        estimatedWaitMins: 0,
       },
-      availableSlots: c.capacity || 50,
+      availableSlots: c.capacity || 0,
     };
   }
 
   public transformFarmer(f: BackendFarmer): FarmerProfile {
+    const lat = f.latitude ?? undefined;
+    const lng = f.longitude ?? undefined;
+    const coords = (lat !== undefined && lng !== undefined)
+      ? { latitude: lat, longitude: lng, lat, lng }
+      : undefined;
+
     return {
-      farmerId: f.farmer_id || `FID-${f.id.slice(0, 8).toUpperCase()}`,
-      fullName: f.name,
-      mobileNumber: f.phone,
+      farmerId: f.farmer_id || f.id || '',
+      fullName: f.name || 'Farmer',
+      mobileNumber: f.phone || '',
       location: {
-        village: f.village || 'Rampur',
-        tehsil: 'Samrala Tehsil',
-        district: f.district || 'Ludhiana',
-        state: f.state || 'Punjab',
-        pincode: f.pincode || '141114',
-        coordinates: {
-          lat: f.latitude || 30.8358,
-          lng: f.longitude || 76.1917,
-        },
+        village: f.village || undefined,
+        tehsil: undefined,
+        district: f.district || undefined,
+        state: f.state || undefined,
+        pincode: f.pincode || undefined,
+        coordinates: coords,
       },
-      landHoldingAcres: 8.5,
-      registeredDate: new Date(f.created_at).toLocaleDateString('en-GB', {
+      landHoldingAcres: undefined,
+      registeredDate: f.created_at ? new Date(f.created_at).toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
-      }),
-      bankAccountMasked: 'Bank Account Linked (Aadhaar DBT)',
+      }) : 'Active',
+      bankAccountMasked: 'Direct Benefit Transfer (Aadhaar / PFMS Linked)',
     };
   }
 
@@ -725,22 +1193,26 @@ class ApiClient {
 
     return {
       id: b.booking_id || b.id,
+      uuid: b.id,
       farmerId: b.farmer_id,
       farmerName: 'Farmer',
-      farmerMobile: '+91 98765 43210',
+      farmerMobile: '',
       cropId: b.crop.toLowerCase(),
       cropName: b.crop,
       quantityQuintals: b.quantity,
+      unit: b.unit || 'quintal',
       expectedDate: b.expected_date,
       centreId: b.centre_id || '',
       centreName: centreName,
-      centreLocation: 'Grain Mandi Yard',
-      slot: slotWindow || 'Morning (08:00 AM - 11:30 AM)',
+      centreLocation: 'Procurement Centre Yard',
+      slotId: b.slot_id || null,
+      slot: slotWindow || 'Standard Mandi Operating Window',
       status,
       createdAt: b.created_at,
-      queuePosition: status === 'CHECKED_IN' ? 2 : undefined,
-      farmersAhead: status === 'CHECKED_IN' ? 1 : undefined,
-      estimatedWaitMinutes: status === 'CHECKED_IN' ? 15 : undefined,
+      updatedAt: b.updated_at,
+      queuePosition: undefined,
+      farmersAhead: undefined,
+      estimatedWaitMinutes: undefined,
     };
   }
 }
