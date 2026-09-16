@@ -105,9 +105,13 @@ export const QueueTrackerView: React.FC = () => {
     },
   ];
 
-  const handleConfirmCancel = () => {
-    cancelBooking(activeBooking.id);
-    setShowCancelDialog(false);
+  const handleConfirmCancel = async () => {
+    try {
+      await cancelBooking(activeBooking.id);
+      setShowCancelDialog(false);
+    } catch (err: any) {
+      alert(err.message || 'Failed to cancel booking.');
+    }
   };
 
   return (
@@ -227,17 +231,17 @@ export const QueueTrackerView: React.FC = () => {
           </div>
         </div>
 
-        {/* Demo Simulation Trigger Bar */}
+        {/* Queue Simulation Trigger Bar */}
         <div className="bg-[#F5F8F6] border-t border-[#CBD8D1] px-4 sm:px-5 py-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-[#66736D]">
           <span>
-            Official Queue Simulation Tool (for operational testing)
+            Queue Simulation Tool
           </span>
           <button
             onClick={advanceQueue}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] bg-[#075E43] hover:bg-[#063B2A] text-[#FFFFFF] text-xs font-semibold transition-colors"
           >
             <FastForward className="w-3.5 h-3.5" />
-            <span>Advance Queue (Demo)</span>
+            <span>Advance Queue</span>
           </button>
         </div>
       </div>

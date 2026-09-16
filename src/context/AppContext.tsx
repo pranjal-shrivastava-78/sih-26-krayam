@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { 
   Language, 
   ActiveView,
@@ -27,6 +27,7 @@ import {
   INITIAL_OPERATOR_QUEUE
 } from '../data/mockData';
 import { translations, TranslationStrings } from '../i18n/translations';
+import api from '../services/api';
 
 interface AppContextType {
   language: Language;
@@ -40,10 +41,11 @@ interface AppContextType {
   setUserRole: (role: UserRole) => void;
   switchRole: (role: UserRole) => void;
   operator: OperatorProfile | null;
-  operatorLogin: (operatorId: string, centreId?: string) => boolean;
+  operatorLogin: (operatorId: string, passwordOrPin?: string, centreId?: string) => Promise<boolean>;
   operatorActiveTab: OperatorView;
   setOperatorActiveTab: (tab: OperatorView) => void;
-  login: (farmerIdOrMobile: string) => boolean;
+  login: (farmerIdOrMobile: string, otpCode?: string) => Promise<boolean>;
+  sendOtp: (phone: string) => Promise<{ success: boolean; message: string }>;
   register: (profileData: {
     fullName: string;
     mobileNumber: string;
@@ -54,7 +56,7 @@ interface AppContextType {
     pincode: string;
     landHoldingAcres?: number;
     coordinates?: { lat: number; lng: number };
-  }) => FarmerProfile;
+  }) => Promise<FarmerProfile>;
   logout: () => void;
   updateProfile: (data: Partial<FarmerProfile>) => void;
   updateFarmerLocation: (location: FarmerProfile['location']) => void;
@@ -74,9 +76,9 @@ interface AppContextType {
     expectedDate: string;
     centreId: string;
     slot: SlotTimeWindow;
-  }) => Booking;
-  cancelBooking: (bookingId: string) => void;
-  rescheduleBooking: (bookingId: string, newDate: string, newSlot: SlotTimeWindow) => void;
+  }) => Promise<Booking>;
+  cancelBooking: (bookingId: string) => Promise<void>;
+  rescheduleBooking: (bookingId: string, newDate: string, newSlot: SlotTimeWindow) => Promise<void>;
   advanceQueue: () => void; // Interactive queue simulation tool
 
   // Procurement & Payment
@@ -163,13 +165,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_FARMER_PROFILE;
   });
 
-  // When opening website, always firstly land on login page
+  // When opening website, always start at login page unless valid token exists
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-
-  // Clear legacy persistent auth flag so fresh site visits always start at login
-  useEffect(() => {
-    localStorage.removeItem('kisan_auth');
-  }, []);
 
   const [bookings, setBookings] = useState<Booking[]>(() => {
     const saved = localStorage.getItem('kisan_bookings');
@@ -197,8 +194,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
   });
 
-  const [centres] = useState<ProcurementCentre[]>(INITIAL_CENTRES);
-  const [crops] = useState<CropInfo[]>(INITIAL_CROPS);
+  const [centres, setCentres] = useState<ProcurementCentre[]>(INITIAL_CENTRES);
+  const [crops, setCrops] = useState<CropInfo[]>(INITIAL_CROPS);
   const [selectedCentre, setSelectedCentre] = useState<ProcurementCentre | null>(null);
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
   const [isHelpModalOpen, setIsHelpModalOpen] = useState<boolean>(false);
@@ -218,8 +215,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [farmer]);
 
-  // Do not persist auth status to localStorage so visits start at login page
-
   useEffect(() => {
     localStorage.setItem('kisan_bookings', JSON.stringify(bookings));
   }, [bookings]);
@@ -232,6 +227,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('kisan_notifications', JSON.stringify(notifications));
   }, [notifications]);
 
+  // Load live centres and crop rates from FastAPI backend on mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCentres = async () => {
+      try {
+        const liveCentres = await api.centres.getAll();
+        if (isMounted && liveCentres && liveCentres.length > 0) {
+          setCentres(liveCentres);
+          setSelectedCentre((prev) => prev || liveCentres[0]);
+        }
+      } catch (err: any) {
+        console.warn('Backend centres load notice:', err.message);
+      }
+    };
+
+    fetchCentres();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Fetch farmer profile, bookings, and notifications from FastAPI backend
+  const refreshFarmerData = useCallback(async () => {
+    if (!api.getToken()) return;
+
+    try {
+      const profile = await api.auth.getMe();
+      if (profile) {
+        setFarmer(profile);
+      }
+    } catch (err: any) {
+      console.warn('Backend getMe error:', err.message);
+    }
+
+    try {
+      const backendBookings = await api.bookings.getMyBookings();
+      if (backendBookings && backendBookings.length > 0) {
+        setBookings(backendBookings);
+      }
+    } catch (err: any) {
+      console.warn('Backend getMyBookings error:', err.message);
+    }
+
+    try {
+      const backendNotifications = await api.notifications.getAll();
+      if (backendNotifications && backendNotifications.length > 0) {
+        setNotifications(backendNotifications);
+      }
+    } catch (err: any) {
+      console.warn('Backend notifications error:', err.message);
+    }
+  }, []);
+
+  // Refresh data when user logs in
+  useEffect(() => {
+    if (isLoggedIn && userRole === 'farmer') {
+      refreshFarmerData();
+    }
+  }, [isLoggedIn, userRole, refreshFarmerData]);
+
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
   };
@@ -240,25 +295,68 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return translations[language]?.[key] || translations.en[key] || String(key);
   };
 
-  const login = (farmerIdOrMobile: string): boolean => {
-    // Strictly set user role to farmer for complete role isolation
+  const sendOtp = async (phone: string): Promise<{ success: boolean; message: string }> => {
+    return await api.auth.sendOtp(phone);
+  };
+
+  const login = async (farmerIdOrMobile: string, otpCode?: string): Promise<boolean> => {
     setUserRoleState('farmer');
     localStorage.setItem('kisan_role', 'farmer');
 
-    // Allows logging in with existing farmer ID or mobile, or restores default
-    if (farmer && (farmer.farmerId.toLowerCase() === farmerIdOrMobile.trim().toLowerCase() || farmer.mobileNumber.includes(farmerIdOrMobile.trim()))) {
+    const cleanInput = farmerIdOrMobile.trim();
+
+    // If OTP is provided, execute full verification with backend
+    if (otpCode && otpCode.trim()) {
+      try {
+        const res = await api.auth.verifyOtp(cleanInput, otpCode.trim());
+        if (res.token) {
+          api.setToken(res.token);
+          if (res.farmerProfile) {
+            setFarmer(res.farmerProfile);
+          } else {
+            try {
+              const me = await api.auth.getMe();
+              if (me) setFarmer(me);
+            } catch {}
+          }
+          setIsLoggedIn(true);
+          refreshFarmerData();
+          return true;
+        }
+      } catch (err: any) {
+        throw err;
+      }
+    }
+
+    // If farmer ID or demo credentials entered
+    if (cleanInput.length > 3) {
+      // Check if existing token can verify with backend
+      if (api.getToken()) {
+        try {
+          const me = await api.auth.getMe();
+          if (me) {
+            setFarmer(me);
+            setIsLoggedIn(true);
+            refreshFarmerData();
+            return true;
+          }
+        } catch {}
+      }
+
+      // Allows demo testing while reporting backend requirements
+      if (farmer && (farmer.farmerId.toLowerCase() === cleanInput.toLowerCase() || farmer.mobileNumber.includes(cleanInput))) {
+        setIsLoggedIn(true);
+        return true;
+      }
+
       setIsLoggedIn(true);
       return true;
     }
-    // If entered arbitrary valid looking input
-    if (farmerIdOrMobile.trim().length > 3) {
-      setIsLoggedIn(true);
-      return true;
-    }
+
     return false;
   };
 
-  const register = (data: {
+  const register = async (data: {
     fullName: string;
     mobileNumber: string;
     village: string;
@@ -268,10 +366,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     pincode: string;
     landHoldingAcres?: number;
     coordinates?: { lat: number; lng: number };
-  }): FarmerProfile => {
+  }): Promise<FarmerProfile> => {
     setUserRoleState('farmer');
     localStorage.setItem('kisan_role', 'farmer');
 
+    // If user has verified OTP and has token, register directly on backend
+    if (api.getToken()) {
+      try {
+        const backendFarmer = await api.auth.register({
+          name: data.fullName,
+          village: data.village,
+          district: data.district,
+          state: data.state,
+          pincode: data.pincode,
+          latitude: data.coordinates?.lat,
+          longitude: data.coordinates?.lng,
+        });
+        setFarmer(backendFarmer);
+        setIsLoggedIn(true);
+
+        const welcomeNotif: AppNotification = {
+          id: `notif-${Date.now()}`,
+          type: 'ANNOUNCEMENT',
+          title: `Welcome, ${backendFarmer.fullName}!`,
+          message: `Your Farmer ID is ${backendFarmer.farmerId}. Registered on KRAYAM backend.`,
+          timestamp: 'Just now',
+          read: false,
+        };
+        setNotifications(prev => [welcomeNotif, ...prev]);
+        return backendFarmer;
+      } catch (err: any) {
+        throw err;
+      }
+    }
+
+    // Fallback registration when offline or standalone demo
     const randomIdNum = Math.floor(1000 + Math.random() * 9000);
     const newFarmer: FarmerProfile = {
       farmerId: `FID-2026-${randomIdNum}`,
@@ -283,23 +412,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         district: data.district,
         state: data.state,
         pincode: data.pincode,
-        coordinates: data.coordinates || { lat: 30.8358, lng: 76.1917 }
+        coordinates: data.coordinates || { lat: 30.8358, lng: 76.1917 },
       },
       landHoldingAcres: data.landHoldingAcres || 5,
-      registeredDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      registeredDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
     };
 
     setFarmer(newFarmer);
     setIsLoggedIn(true);
 
-    // Add welcome notification
     const welcomeNotif: AppNotification = {
       id: `notif-${Date.now()}`,
       type: 'ANNOUNCEMENT',
       title: `Welcome, ${data.fullName}!`,
-      message: `Your Farmer ID is ${newFarmer.farmerId}. You are now registered to book grain procurement slots at any district mandi.`,
+      message: `Your Farmer ID is ${newFarmer.farmerId}. Registered for procurement slot booking.`,
       timestamp: 'Just now',
-      read: false
+      read: false,
     };
     setNotifications(prev => [welcomeNotif, ...prev]);
 
@@ -308,12 +436,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = () => {
     setIsLoggedIn(false);
+    api.setToken(null);
+    api.setOperatorToken(null);
     localStorage.removeItem('kisan_auth');
     setActiveView('dashboard');
   };
 
   const updateProfile = (data: Partial<FarmerProfile>) => {
     setFarmer(prev => (prev ? { ...prev, ...data } : null));
+    if (api.getToken()) {
+      api.auth.updateMe({
+        name: data.fullName,
+        village: data.location?.village,
+        district: data.location?.district,
+        state: data.location?.state,
+        pincode: data.location?.pincode,
+        latitude: data.location?.coordinates?.lat,
+        longitude: data.location?.coordinates?.lng,
+      }).catch(err => console.warn('Backend updateMe error:', err));
+    }
   };
 
   const updateFarmerLocation = (location: FarmerProfile['location']) => {
@@ -322,18 +463,85 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Active booking is the latest active booking
   const activeBooking = bookings.find(b => 
-    b.status === 'CONFIRMED' || b.status === 'IN_QUEUE' || b.status === 'TURN_APPROACHING' || b.status === 'RESCHEDULED'
+    b.status === 'CONFIRMED' || b.status === 'IN_QUEUE' || b.status === 'TURN_APPROACHING' || b.status === 'RESCHEDULED' || b.status === 'CHECKED_IN'
   ) || null;
 
-  const createBooking = (data: {
+  const createBooking = async (data: {
     cropId: string;
     quantityQuintals: number;
     expectedDate: string;
     centreId: string;
     slot: SlotTimeWindow;
-  }): Booking => {
+  }): Promise<Booking> => {
     const crop = crops.find(c => c.id === data.cropId) || crops[0];
     const centre = centres.find(c => c.id === data.centreId) || centres[0];
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.centreId);
+    const centreIdToSend = isUuid ? data.centreId : null;
+
+    // Call FastAPI backend when token is present
+    if (api.getToken()) {
+      try {
+        const backendBooking = await api.bookings.create({
+          crop: crop.name.split(' ')[0],
+          quantity: data.quantityQuintals,
+          unit: 'quintal',
+          expectedDate: data.expectedDate,
+          centreId: centreIdToSend,
+          slotWindow: data.slot,
+        });
+
+        const fullBooking: Booking = {
+          ...backendBooking,
+          farmerId: farmer?.farmerId || backendBooking.farmerId,
+          farmerName: farmer?.fullName || 'Farmer',
+          farmerMobile: farmer?.mobileNumber || '+91 9876543210',
+          centreName: centre.name,
+          centreLocation: `${centre.location.address} (${centre.distanceKm} km)`,
+          slot: data.slot,
+          status: 'CONFIRMED',
+          queuePosition: centre.currentQueue.activeVehicles + 1,
+          farmersAhead: centre.currentQueue.activeVehicles,
+          estimatedWaitMinutes: centre.currentQueue.estimatedWaitMins,
+        };
+
+        setBookings(prev => [fullBooking, ...prev.filter(b => b.id !== fullBooking.id)]);
+
+        const newProcurement: ProcurementRecord = {
+          id: `PRC-${fullBooking.id}`,
+          bookingId: fullBooking.id,
+          farmerId: fullBooking.farmerId,
+          cropName: crop.name.split(' ')[0],
+          date: data.expectedDate,
+          centreName: centre.name,
+          bookedQuantity: data.quantityQuintals,
+          acceptedQuantity: data.quantityQuintals,
+          deductionReason: 'Scheduled - pending weighbridge inspection',
+          qualityGrade: 'Standard',
+          procurementStatus: 'Scheduled',
+          paymentStatus: 'Pending',
+          paymentAmount: data.quantityQuintals * (crop.mspPerQuintal || 2275),
+        };
+        setProcurements(prev => [newProcurement, ...prev]);
+
+        const newNotif: AppNotification = {
+          id: `notif-${Date.now()}`,
+          type: 'BOOKING',
+          title: `Booking Confirmed: ${fullBooking.id}`,
+          message: `Booked ${data.quantityQuintals} Qtl ${crop.name} for ${data.expectedDate} (${data.slot}) at ${centre.name}.`,
+          timestamp: 'Just now',
+          read: false,
+          referenceId: fullBooking.id,
+        };
+        setNotifications(prev => [newNotif, ...prev]);
+
+        return fullBooking;
+      } catch (err: any) {
+        throw err;
+      }
+    }
+
+    // Standalone fallback
     const randomBookingNum = Math.floor(1000 + Math.random() * 9000);
     const bookingId = `BK-2026-${randomBookingNum}`;
 
@@ -356,12 +564,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       farmersAhead: centre.currentQueue.activeVehicles,
       estimatedWaitMinutes: centre.currentQueue.estimatedWaitMins,
       isRescheduled: false,
-      rescheduleCount: 0
+      rescheduleCount: 0,
     };
 
     setBookings(prev => [newBooking, ...prev]);
 
-    // Create corresponding procurement record in Scheduled status
     const newProcurement: ProcurementRecord = {
       id: `PRC-2026-${randomBookingNum}`,
       bookingId: bookingId,
@@ -375,11 +582,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       qualityGrade: 'Standard',
       procurementStatus: 'Scheduled',
       paymentStatus: 'Pending',
-      paymentAmount: data.quantityQuintals * crop.mspPerQuintal
+      paymentAmount: data.quantityQuintals * (crop.mspPerQuintal || 2275),
     };
     setProcurements(prev => [newProcurement, ...prev]);
 
-    // Send booking notification
     const newNotif: AppNotification = {
       id: `notif-${Date.now()}`,
       type: 'BOOKING',
@@ -387,14 +593,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       message: `Booked ${data.quantityQuintals} Qtl ${crop.name} for ${data.expectedDate} (${data.slot}) at ${centre.name}.`,
       timestamp: 'Just now',
       read: false,
-      referenceId: bookingId
+      referenceId: bookingId,
     };
     setNotifications(prev => [newNotif, ...prev]);
 
     return newBooking;
   };
 
-  const cancelBooking = (bookingId: string) => {
+  const cancelBooking = async (bookingId: string): Promise<void> => {
+    if (api.getToken()) {
+      try {
+        await api.bookings.cancel(bookingId);
+      } catch (err: any) {
+        console.warn('Backend cancel booking warning:', err.message);
+        // If not a demo booking id, propagate error
+        if (!bookingId.startsWith('BK-2026-')) {
+          throw err;
+        }
+      }
+    }
+
     setBookings(prev => prev.map(b => {
       if (b.id === bookingId) {
         return {
@@ -402,7 +620,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           status: 'CANCELLED',
           queuePosition: undefined,
           farmersAhead: undefined,
-          estimatedWaitMinutes: undefined
+          estimatedWaitMinutes: undefined,
         };
       }
       return b;
@@ -415,12 +633,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       message: `Your procurement slot for booking ${bookingId} has been cancelled successfully.`,
       timestamp: 'Just now',
       read: false,
-      referenceId: bookingId
+      referenceId: bookingId,
     };
     setNotifications(prev => [cancelNotif, ...prev]);
   };
 
-  const rescheduleBooking = (bookingId: string, newDate: string, newSlot: SlotTimeWindow) => {
+  const rescheduleBooking = async (bookingId: string, newDate: string, newSlot: SlotTimeWindow): Promise<void> => {
+    if (api.getToken()) {
+      try {
+        await api.bookings.reschedule(bookingId, {
+          expectedDate: newDate,
+          slotWindow: newSlot,
+        });
+      } catch (err: any) {
+        console.warn('Backend reschedule warning:', err.message);
+        if (!bookingId.startsWith('BK-2026-')) {
+          throw err;
+        }
+      }
+    }
+
     setBookings(prev => prev.map(b => {
       if (b.id === bookingId) {
         return {
@@ -432,7 +664,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           rescheduleCount: (b.rescheduleCount || 0) + 1,
           queuePosition: 4,
           farmersAhead: 3,
-          estimatedWaitMinutes: 30
+          estimatedWaitMinutes: 30,
         };
       }
       return b;
@@ -445,7 +677,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       message: `Your booking ${bookingId} has been rescheduled to ${newDate}, slot: ${newSlot}.`,
       timestamp: 'Just now',
       read: false,
-      referenceId: bookingId
+      referenceId: bookingId,
     };
     setNotifications(prev => [rescheduleNotif, ...prev]);
   };
@@ -455,7 +687,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!activeBooking || !activeBooking.queuePosition) return;
     const currentPos = activeBooking.queuePosition;
     if (currentPos <= 1) {
-      // Completed / Processing
       setBookings(prev => prev.map(b => {
         if (b.id === activeBooking.id) {
           return {
@@ -463,7 +694,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             status: 'PROCESSING',
             queuePosition: 1,
             farmersAhead: 0,
-            estimatedWaitMinutes: 5
+            estimatedWaitMinutes: 5,
           };
         }
         return b;
@@ -477,7 +708,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         timestamp: 'Just now',
         read: false,
         referenceId: activeBooking.id,
-        priority: 'urgent'
+        priority: 'urgent',
       };
       setNotifications(prev => [alertNotif, ...prev]);
       return;
@@ -494,13 +725,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           queuePosition: nextPos,
           farmersAhead: nextPos - 1,
           estimatedWaitMinutes: nextWait,
-          status: isApproaching ? 'TURN_APPROACHING' : 'IN_QUEUE'
+          status: isApproaching ? 'TURN_APPROACHING' : 'IN_QUEUE',
         };
       }
       return b;
     }));
 
-    // Generate Queue Notification
     const queueNotif: AppNotification = {
       id: `notif-${Date.now()}`,
       type: 'QUEUE',
@@ -513,16 +743,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: 'Just now',
       read: false,
       referenceId: activeBooking.id,
-      priority: isApproaching ? 'urgent' : 'normal'
+      priority: isApproaching ? 'urgent' : 'normal',
     };
     setNotifications(prev => [queueNotif, ...prev]);
   };
 
   const markNotificationAsRead = (id: string) => {
+    if (api.getToken()) {
+      api.notifications.markRead(id).catch(err => console.warn('Backend markRead error:', err));
+    }
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
 
   const markAllNotificationsAsRead = () => {
+    if (api.getToken()) {
+      api.notifications.markAllRead().catch(err => console.warn('Backend markAllRead error:', err));
+    }
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
@@ -538,22 +774,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUserRole(role);
   };
 
-  const operatorLogin = (operatorId: string, centreId?: string): boolean => {
+  const operatorLogin = async (operatorIdOrPhone: string, passwordOrPin?: string, centreId?: string): Promise<boolean> => {
     const assignedCentre = centres.find(c => c.id === centreId) || centres[0];
-    const opProfile: OperatorProfile = {
-      operatorId: operatorId.trim() || 'OP-SAMRALA-01',
-      name: 'Sh. Rajesh Kumar',
-      designation: 'Mandi Secretary & Procurement Supervisor',
-      centreId: assignedCentre.id,
-      centreName: assignedCentre.name,
-      mobile: '+91 1628 234190',
-      shift: 'Day Shift (08:00 AM - 06:00 PM)'
-    };
-    setOperator(opProfile);
-    localStorage.setItem('kisan_operator', JSON.stringify(opProfile));
-    setUserRole('operator');
-    setIsLoggedIn(true);
-    return true;
+
+    // Attempt real backend operator authentication
+    if (operatorIdOrPhone.trim()) {
+      try {
+        const res = await api.auth.operatorLogin(operatorIdOrPhone.trim(), passwordOrPin || 'password');
+        if (res.token && res.operator) {
+          setOperator(res.operator);
+          localStorage.setItem('kisan_operator', JSON.stringify(res.operator));
+          setUserRole('operator');
+          setIsLoggedIn(true);
+          return true;
+        }
+      } catch (err: any) {
+        // If user entered demo credentials, allow offline fallback while notifying
+        if (operatorIdOrPhone === 'OP-SAMRALA-01') {
+          const opProfile: OperatorProfile = {
+            operatorId: operatorIdOrPhone.trim(),
+            name: 'Sh. Rajesh Kumar',
+            designation: 'Mandi Secretary & Procurement Supervisor',
+            centreId: assignedCentre.id,
+            centreName: assignedCentre.name,
+            mobile: '+91 1628 234190',
+            shift: 'Day Shift (08:00 AM - 06:00 PM)',
+          };
+          setOperator(opProfile);
+          localStorage.setItem('kisan_operator', JSON.stringify(opProfile));
+          setUserRole('operator');
+          setIsLoggedIn(true);
+          return true;
+        }
+        throw err;
+      }
+    }
+
+    return false;
   };
 
   const setIsOffline = (offline: boolean) => {
@@ -572,7 +829,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       bookingId,
       details,
       payload,
-      status: isOffline ? 'PENDING' : 'SYNCED'
+      status: isOffline ? 'PENDING' : 'SYNCED',
     };
     setSyncQueue(prev => {
       const updated = [op, ...prev];
@@ -593,6 +850,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const operatorCheckIn = (bookingId: string) => {
+    if (api.getOperatorToken() || api.getToken()) {
+      api.queue.checkIn(bookingId).catch(err => console.warn('Backend check-in error:', err));
+    }
     setBookings(prev => prev.map(b => {
       if (b.id === bookingId) {
         return { ...b, status: 'CHECKED_IN' as const, queuePosition: 2, farmersAhead: 1, estimatedWaitMinutes: 15 };
@@ -603,6 +863,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const operatorCallNext = (): Booking | null => {
+    if (api.getOperatorToken() || api.getToken()) {
+      api.queue.callNext().catch(err => console.warn('Backend call-next error:', err));
+    }
     const nextCandidate = bookings.find(b => b.status === 'IN_QUEUE' || b.status === 'CHECKED_IN');
     if (nextCandidate) {
       setBookings(prev => prev.map(b => {
@@ -618,6 +881,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const operatorStartProcessing = (bookingId: string) => {
+    if (api.getOperatorToken() || api.getToken()) {
+      api.queue.startProcessing(bookingId).catch(err => console.warn('Backend start-processing error:', err));
+    }
     setBookings(prev => prev.map(b => {
       if (b.id === bookingId) {
         return { ...b, status: 'PROCESSING' as const, queuePosition: 0, farmersAhead: 0, estimatedWaitMinutes: 0 };
@@ -628,6 +894,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const operatorMarkNoShow = (bookingId: string) => {
+    if (api.getOperatorToken() || api.getToken()) {
+      api.queue.markNoShow(bookingId).catch(err => console.warn('Backend mark-no-show error:', err));
+    }
     setBookings(prev => prev.map(b => {
       if (b.id === bookingId) {
         return { ...b, status: 'NO_SHOW' as const, queuePosition: 0, farmersAhead: 0, estimatedWaitMinutes: 0 };
@@ -648,9 +917,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     deductionReason?: string;
   }): ProcurementRecord => {
     const booking = bookings.find(b => b.id === data.bookingId);
-    const msp = 2275; // Default MSP for wheat
+    const msp = 2275;
     const grossAmt = Math.round(data.netWeight * msp);
     const netAmt = Math.round(grossAmt - (data.deductions || 0));
+
+    if (api.getOperatorToken() || api.getToken()) {
+      api.procurements.record({
+        booking_id: data.bookingId,
+        accepted_quantity: data.netWeight,
+        unit_price: msp,
+        quality_grade: data.qualityGrade,
+        unit: 'quintal',
+        quality_notes: data.deductionReason || 'Standard grain verified',
+      }).catch(err => console.warn('Backend record procurement error:', err));
+    }
 
     const newRecord: ProcurementRecord = {
       id: `PRC-2026-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -671,12 +951,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       qualityGrade: data.qualityGrade,
       procurementStatus: 'Accepted',
       paymentStatus: 'Pending',
-      paymentAmount: netAmt
+      paymentAmount: netAmt,
     };
 
     setProcurements(prev => [newRecord, ...prev]);
 
-    // Create payment entry
     const newPayment: PaymentRecord = {
       id: `PAY-2026-${Math.floor(10000 + Math.random() * 90000)}`,
       transactionId: `TXN-DBT-${Date.now().toString().slice(-6)}`,
@@ -687,11 +966,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       amount: netAmt,
       date: newRecord.date,
       paymentStatus: 'Pending',
-      bankAccountMasked: 'Punjab National Bank (A/C: *******4891)'
+      bankAccountMasked: 'Punjab National Bank (A/C: *******4891)',
     };
     setPayments(prev => [newPayment, ...prev]);
 
-    // Mark booking completed
     setBookings(prev => prev.map(b => b.id === data.bookingId ? { ...b, status: 'COMPLETED' as const } : b));
 
     logSyncOp('COMPLETE_PROCUREMENT', data.bookingId, `Accepted ${data.netWeight} Qtl produce for ${data.bookingId}`, newRecord);
@@ -699,6 +977,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const operatorConfirmPayment = (paymentId: string) => {
+    if (api.getOperatorToken() || api.getToken()) {
+      api.payments.verify(paymentId, true).catch(err => console.warn('Backend payment verify error:', err));
+    }
     const utr = `PFMS${Date.now().toString().slice(-12)}`;
     setPayments(prev => prev.map(p => {
       if (p.id === paymentId) {
@@ -707,7 +988,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return p;
     }));
 
-    // Also update procurements if mapped
     setProcurements(prev => prev.map(pr => {
       return { ...pr, paymentStatus: 'Credited' as const };
     }));
@@ -716,11 +996,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const operatorCancelBooking = (bookingId: string, reason: string) => {
+    if (api.getOperatorToken() || api.getToken()) {
+      api.bookings.cancel(bookingId).catch(err => console.warn('Backend cancel error:', err));
+    }
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'CANCELLED' as const } : b));
     logSyncOp('CANCEL_BOOKING', bookingId, `Cancelled booking ${bookingId}. Reason: ${reason}`);
   };
 
   const operatorRescheduleBooking = (bookingId: string, newDate: string, newSlot: SlotTimeWindow) => {
+    if (api.getOperatorToken() || api.getToken()) {
+      api.bookings.reschedule(bookingId, { expectedDate: newDate, slotWindow: newSlot }).catch(err => console.warn('Backend reschedule error:', err));
+    }
     setBookings(prev => prev.map(b => {
       if (b.id === bookingId) {
         return {
@@ -729,7 +1015,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           slot: newSlot,
           status: 'RESCHEDULED' as const,
           isRescheduled: true,
-          rescheduleCount: (b.rescheduleCount || 0) + 1
+          rescheduleCount: (b.rescheduleCount || 0) + 1,
         };
       }
       return b;
@@ -753,6 +1039,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         operatorActiveTab,
         setOperatorActiveTab,
         login,
+        sendOtp,
         register,
         logout,
         updateProfile,
@@ -798,7 +1085,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isPrivacyModalOpen,
         setIsPrivacyModalOpen,
         isCookieModalOpen,
-        setIsCookieModalOpen
+        setIsCookieModalOpen,
       }}
     >
       {children}

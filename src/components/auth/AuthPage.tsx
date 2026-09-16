@@ -26,6 +26,7 @@ interface AuthPageProps {
 export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
   const { 
     login, 
+    sendOtp,
     operatorLogin, 
     register, 
     language, 
@@ -105,7 +106,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
   const [regSuccessFarmerId, setRegSuccessFarmerId] = useState<string | null>(null);
 
   // Handle Farmer Login
-  const handleFarmerLogin = (e: React.FormEvent) => {
+  const handleFarmerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
 
@@ -114,23 +115,26 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       return;
     }
 
-    setIsSubmitting(true);
+    const identifier = loginMethod === 'otp' ? mobileForOtp : loginIdentifier;
+    if (!identifier.trim()) {
+      setLoginError(at.fillMandatoryError);
+      return;
+    }
 
-    setTimeout(() => {
-      const identifier = loginMethod === 'otp' ? mobileForOtp : loginIdentifier;
-      if (!identifier.trim()) {
-        setLoginError(at.fillMandatoryError);
-        setIsSubmitting(false);
+    if (loginMethod === 'otp') {
+      if (!otpSent) {
+        setLoginError('Please click "Send OTP" first.');
         return;
       }
-
-      if (loginMethod === 'otp' && otpSent && otpCode.trim() !== '123456' && otpCode.trim().length !== 6) {
+      if (!otpCode.trim() || otpCode.trim().length !== 6) {
         setLoginError(at.invalidOtpError);
-        setIsSubmitting(false);
         return;
       }
+    }
 
-      const success = login(identifier);
+    setIsSubmitting(true);
+    try {
+      const success = await login(identifier, loginMethod === 'otp' ? otpCode.trim() : undefined);
       setIsSubmitting(false);
 
       if (success) {
@@ -139,11 +143,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       } else {
         setLoginError(at.invalidCredsError);
       }
-    }, 350);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setLoginError(err.message || at.invalidCredsError);
+    }
   };
 
   // Handle Operator Login
-  const handleOperatorLogin = (e: React.FormEvent) => {
+  const handleOperatorLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
 
@@ -152,16 +159,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       return;
     }
 
+    if (!operatorId.trim()) {
+      setLoginError(at.fillMandatoryError);
+      return;
+    }
+
     setIsSubmitting(true);
-
-    setTimeout(() => {
-      if (!operatorId.trim()) {
-        setLoginError(at.fillMandatoryError);
-        setIsSubmitting(false);
-        return;
-      }
-
-      const success = operatorLogin(operatorId, selectedCentreId);
+    try {
+      const success = await operatorLogin(operatorId, operatorPin, selectedCentreId);
       setIsSubmitting(false);
 
       if (success) {
@@ -170,20 +175,30 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       } else {
         setLoginError(at.invalidCredsError);
       }
-    }, 350);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setLoginError(err.message || at.invalidCredsError);
+    }
   };
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (!mobileForOtp || mobileForOtp.length < 10) {
       setLoginError(at.fillMandatoryError);
       return;
     }
-    setOtpSent(true);
-    setOtpCode('123456'); // Auto-fill demo OTP for fast testing
+    setIsSubmitting(true);
     setLoginError('');
+    try {
+      await sendOtp(mobileForOtp);
+      setOtpSent(true);
+      setIsSubmitting(false);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setLoginError(err.message || 'Failed to send OTP.');
+    }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!agreedToTc) {
@@ -197,8 +212,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const newFarmer = register({
+    try {
+      const newFarmer = await register({
         fullName: regData.fullName,
         mobileNumber: regData.mobileNumber.startsWith('+91') ? regData.mobileNumber : `+91 ${regData.mobileNumber}`,
         village: regData.village,
@@ -211,10 +226,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       });
       setIsSubmitting(false);
       setRegSuccessFarmerId(newFarmer.farmerId);
-    }, 450);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      alert(err.message || 'Registration failed.');
+    }
   };
 
-  const fillQuickDemo = (role: 'gurpreet' | 'manpreet' | 'operator') => {
+  const fillQuickDemo = (role: 'gurpreet' | 'manpreet') => {
     setAgreedToTc(true);
     if (role === 'gurpreet') {
       setTab('farmer_login');
@@ -226,11 +244,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       setLoginIdentifier('PB-2026-1049');
       setMobileForOtp('+91 98140 55678');
       setLoginMethod('farmerId');
-    } else {
-      setTab('operator_login');
-      setOperatorId('OP-SAMRALA-01');
-      setOperatorPin('2026');
-      setSelectedCentreId('centre-samrala');
     }
     setLoginError('');
   };
@@ -456,28 +469,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                 </button>
               </form>
 
-              {/* Quick Demo Pre-fill for Testing */}
+              {/* Quick Fill Pre-fill */}
               <div className="pt-4 border-t border-[#CBD8D1]">
                 <div className="text-[11px] font-bold text-[#66736D] uppercase mb-2 flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5 text-[#EA8A0A]" />
                   <span>{at.quickDemoTitle}</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="text-xs">
                   <button
                     type="button"
                     onClick={() => fillQuickDemo('gurpreet')}
-                    className="p-2 text-left bg-[#EDF3EF] hover:bg-[#E7F3EC] border border-[#CBD8D1] rounded-[6px] transition-colors"
+                    className="w-full p-2.5 text-left bg-[#EDF3EF] hover:bg-[#E7F3EC] border border-[#CBD8D1] rounded-[6px] transition-colors"
                   >
                     <div className="font-bold text-[#063B2A]">{at.quickDemoFarmer}</div>
                     <div className="text-[10px] text-[#66736D] font-mono">ID: MP-2024-7842</div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fillQuickDemo('operator')}
-                    className="p-2 text-left bg-[#FFF3DC] hover:bg-[#FFE6B3] border border-[#F0C2C2] rounded-[6px] transition-colors"
-                  >
-                    <div className="font-bold text-[#B45309]">{at.quickDemoOperator}</div>
-                    <div className="text-[10px] text-[#66736D] font-mono">OP: OP-SAMRALA-01</div>
                   </button>
                 </div>
               </div>
@@ -595,25 +600,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </button>
               </form>
-
-              {/* Quick Demo Pre-fill for Operator */}
-              <div className="pt-4 border-t border-[#CBD8D1]">
-                <div className="text-[11px] font-bold text-[#66736D] uppercase mb-2 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-[#EA8A0A]" />
-                  <span>1-Click Operator Demo Login</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => fillQuickDemo('operator')}
-                  className="w-full p-2.5 text-left bg-[#EDF3EF] hover:bg-[#E7F3EC] border border-[#CBD8D1] rounded-[6px] transition-colors flex items-center justify-between"
-                >
-                  <div>
-                    <div className="font-bold text-[#063B2A] text-xs">Sh. Rajesh Kumar (Mandi Secretary)</div>
-                    <div className="text-[11px] text-[#66736D]">Centre: Samrala Main Grain Mandi (Code: OP-SAMRALA-01)</div>
-                  </div>
-                  <span className="text-[11px] font-bold text-[#075E43] bg-[#E7F3EC] px-2 py-1 rounded">Quick Fill</span>
-                </button>
-              </div>
             </div>
           )}
 

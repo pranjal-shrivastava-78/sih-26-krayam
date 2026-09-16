@@ -24,6 +24,7 @@ import { TermsConditionsModal } from './components/modals/TermsConditionsModal';
 import { PrivacyPolicyModal } from './components/modals/PrivacyPolicyModal';
 import { CookiePolicyModal } from './components/modals/CookiePolicyModal';
 import { CookieConsentBanner } from './components/common/CookieConsentBanner';
+import api from './services/api';
 
 const MainAppContent: React.FC = () => {
   const { activeView, isLoggedIn, userRole } = useApp();
@@ -40,7 +41,7 @@ const MainAppContent: React.FC = () => {
 
   // If user is not logged in or active view is auth, render dedicated Registration/Login Page
   if (!isLoggedIn || activeView === 'auth') {
-    content = <AuthPage onSuccess={() => {}} />;
+    content = <AuthPage onSuccess={() => { }} />;
   } else if (userRole === 'operator') {
     // Centre Operator Web App: Dedicated operator interface based on user's role
     content = <OperatorPortal />;
@@ -57,9 +58,9 @@ const MainAppContent: React.FC = () => {
         {/* Main 2-Column Body Layout: Sidebar on Left + Content Viewport on Right */}
         <div className="flex-1 flex min-w-0 w-full relative">
           {/* Government Dark Green Sidebar (280px on desktop, drawer on mobile) */}
-          <Sidebar 
-            isOpen={isSidebarOpen} 
-            onClose={() => setIsSidebarOpen(false)} 
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
           />
 
           {/* Content Column (Proper spacing between sidebar and content) */}

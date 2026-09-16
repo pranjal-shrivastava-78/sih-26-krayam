@@ -28,14 +28,18 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpe
 
   if (!isOpen || !booking) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    rescheduleBooking(booking.id, newDate, newSlot);
-    setSuccess(true);
-    setTimeout(() => {
-      setSuccess(false);
-      onClose();
-    }, 1200);
+    try {
+      await rescheduleBooking(booking.id, newDate, newSlot);
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        onClose();
+      }, 1200);
+    } catch (err: any) {
+      alert(err.message || 'Rescheduling failed.');
+    }
   };
 
   return (

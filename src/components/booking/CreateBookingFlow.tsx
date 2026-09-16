@@ -46,6 +46,8 @@ export const CreateBookingFlow: React.FC = () => {
   const [selectedSlot, setSelectedSlot] = useState<SlotTimeWindow>(TIME_SLOTS[0].slot);
   const [isRescheduleOpen, setIsRescheduleOpen] = useState<boolean>(false);
   const [confirmedBooking, setConfirmedBooking] = useState<Booking | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [bookingError, setBookingError] = useState<string>('');
 
   const selectedCrop = crops.find(c => c.id === selectedCropId) || crops[0];
   const selectedCentre = centres.find(c => c.id === selectedCentreId) || centres[0];
@@ -53,16 +55,25 @@ export const CreateBookingFlow: React.FC = () => {
   const eligibleCentres = centres.filter(c => c.acceptedCropIds.includes(selectedCropId));
   const estimatedTotalPayout = quantityQuintals * (selectedCrop?.mspPerQuintal || 0);
 
-  const handleConfirm = () => {
-    const booking = createBooking({
-      cropId: selectedCropId,
-      quantityQuintals,
-      expectedDate,
-      centreId: selectedCentreId,
-      slot: selectedSlot
-    });
-    setConfirmedBooking(booking);
-    setStep(5);
+  const handleConfirm = async () => {
+    setIsSubmitting(true);
+    setBookingError('');
+    try {
+      const booking = await createBooking({
+        cropId: selectedCropId,
+        quantityQuintals,
+        expectedDate,
+        centreId: selectedCentreId,
+        slot: selectedSlot
+      });
+      setConfirmedBooking(booking);
+      setStep(5);
+    } catch (err: any) {
+      setBookingError(err.message || 'Failed to create booking on backend. Please check details.');
+      alert(err.message || 'Failed to create booking on backend.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const stepsList = [
@@ -464,9 +475,12 @@ export const CreateBookingFlow: React.FC = () => {
               </button>
               <button
                 onClick={handleConfirm}
-                className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
+                disabled={isSubmitting}
+                className={`inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] ${
+                  isSubmitting ? 'bg-[#66736D] cursor-not-allowed' : 'bg-[#0B6B4F] hover:bg-[#075E43]'
+                } text-[#FFFFFF] font-semibold text-sm transition-colors`}
               >
-                <span>Confirm & Generate Token</span>
+                <span>{isSubmitting ? 'Submitting to Backend...' : 'Confirm & Generate Token'}</span>
                 <CheckCircle className="w-4 h-4" />
               </button>
             </div>

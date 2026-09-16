@@ -28,29 +28,37 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginId.trim()) {
       setLoginError('Enter Farmer ID or Mobile Number');
       return;
     }
-    const success = login(loginId);
-    if (success) {
-      setLoginError('');
-      onClose();
-    } else {
-      setLoginError('Invalid credentials. Use Demo ID: FID-2026-7842');
+    try {
+      const success = await login(loginId);
+      if (success) {
+        setLoginError('');
+        onClose();
+      } else {
+        setLoginError('Invalid credentials. Please verify your Farmer ID or mobile number.');
+      }
+    } catch (err: any) {
+      setLoginError(err.message || 'Login failed.');
     }
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regData.fullName || !regData.mobileNumber || !regData.village) {
       alert('Please fill required fields');
       return;
     }
-    const newFarmer = register(regData);
-    setRegSuccessId(newFarmer.farmerId);
+    try {
+      const newFarmer = await register(regData);
+      setRegSuccessId(newFarmer.farmerId);
+    } catch (err: any) {
+      alert(err.message || 'Registration failed.');
+    }
   };
 
   return (
