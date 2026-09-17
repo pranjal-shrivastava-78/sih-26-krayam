@@ -190,14 +190,38 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
 
     setIsSubmitting(true);
     try {
-      await sendOtp(cleanDigits);
+      const res = await sendOtp(cleanDigits);
       setOtpSent(true);
-      setResendCooldown(30);
+      setResendCooldown(60);
       setIsSubmitting(false);
-      setAuthSuccess(`OTP sent to +91 ${cleanDigits}. Please enter the OTP below.`);
+      setAuthSuccess(res?.message ? `${res.message} to +91 ${cleanDigits}. Please enter the OTP below.` : `OTP sent to +91 ${cleanDigits}. Please enter the OTP below.`);
     } catch (err: any) {
       setIsSubmitting(false);
       setAuthError(err.message || 'Failed to send OTP. Please try again.');
+    }
+  };
+
+  // Handle Resend OTP for Farmer Registration
+  const handleResendFarmerRegOtp = async () => {
+    if (farmerRegCooldown > 0 || isSubmitting) return;
+    setAuthError('');
+    setAuthSuccess(null);
+
+    const cleanDigits = farmerRegMobile.replace(/[^\d]/g, '');
+    if (cleanDigits.length !== 10 || !/^[6-9]\d{9}$/.test(cleanDigits)) {
+      setAuthError('Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await sendOtp(cleanDigits);
+      setFarmerRegCooldown(60);
+      setAuthSuccess(res?.message ? `${res.message} to +91 ${cleanDigits}. Please check your phone.` : `OTP re-sent successfully to +91 ${cleanDigits}. Please check your phone.`);
+    } catch (err: any) {
+      setAuthError(err.message || 'Failed to resend OTP. Please wait before retrying.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -367,8 +391,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
     }
 
     const cleanDigits = farmerRegMobile.replace(/[^\d]/g, '');
-    if (cleanDigits.length < 10) {
-      setAuthError('Please enter a valid 10-digit mobile number.');
+    if (cleanDigits.length !== 10 || !/^[6-9]\d{9}$/.test(cleanDigits)) {
+      setAuthError('Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.');
       return;
     }
 
@@ -380,37 +404,40 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
     }
 
     const cleanPincode = farmerRegPincode.replace(/[^\d]/g, '');
-    if (cleanPincode.length !== 6) {
+    if (cleanPincode.length !== 6 || !/^\d{6}$/.test(cleanPincode)) {
       setAuthError('Please enter a valid 6-digit Indian PIN code.');
       return;
     }
 
-    // Step 1: Send OTP if not sent
+    // Step 1: Send OTP if not sent yet
     if (!farmerRegOtpSent) {
       setIsSubmitting(true);
       try {
-        await sendOtp(cleanDigits);
+        const res = await sendOtp(cleanDigits);
         setFarmerRegOtpSent(true);
-        setFarmerRegCooldown(30);
-        setIsSubmitting(false);
+        setFarmerRegCooldown(60);
+        setAuthSuccess(res?.message ? `${res.message} to +91 ${cleanDigits}. Please enter the 6-digit code below.` : `OTP sent successfully to +91 ${cleanDigits}. Please enter the 6-digit code below.`);
       } catch (err: any) {
+        setFarmerRegOtpSent(false);
+        setAuthError(err.message || 'Failed to send OTP for registration. Please verify number and retry.');
+      } finally {
         setIsSubmitting(false);
-        setAuthError(err.message || 'Failed to send OTP for registration.');
       }
       return;
     }
 
-    // Step 2: Verify OTP
-    if (!farmerRegOtpCode.trim() || farmerRegOtpCode.trim().length !== 6) {
-      setAuthError('Please enter the 6-digit OTP received on your mobile.');
+    // Step 2: Verify OTP and Register
+    const cleanOtp = farmerRegOtpCode.trim();
+    if (!cleanOtp || cleanOtp.length !== 6 || !/^\d{6}$/.test(cleanOtp)) {
+      setAuthError('Please enter the 6-digit numeric OTP received on your mobile.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const verifyRes = await verifyOtp(cleanDigits, farmerRegOtpCode.trim());
+      const verifyRes = await verifyOtp(cleanDigits, cleanOtp);
       if (!verifyRes.token) {
-        throw new Error('OTP verification failed.');
+        throw new Error('OTP verification failed: no auth token returned.');
       }
 
       const newFarmer = await register({
@@ -424,12 +451,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
         landHoldingAcres: Number(farmerRegLand) || 5,
       });
 
-      setIsSubmitting(false);
       setFarmerSuccessId(newFarmer.farmerId);
-      setAuthSuccess(`Farmer registered successfully! Your ID is: ${newFarmer.farmerId}`);
+      setAuthSuccess(`Farmer registered successfully! Your Official Farmer ID is: ${newFarmer.farmerId}`);
     } catch (err: any) {
+      setAuthError(err.message || 'Registration failed. Please check the OTP and try again.');
+    } finally {
       setIsSubmitting(false);
-      setAuthError(err.message || 'Registration failed.');
     }
   };
 
@@ -1041,18 +1068,49 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                     </div>
 
                     {farmerRegOtpSent && (
-                      <div className="p-2.5 bg-[#E7F3EC] border border-[#85E1A9] rounded-[6px] space-y-1.5">
-                        <label className="block text-[10px] font-bold text-[#063B2A]">
-                          ENTER 6-DIGIT OTP SENT TO {farmerRegMobile}
-                        </label>
+                      <div className="p-3 bg-[#E7F3EC] border border-[#85E1A9] rounded-[8px] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-[11px] font-bold text-[#063B2A]">
+                            ENTER 6-DIGIT OTP SENT TO +91 {farmerRegMobile}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFarmerRegOtpSent(false);
+                              setFarmerRegOtpCode('');
+                              setAuthError('');
+                            }}
+                            className="text-[10px] text-[#075E43] font-semibold underline hover:text-[#063B2A]"
+                          >
+                            Change Number
+                          </button>
+                        </div>
                         <input
                           type="text"
                           maxLength={6}
+                          autoFocus
                           value={farmerRegOtpCode}
                           onChange={(e) => setFarmerRegOtpCode(e.target.value.replace(/\D/g, ''))}
-                          placeholder="6-digit OTP"
-                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-center font-mono text-xs focus:border-[#075E43] focus:outline-none"
+                          placeholder="••••••"
+                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-2 text-center font-mono text-sm tracking-[0.3em] font-bold text-[#063B2A] focus:border-[#075E43] focus:outline-none"
                         />
+                        <div className="flex items-center justify-between text-[11px] pt-0.5">
+                          <span className="text-[#556960]">Didn't receive code?</span>
+                          {farmerRegCooldown > 0 ? (
+                            <span className="text-[#889890] font-medium">
+                              Resend in {farmerRegCooldown}s
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleResendFarmerRegOtp}
+                              disabled={isSubmitting}
+                              className="text-[#075E43] font-bold underline hover:text-[#063B2A] disabled:opacity-50"
+                            >
+                              Resend OTP
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )}
 
@@ -1078,7 +1136,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                       className="w-full bg-[#064e3b] hover:bg-[#063B2A] disabled:opacity-50 text-white font-bold text-xs py-2.5 px-4 rounded-[8px] shadow-sm flex items-center justify-center gap-2 transition-colors"
                     >
                       <UserPlus className="w-4 h-4" />
-                      <span>{isSubmitting ? 'Registering...' : farmerRegOtpSent ? 'Verify OTP & Register' : 'Send OTP to Register'}</span>
+                      <span>
+                        {isSubmitting
+                          ? farmerRegOtpSent
+                            ? 'Verifying & Registering...'
+                            : 'Sending OTP...'
+                          : farmerRegOtpSent
+                          ? 'Verify OTP & Complete Registration'
+                          : 'Send OTP to Register'}
+                      </span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </>

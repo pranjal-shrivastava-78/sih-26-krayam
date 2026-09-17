@@ -310,33 +310,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setOperatorQueueEntries(summary.waiting || []);
         setLastQueueUpdate(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
 
-        // Correlate queue entries with bookings in state if any
-        if (summary.waiting && summary.waiting.length > 0) {
-          setBookings((prev) =>
-            prev.map((b) => {
-              const matchedEntry = summary.waiting.find(
-                (w) => w.booking_id === b.uuid || w.booking_id === b.id
-              );
-              if (matchedEntry) {
-                let derivedStatus: BookingStatus = b.status;
-                if (matchedEntry.status === 'called') derivedStatus = 'TURN_APPROACHING';
-                else if (matchedEntry.status === 'processing') derivedStatus = 'PROCESSING';
-                else if (matchedEntry.status === 'completed') derivedStatus = 'COMPLETED';
-                else if (matchedEntry.status === 'no_show') derivedStatus = 'NO_SHOW';
-                else if (matchedEntry.status === 'waiting') derivedStatus = 'IN_QUEUE';
+        // Correlate queue entries with bookings in state
+        setBookings((prev) => {
+          const waitingList = summary.waiting || [];
+          const updated = prev.map((b) => {
+            const matchedEntry = waitingList.find(
+              (w) => (b.uuid && w.booking_id === b.uuid) || w.booking_id === b.id
+            );
+            if (matchedEntry) {
+              let derivedStatus: BookingStatus = b.status;
+              if (matchedEntry.status === 'called') derivedStatus = 'TURN_APPROACHING';
+              else if (matchedEntry.status === 'processing') derivedStatus = 'PROCESSING';
+              else if (matchedEntry.status === 'completed') derivedStatus = 'COMPLETED';
+              else if (matchedEntry.status === 'no_show') derivedStatus = 'NO_SHOW';
+              else if (matchedEntry.status === 'waiting') derivedStatus = 'IN_QUEUE';
 
-                return {
-                  ...b,
-                  queueEntryId: matchedEntry.id,
-                  queuePosition: matchedEntry.position,
-                  farmersAhead: Math.max(0, matchedEntry.position - 1),
-                  status: derivedStatus,
-                };
-              }
-              return b;
-            })
-          );
-        }
+              return {
+                ...b,
+                queueEntryId: matchedEntry.id,
+                queuePosition: matchedEntry.position,
+                farmersAhead: Math.max(0, matchedEntry.position - 1),
+                status: derivedStatus,
+              };
+            }
+
+            // If booking was processing or in queue, but is absent from backend's waiting list,
+            // it has been finalized/completed on the backend.
+            if (b.status === 'PROCESSING' || b.status === 'IN_QUEUE' || b.status === 'TURN_APPROACHING') {
+              return {
+                ...b,
+                status: 'COMPLETED' as const,
+                queuePosition: undefined,
+                farmersAhead: undefined,
+              };
+            }
+
+            return b;
+          });
+
+          offlineDb.setOperationalData('farmer_bookings', updated).catch(() => {});
+          return updated;
+        });
       }
     } catch (err: any) {
       console.warn('[Queue] Failed to fetch queue summary:', err.message);
@@ -349,26 +363,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const paymentData = await api.payments.getAll();
       if (paymentData && paymentData.items) {
-        const mappedPayments: PaymentRecord[] = paymentData.items.map((item) => ({
-          id: item.payment_id || item.id,
-          uuid: item.id,
-          transactionId: item.payment_id || item.id,
-          procurementId: item.procurement_id,
-          bookingId: item.booking_id || '',
-          farmerId: item.farmer_id,
-          farmerName: item.farmer_name,
-          farmerMobile: item.farmer_phone,
-          cropName: 'Produce',
-          quantity: item.quantity,
-          rate: item.rate,
-          amount: item.amount,
-          date: new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-          paymentStatus: item.status,
-          anomalyFlags: item.anomaly_flags,
-          verifiedBy: item.verified_by,
-          verifiedAt: item.verified_at,
-          confirmedAt: item.confirmed_at,
-        }));
+        const knownPaidIds = new Set<string>();
+        const mappedPayments: PaymentRecord[] = paymentData.items.map((item) => {
+          if (item.booking_id) knownPaidIds.add(item.booking_id);
+          return {
+            id: item.payment_id || item.id,
+            uuid: item.id,
+            transactionId: item.payment_id || item.id,
+            procurementId: item.procurement_id,
+            bookingId: item.booking_id || '',
+            farmerId: item.farmer_id,
+            farmerName: item.farmer_name,
+            farmerMobile: item.farmer_phone,
+            cropName: 'Produce',
+            quantity: item.quantity,
+            rate: item.rate,
+            amount: item.amount,
+            date: new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+            paymentStatus: item.status,
+            anomalyFlags: item.anomaly_flags,
+            verifiedBy: item.verified_by,
+            verifiedAt: item.verified_at,
+            confirmedAt: item.confirmed_at,
+          };
+        });
         setPayments(mappedPayments);
 
         // Authoritatively reconstruct and reconcile completed procurements from backend payments
@@ -411,6 +429,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           offlineDb.setOperationalData('procurements', merged).catch(() => {});
           return merged;
         });
+
+        // Reconcile paid bookings to COMPLETED
+        if (knownPaidIds.size > 0) {
+          setBookings((prev) => {
+            let changed = false;
+            const updated = prev.map((b) => {
+              if ((knownPaidIds.has(b.id) || (b.uuid && knownPaidIds.has(b.uuid))) && b.status !== 'COMPLETED') {
+                changed = true;
+                return {
+                  ...b,
+                  status: 'COMPLETED' as const,
+                  queuePosition: undefined,
+                  farmersAhead: undefined,
+                };
+              }
+              return b;
+            });
+            if (changed) {
+              offlineDb.setOperationalData('farmer_bookings', updated).catch(() => {});
+            }
+            return updated;
+          });
+        }
       }
     } catch (payErr: any) {
       console.warn('[Operator] Payments refresh notice:', payErr.message);
@@ -430,25 +471,172 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
-  // Fetch operator bookings, queue, payments, and dashboard metrics
+  // Fetch operator bookings, queue, payments, and dashboard metrics authoritatively
   const refreshOperatorData = useCallback(async () => {
     if (!api.getOperatorToken()) return;
     setIsLoadingData(true);
     try {
-      const opBookings = await api.operator.getBookings();
-      if (opBookings) {
-        setBookings(opBookings);
+      const centreId = operator?.centreId || selectedCentre?.id || centres[0]?.id;
+
+      // Concurrently fetch all operator datasets
+      const [opBookings, summary, paymentData, dashboardData] = await Promise.all([
+        api.operator.getBookings().catch((err) => {
+          console.warn('[Operator] Bookings load notice:', err.message);
+          return null;
+        }),
+        centreId ? api.queue.getSummary(centreId).catch((err) => {
+          console.warn('[Operator] Queue load notice:', err.message);
+          return null;
+        }) : Promise.resolve(null),
+        api.payments.getAll().catch((err) => {
+          console.warn('[Operator] Payments load notice:', err.message);
+          return null;
+        }),
+        api.operator.getDashboard().catch((err) => {
+          console.warn('[Operator] Dashboard load notice:', err.message);
+          return null;
+        }),
+      ]);
+
+      if (summary) {
+        setQueueSummary(summary);
+        setOperatorQueueEntries(summary.waiting || []);
       }
-      await refreshQueue();
-      await refreshOperatorPayments();
-      await refreshOperatorDashboard();
+
+      if (dashboardData) {
+        setOperatorDashboardData(dashboardData);
+      }
+
+      // Reconcile payments and procurements
+      const knownPaidBookingIds = new Set<string>();
+      if (paymentData && paymentData.items) {
+        const mappedPayments: PaymentRecord[] = paymentData.items.map((item) => {
+          if (item.booking_id) knownPaidBookingIds.add(item.booking_id);
+          return {
+            id: item.payment_id || item.id,
+            uuid: item.id,
+            transactionId: item.payment_id || item.id,
+            procurementId: item.procurement_id,
+            bookingId: item.booking_id || '',
+            farmerId: item.farmer_id,
+            farmerName: item.farmer_name,
+            farmerMobile: item.farmer_phone,
+            cropName: 'Produce',
+            quantity: item.quantity,
+            rate: item.rate,
+            amount: item.amount,
+            date: new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+            paymentStatus: item.status,
+            anomalyFlags: item.anomaly_flags,
+            verifiedBy: item.verified_by,
+            verifiedAt: item.verified_at,
+            confirmedAt: item.confirmed_at,
+          };
+        });
+        setPayments(mappedPayments);
+
+        setProcurements((prev) => {
+          const merged = [...prev];
+          for (const item of paymentData.items) {
+            const existingIdx = merged.findIndex(
+              (p) => p.uuid === item.procurement_id || p.id === item.procurement_id || (item.booking_id && p.bookingId === item.booking_id)
+            );
+            const rec: ProcurementRecord = {
+              id: item.procurement_id || item.payment_id || `PRC-${item.booking_id}`,
+              uuid: item.procurement_id,
+              bookingId: item.booking_id || '',
+              farmerId: item.farmer_id,
+              farmerName: item.farmer_name,
+              farmerMobile: item.farmer_phone,
+              cropName: 'Produce',
+              date: new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+              centreName: 'Procurement Mandi',
+              bookedQuantity: item.quantity,
+              acceptedQuantity: item.quantity,
+              grossWeight: item.quantity,
+              tareWeight: 0,
+              netWeight: item.quantity,
+              mspRate: item.rate,
+              grossAmount: item.amount,
+              deductions: 0,
+              qualityGrade: 'Grade A',
+              procurementStatus: 'Accepted',
+              paymentStatus: item.status as any,
+              paymentAmount: item.amount,
+              paymentId: item.payment_id || item.id,
+            };
+            if (existingIdx >= 0) {
+              merged[existingIdx] = { ...merged[existingIdx], ...rec };
+            } else {
+              merged.unshift(rec);
+            }
+          }
+          offlineDb.setOperationalData('procurements', merged).catch(() => {});
+          return merged;
+        });
+      }
+
+      // Reconcile and set authoritative Bookings
+      if (opBookings) {
+        const waitingList = summary?.waiting || [];
+        const reconciled = opBookings.map((b) => {
+          const isPaid = knownPaidBookingIds.has(b.id) || (b.uuid ? knownPaidBookingIds.has(b.uuid) : false);
+          if (isPaid) {
+            return {
+              ...b,
+              status: 'COMPLETED' as const,
+              queuePosition: undefined,
+              farmersAhead: undefined,
+            };
+          }
+
+          const matchedEntry = waitingList.find(
+            (w) => (b.uuid && w.booking_id === b.uuid) || w.booking_id === b.id
+          );
+
+          if (matchedEntry) {
+            let derivedStatus: BookingStatus = b.status;
+            if (matchedEntry.status === 'called') derivedStatus = 'TURN_APPROACHING';
+            else if (matchedEntry.status === 'processing') derivedStatus = 'PROCESSING';
+            else if (matchedEntry.status === 'completed') derivedStatus = 'COMPLETED';
+            else if (matchedEntry.status === 'no_show') derivedStatus = 'NO_SHOW';
+            else if (matchedEntry.status === 'waiting') derivedStatus = 'IN_QUEUE';
+
+            return {
+              ...b,
+              queueEntryId: matchedEntry.id,
+              queuePosition: matchedEntry.position,
+              farmersAhead: Math.max(0, matchedEntry.position - 1),
+              status: derivedStatus,
+            };
+          }
+
+          // If booking was marked as PROCESSING, IN_QUEUE, or TURN_APPROACHING,
+          // but is absent from backend's active queue waiting list:
+          // The backend queue has completed and removed this entry!
+          if (b.status === 'PROCESSING' || b.status === 'IN_QUEUE' || b.status === 'TURN_APPROACHING') {
+            return {
+              ...b,
+              status: 'COMPLETED' as const,
+              queuePosition: undefined,
+              farmersAhead: undefined,
+            };
+          }
+
+          return b;
+        });
+
+        setBookings(reconciled);
+        offlineDb.setOperationalData('farmer_bookings', reconciled).catch(() => {});
+      }
+
       setLastQueueUpdate(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     } catch (err: any) {
       console.warn('[Operator] Refresh error:', err.message);
     } finally {
       setIsLoadingData(false);
     }
-  }, [refreshQueue, refreshOperatorPayments, refreshOperatorDashboard]);
+  }, [operator?.centreId, selectedCentre?.id, centres]);
 
   // Realtime SSE lifecycle: Listen to events and connection status
   useEffect(() => {
@@ -1659,52 +1847,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    // If already marked completed in booking or procurement exists, reconcile active queue
-    const hasProcurement = procurements.some(
-      (p) => p.bookingId === cleanId || p.bookingId === matchedBooking?.id || (bookingUuid && p.bookingId === bookingUuid)
-    );
-
-    if (matchedBooking?.status === 'COMPLETED' || hasProcurement) {
-      setBookings((prev) => {
-        const next = prev.map((b) =>
-          b.id === cleanId || b.uuid === cleanId || (bookingUuid && b.uuid === bookingUuid)
-            ? { ...b, status: 'COMPLETED' as const, queuePosition: undefined, farmersAhead: undefined }
-            : b
-        );
-        offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
-        return next;
-      });
-      setOperatorQueueEntries((prev) =>
-        prev.filter((e) => e.id !== cleanId && e.booking_id !== bookingUuid && e.booking_id !== cleanId)
-      );
-      await refreshQueue();
-      return;
-    }
-
-    // 1. Resolve active queue entry ID
+    // 1. Resolve active queue entry ID (UUID expected by /operator/queue/{queue_entry_id}/complete)
     let queueEntry = operatorQueueEntries.find(
       (e) => e.id === cleanId || (bookingUuid && e.booking_id === bookingUuid) || e.booking_id === cleanId
     );
     let entryId = queueEntry?.id || matchedBooking?.queueEntryId;
 
-    // 2. Query summary if not in memory
-    if (!entryId) {
-      const centreId = operator?.centreId || selectedCentre?.id || centres[0]?.id;
-      if (centreId) {
-        try {
-          const freshSummary = await api.queue.getSummary(centreId);
-          if (freshSummary?.waiting) {
-            const freshMatch = freshSummary.waiting.find(
-              (e) => e.id === cleanId || (bookingUuid && e.booking_id === bookingUuid) || e.booking_id === cleanId
-            );
-            if (freshMatch) {
-              entryId = freshMatch.id;
-            }
+    // 2. Query fresh summary from backend if not found in memory
+    const centreId = operator?.centreId || selectedCentre?.id || centres[0]?.id;
+    if (!entryId && centreId) {
+      try {
+        const freshSummary = await api.queue.getSummary(centreId);
+        if (freshSummary?.waiting) {
+          const freshMatch = freshSummary.waiting.find(
+            (e) => e.id === cleanId || (bookingUuid && e.booking_id === bookingUuid) || e.booking_id === cleanId
+          );
+          if (freshMatch) {
+            entryId = freshMatch.id;
           }
-        } catch {
-          // ignore
         }
+      } catch (err: any) {
+        console.warn('[Queue] Failed to query fresh queue summary:', err.message);
       }
+    }
+
+    // If cleanId itself is a valid UUID and not matched to a different booking ID, use as fallback
+    if (!entryId && isUuidRegex.test(cleanId) && !matchedBooking) {
+      entryId = cleanId;
     }
 
     // 3. Complete processing on backend if valid queue entry ID found
@@ -1712,8 +1881,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         await api.queue.completeProcessing(entryId);
       } catch (completeErr: any) {
-        // If 404, the queue entry was already completed/removed by backend during procurement
-        if (completeErr.status === 404 || completeErr.message?.includes('not found') || completeErr.message?.includes('404')) {
+        // If 404, the queue entry was already completed or removed by backend
+        if (
+          completeErr.status === 404 ||
+          completeErr.message?.includes('not found') ||
+          completeErr.message?.includes('404')
+        ) {
           console.warn('[Queue] Queue entry was already completed or removed on backend:', completeErr.message);
         } else {
           throw completeErr;

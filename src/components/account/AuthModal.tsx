@@ -40,8 +40,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     setLoginError('');
 
-    if (!loginId.trim()) {
-      setLoginError('Enter your 10-digit mobile number');
+    const cleanLogin = loginId.replace(/[^\d]/g, '');
+    if (cleanLogin.length !== 10 || !/^[6-9]\d{9}$/.test(cleanLogin)) {
+      setLoginError('Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.');
       return;
     }
 
@@ -95,8 +96,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
 
     const cleanMobile = regData.mobileNumber.replace(/[^\d]/g, '');
-    if (cleanMobile.length < 10) {
-      setRegError('Please enter a valid 10-digit mobile number');
+    if (cleanMobile.length !== 10 || !/^[6-9]\d{9}$/.test(cleanMobile)) {
+      setRegError('Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.');
       return;
     }
 

@@ -508,10 +508,16 @@ class ApiClient {
           cleanPhone = `+91${cleanPhone}`;
         }
       }
-      const data = await this.request<{ message: string }>('/auth/otp/send', {
+      if (!/^\+91[6-9]\d{9}$/.test(cleanPhone) && !/^\+\d{10,15}$/.test(cleanPhone)) {
+        throw new ApiError('Please enter a valid 10-digit Indian mobile number.', 'VALIDATION_ERROR');
+      }
+      const data = await this.request<{ message?: string; success?: boolean; status?: string }>('/auth/otp/send', {
         method: 'POST',
         body: JSON.stringify({ phone: cleanPhone }),
       });
+      if (!data || (!data.message && data.success !== true && data.status !== 'ok')) {
+        throw new ApiError('Backend did not confirm OTP generation. Please try again.', 'SERVER_ERROR');
+      }
       return { success: true, message: data.message || 'OTP sent successfully' };
     },
 
@@ -527,6 +533,10 @@ class ApiClient {
           cleanPhone = `+91${cleanPhone}`;
         }
       }
+      const cleanCode = code.trim();
+      if (!cleanCode || cleanCode.length !== 6 || !/^\d{6}$/.test(cleanCode)) {
+        throw new ApiError('Please enter a valid 6-digit OTP code.', 'VALIDATION_ERROR');
+      }
       const data = await this.request<{
         access_token: string;
         token_type: string;
@@ -534,7 +544,7 @@ class ApiClient {
         is_registered: boolean;
       }>('/auth/otp/verify', {
         method: 'POST',
-        body: JSON.stringify({ phone: cleanPhone, code: code.trim() }),
+        body: JSON.stringify({ phone: cleanPhone, code: cleanCode }),
       });
 
       this.setToken(data.access_token);

@@ -38,6 +38,7 @@ export const OperatorQueueTab: React.FC = () => {
   const [checkInBookingId, setCheckInBookingId] = useState('');
   const [announcementMsg, setAnnouncementMsg] = useState<string | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [completingId, setCompletingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const filteredBookings = bookings.filter(b => {
@@ -101,17 +102,19 @@ export const OperatorQueueTab: React.FC = () => {
     }
   };
 
-  const handleCompleteProcessing = async (id: string) => {
+  const handleCompleteProcessing = async (id: string, cardId: string) => {
     setIsActionLoading(true);
+    setCompletingId(cardId);
     setActionError(null);
     try {
       await operatorCompleteProcessing(id);
-      setAnnouncementMsg(`✅ Completed queue processing for token #${id}`);
+      setAnnouncementMsg(`✅ Completed queue processing for token #${cardId}`);
       setTimeout(() => setAnnouncementMsg(null), 4000);
     } catch (err: any) {
       setActionError(err.message || 'Failed to complete processing.');
     } finally {
       setIsActionLoading(false);
+      setCompletingId(null);
     }
   };
 
@@ -342,12 +345,16 @@ export const OperatorQueueTab: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      disabled={isActionLoading}
-                      onClick={() => handleCompleteProcessing(b.queueEntryId || b.uuid || b.id)}
-                      className="bg-[#16803C] hover:bg-[#0F5A2A] text-white text-xs font-bold px-3 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50"
+                      disabled={isActionLoading || completingId === b.id || completingId === b.uuid || (b.queueEntryId ? completingId === b.queueEntryId : false)}
+                      onClick={() => handleCompleteProcessing(b.queueEntryId || b.uuid || b.id, b.id)}
+                      className="bg-[#16803C] hover:bg-[#0F5A2A] text-white text-xs font-bold px-3 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                     >
                       <Check className="w-3.5 h-3.5" />
-                      <span>Complete Queue</span>
+                      <span>
+                        {completingId === b.id || completingId === b.uuid || (b.queueEntryId && completingId === b.queueEntryId)
+                          ? 'Completing...'
+                          : 'Complete Queue'}
+                      </span>
                     </button>
                     <button
                       type="button"
