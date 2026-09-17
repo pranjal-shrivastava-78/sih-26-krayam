@@ -35,7 +35,11 @@ export const CreateBookingFlow: React.FC = () => {
     activeBooking, 
     setActiveView,
     isLoadingData,
-    t
+    t,
+    translateCrop,
+    translateStatus,
+    translateUnit,
+    formatLocalizedDate
   } = useApp();
 
   const [step, setStep] = useState<number>(1);
@@ -334,14 +338,14 @@ export const CreateBookingFlow: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-[#17231F]">
-                  Existing Active Booking: <span className="font-mono text-[#075E43]">{activeBooking.id}</span>
+                  {t('existingActiveBooking', 'Existing Active Booking')}: <span className="font-mono text-[#075E43]">{activeBooking.id}</span>
                 </span>
                 <span className="px-1.5 py-0.2 rounded-[4px] text-[10px] font-bold bg-[#E7F3EC] text-[#16803C] border border-[#CBD8D1]">
-                  {activeBooking.status}
+                  {translateStatus(activeBooking.status)}
                 </span>
               </div>
               <div className="text-xs text-[#66736D] mt-0.5">
-                {activeBooking.quantityQuintals} Qtl {activeBooking.cropName} at {activeBooking.centreName} ({activeBooking.expectedDate})
+                {activeBooking.quantityQuintals} {t('qtl', 'Qtl')} {translateCrop(activeBooking.cropName)} at {activeBooking.centreName} ({formatLocalizedDate(activeBooking.expectedDate)})
               </div>
             </div>
           </div>
@@ -351,14 +355,14 @@ export const CreateBookingFlow: React.FC = () => {
               onClick={() => setActiveView('tracking')}
               className="h-9 px-4 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] text-xs font-semibold"
             >
-              Track Live Queue
+              {t('trackQueueAction')}
             </button>
             <button
               onClick={() => setIsRescheduleOpen(true)}
               className="h-9 px-3 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold flex items-center gap-1"
             >
               <RotateCcw className="w-3.5 h-3.5 text-[#075E43]" />
-              <span>Reschedule</span>
+              <span>{t('reschedule', 'Reschedule')}</span>
             </button>
           </div>
         </div>
@@ -372,11 +376,11 @@ export const CreateBookingFlow: React.FC = () => {
               {t('procurementBooking')}
             </h1>
             <p className="text-xs sm:text-sm text-[#66736D] mt-1">
-              Ministry of Agriculture & Farmers Welfare — Official Digital Mandi Allotment
+              {t('ministryName')} — {t('appSubtitle')}
             </p>
           </div>
           <span className="text-xs font-mono text-[#075E43] font-semibold hidden sm:inline">
-            Step {step} of 5
+            {t('step')} {step} {t('of')} 5
           </span>
         </div>
 
@@ -391,7 +395,7 @@ export const CreateBookingFlow: React.FC = () => {
                 <span>{t(stepsList[step - 1].titleKey)}</span>
               </span>
               <span className="text-[11px] font-mono font-semibold text-[#075E43] bg-[#E7F3EC] px-2 py-0.5 rounded">
-                Step {step} of 5
+                {t('step')} {step} {t('of')} 5
               </span>
             </div>
             <div className="w-full bg-[#CBD8D1] h-1.5 rounded-full overflow-hidden">
@@ -449,20 +453,20 @@ export const CreateBookingFlow: React.FC = () => {
         {step === 1 && (
           <div className="space-y-6 max-w-2xl">
             <div>
-              <h2 className="text-lg font-bold text-[#17231F]">Step 1: Select Crop / फसल चुनें</h2>
+              <h2 className="text-lg font-bold text-[#17231F]">{t('step')} 1: {t('step1Title')}</h2>
               <p className="text-xs text-[#66736D] mt-0.5">
-                Select your agricultural produce for government procurement under Minimum Support Price (MSP)
+                {t('step1Desc')}
               </p>
             </div>
 
             {isLoadingData && crops.length === 0 ? (
               <div className="py-8 text-center flex flex-col items-center justify-center gap-2 text-xs text-[#66736D]">
                 <Loader2 className="w-6 h-6 animate-spin text-[#075E43]" />
-                <span>Loading crops catalog from mandis...</span>
+                <span>{t('loading')}...</span>
               </div>
             ) : crops.length === 0 ? (
               <div className="p-4 bg-[#FFF9ED] border border-[#F0D7A7] rounded-[6px] text-xs text-[#B45309]">
-                No operational crops found in active mandi registers. Please refresh or contact support.
+                No operational crops found in active mandi registers.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -480,18 +484,18 @@ export const CreateBookingFlow: React.FC = () => {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm text-[#17231F]">{crop.name}</span>
+                        <span className="font-bold text-sm text-[#17231F]">{translateCrop(crop.name)}</span>
                         {isSelected && <Check className="w-4 h-4 text-[#075E43]" />}
                       </div>
                       <div className="mt-2 flex items-baseline justify-between text-xs">
-                        <span className="text-[#66736D]">Official MSP / Rate:</span>
+                        <span className="text-[#66736D]">MSP:</span>
                         <span className="font-bold text-[#063B2A] text-sm">
-                          ₹{crop.mspPerQuintal.toLocaleString('en-IN')}/{crop.unit || 'Qtl'}
+                          ₹{crop.mspPerQuintal.toLocaleString('en-IN')}/{translateUnit(crop.unit || 'Qtl')}
                         </span>
                       </div>
                       {crop.minPrice && crop.maxPrice && (
                         <div className="text-[10px] text-[#66736D] mt-1">
-                          Range: ₹{crop.minPrice} – ₹{crop.maxPrice}
+                          ₹{crop.minPrice} – ₹{crop.maxPrice}
                         </div>
                       )}
                     </button>
@@ -506,7 +510,7 @@ export const CreateBookingFlow: React.FC = () => {
                 disabled={!selectedCropId}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors disabled:opacity-50"
               >
-                <span>Continue to Step 2</span>
+                <span>{t('continueToStep2')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -517,15 +521,15 @@ export const CreateBookingFlow: React.FC = () => {
         {step === 2 && (
           <div className="space-y-6 max-w-2xl">
             <div>
-              <h2 className="text-lg font-bold text-[#17231F]">Step 2: Enter Quantity / उपज की मात्रा</h2>
+              <h2 className="text-lg font-bold text-[#17231F]">{t('step')} 2: {t('step2Title')}</h2>
               <p className="text-xs text-[#66736D] mt-0.5">
-                Specify expected crop quantity in {selectedCrop.unit || 'quintals'} for {selectedCrop.name}
+                {t('step2Desc')}
               </p>
             </div>
 
             <div className="space-y-2">
               <label htmlFor="quantityInput" className="block text-xs font-bold text-[#17231F] uppercase tracking-wide">
-                Quantity in {selectedCrop.unit || 'Quintals'}
+                {t('quantityInQuintals')} ({translateUnit(selectedCrop.unit || 'Quintals')})
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -542,27 +546,24 @@ export const CreateBookingFlow: React.FC = () => {
                   className="flex-1 h-11 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-base font-bold text-[#17231F] focus:outline-none focus:border-[#16845F]"
                 />
                 <span className="h-11 px-4 rounded-[6px] bg-[#EDF3EF] border border-[#CBD8D1] text-xs font-bold text-[#17231F] flex items-center justify-center uppercase">
-                  {selectedCrop.unit || 'Quintals'}
+                  {translateUnit(selectedCrop.unit || 'Quintals')}
                 </span>
               </div>
-              <p className="text-[11px] text-[#66736D]">
-                Enter a positive quantity greater than 0. Payout is calculated based on verified weighbridge slips.
-              </p>
             </div>
 
             {/* Financial Estimate Strip */}
             <div className="bg-[#EDF3EF] border border-[#CBD8D1] rounded-[6px] p-4 flex items-center justify-between">
               <div>
-                <div className="text-xs text-[#66736D] font-bold uppercase">Estimated Gross DBT Payout</div>
+                <div className="text-xs text-[#66736D] font-bold uppercase">{t('estGrossPayout')}</div>
                 <div className="text-2xl font-bold text-[#063B2A] mt-0.5">
                   ₹{estimatedTotalPayout.toLocaleString('en-IN')}
                 </div>
                 <div className="text-xs text-[#66736D] mt-0.5">
-                  {quantityQuintals} {selectedCrop.unit || 'Qtl'} × ₹{selectedCrop.mspPerQuintal}/{selectedCrop.unit || 'Qtl'}
+                  {quantityQuintals} {translateUnit(selectedCrop.unit || 'Qtl')} × ₹{selectedCrop.mspPerQuintal}/{translateUnit(selectedCrop.unit || 'Qtl')}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xs font-semibold text-[#17231F]">Disbursement Account</div>
+                <div className="text-xs font-semibold text-[#17231F]">{t('disbursementAccount')}</div>
                 <div className="text-xs font-mono text-[#075E43] font-bold mt-0.5">
                   {farmer?.bankAccountMasked || 'PFMS / Aadhaar DBT Linked'}
                 </div>
@@ -575,14 +576,14 @@ export const CreateBookingFlow: React.FC = () => {
                 className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
+                <span>{t('back')}</span>
               </button>
               <button
                 onClick={() => setStep(3)}
                 disabled={quantityQuintals <= 0}
                 className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors disabled:opacity-50"
               >
-                <span>Continue to Step 3</span>
+                <span>{t('continueToStep3')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -593,9 +594,9 @@ export const CreateBookingFlow: React.FC = () => {
         {step === 3 && (
           <div className="space-y-6 max-w-3xl">
             <div>
-              <h2 className="text-lg font-bold text-[#17231F]">Step 3: Select Procurement Centre / क्रय केंद्र चुनें</h2>
+              <h2 className="text-lg font-bold text-[#17231F]">{t('step')} 3: {t('step3Title')}</h2>
               <p className="text-xs text-[#66736D] mt-0.5">
-                Government grain mandis accepting {selectedCrop.name} ordered by proximity and live operational load
+                {t('step3Desc')}
               </p>
             </div>
 
@@ -606,12 +607,12 @@ export const CreateBookingFlow: React.FC = () => {
                 <div>
                   <div className="text-xs font-bold text-[#17231F]">
                     {locationStatus === 'detecting'
-                      ? 'Detecting your location...'
+                      ? t('detectingLocation')
                       : locationStatus === 'success' || (farmerLat !== undefined && farmerLng !== undefined)
-                      ? 'Location Detected'
+                      ? t('locationDetected')
                       : locationStatus === 'error'
-                      ? 'Unable to access your location'
-                      : 'Use Current Location for Recommendations'}
+                      ? t('locationError')
+                      : t('useCurrentLocation')}
                   </div>
                   <div className="text-[11px] text-[#66736D] mt-0.5">
                     {farmerLat !== undefined && farmerLng !== undefined ? (
@@ -620,7 +621,7 @@ export const CreateBookingFlow: React.FC = () => {
                         {locationAccuracy ? ` (±${locationAccuracy}m)` : ''}
                       </span>
                     ) : (
-                      'Allow browser GPS location to calculate accurate distances to mandis'
+                      t('gpsNotice')
                     )}
                   </div>
                   {locationErrorMsg && (
@@ -641,17 +642,17 @@ export const CreateBookingFlow: React.FC = () => {
                   {locationStatus === 'detecting' ? (
                     <>
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Detecting...</span>
+                      <span>{t('loading')}...</span>
                     </>
                   ) : locationStatus === 'error' ? (
                     <>
                       <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Retry GPS</span>
+                      <span>{t('retryGps')}</span>
                     </>
                   ) : (
                     <>
                       <MapPin className="w-3.5 h-3.5" />
-                      <span>{farmerLat !== undefined ? 'Update Location' : 'Use Current Location'}</span>
+                      <span>{farmerLat !== undefined ? t('locationDetected') : t('useCurrentLocation')}</span>
                     </>
                   )}
                 </button>
@@ -662,7 +663,7 @@ export const CreateBookingFlow: React.FC = () => {
                   className="h-9 px-3 rounded-[6px] bg-[#EDF3EF] border border-[#CBD8D1] hover:bg-[#CBD8D1]/40 text-xs font-semibold text-[#17231F] flex items-center gap-1 flex-shrink-0"
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5 text-[#075E43]" />
-                  <span>Compare Mandis</span>
+                  <span>{t('compareCentres')}</span>
                 </button>
               </div>
             </div>
@@ -671,11 +672,11 @@ export const CreateBookingFlow: React.FC = () => {
             {isRecommending ? (
               <div className="p-4 bg-[#EDF3EF] rounded-[6px] border border-[#CBD8D1] text-xs text-[#66736D] flex items-center gap-2 justify-center">
                 <Loader2 className="w-4 h-4 animate-spin text-[#075E43]" />
-                <span>Fetching algorithmic centre recommendation from Ministry backend...</span>
+                <span>{t('loading')}...</span>
               </div>
             ) : recommendError ? (
               <div className="p-3 bg-[#FFF9ED] border border-[#F0D7A7] rounded-[6px] text-xs text-[#B45309]">
-                Recommendation service notice: {recommendError} (Sorted by geographic proximity)
+                {recommendError}
               </div>
             ) : null}
 
@@ -684,7 +685,7 @@ export const CreateBookingFlow: React.FC = () => {
               <div className="p-6 bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] text-center space-y-2">
                 <p className="text-sm font-bold text-[#17231F]">No Authorized Mandis Found</p>
                 <p className="text-xs text-[#66736D]">
-                  None of the registered government mandis are currently configured to procure {selectedCrop.name}. Please check alternative crops.
+                  None of the registered government mandis are currently configured to procure {translateCrop(selectedCrop.name)}.
                 </p>
               </div>
             ) : (
@@ -718,7 +719,7 @@ export const CreateBookingFlow: React.FC = () => {
                               {isRecommended && (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#16803C] bg-[#FFFFFF] px-2 py-0.5 rounded border border-[#B7DCC5]">
                                   <Award className="w-3 h-3" />
-                                  Recommended
+                                  {t('recommended')}
                                 </span>
                               )}
                             </div>
@@ -738,7 +739,7 @@ export const CreateBookingFlow: React.FC = () => {
                           </div>
 
                           <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-2 text-[11px] text-[#34443D]">
-                            <span>Operating Hours: {centre.operatingHours.opens} – {centre.operatingHours.closes}</span>
+                            <span>{t('operationalHours')}: {centre.operatingHours.opens} – {centre.operatingHours.closes}</span>
                             <span>•</span>
                             <span>
                               {rec?.loadPercent !== undefined && rec.loadPercent > 0
@@ -766,14 +767,14 @@ export const CreateBookingFlow: React.FC = () => {
                 className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
+                <span>{t('back')}</span>
               </button>
               <button
                 onClick={() => setStep(4)}
                 disabled={!selectedCentreId || eligibleCentres.length === 0}
                 className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors disabled:opacity-50"
               >
-                <span>Continue to Step 4</span>
+                <span>{t('continueToStep4')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -784,16 +785,16 @@ export const CreateBookingFlow: React.FC = () => {
         {step === 4 && (
           <div className="space-y-6 max-w-2xl">
             <div>
-              <h2 className="text-lg font-bold text-[#17231F]">Step 4: Select Date & Time / तारीख एवं समय चुनें</h2>
+              <h2 className="text-lg font-bold text-[#17231F]">{t('step')} 4: {t('step4Title')}</h2>
               <p className="text-xs text-[#66736D] mt-0.5">
-                Reserve your designated weighbridge clearance slot at <strong>{selectedCentre.name}</strong>
+                {t('step4Desc')} (<strong>{selectedCentre.name}</strong>)
               </p>
             </div>
 
             {/* Date Input */}
             <div className="space-y-2">
               <label htmlFor="preferredDate" className="block text-xs font-bold text-[#17231F] uppercase tracking-wide">
-                Preferred Date / तारीख
+                {t('selectDate')}
               </label>
               <input
                 id="preferredDate"
@@ -809,12 +810,12 @@ export const CreateBookingFlow: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-bold text-[#17231F] uppercase tracking-wide">
-                  Mandi Time Slots for {expectedDate}
+                  {t('availableSlots')} ({formatLocalizedDate(expectedDate)})
                 </label>
                 {isLoadingSlots && (
                   <span className="text-xs text-[#66736D] flex items-center gap-1">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-[#075E43]" />
-                    <span>Checking availability...</span>
+                    <span>{t('loading')}...</span>
                   </span>
                 )}
               </div>
@@ -827,11 +828,11 @@ export const CreateBookingFlow: React.FC = () => {
 
               {isLoadingSlots ? (
                 <div className="py-6 text-center text-xs text-[#66736D]">
-                  Loading official slots from {selectedCentre.name}...
+                  {t('loading')}...
                 </div>
               ) : slots.length === 0 ? (
                 <div className="p-4 bg-[#FFF9ED] border border-[#F0D7A7] rounded-[6px] text-xs text-[#B45309] text-center">
-                  No operational slots available on {expectedDate} at this centre. Please choose another date.
+                  {t('noSlotsAvailable')}
                 </div>
               ) : (
                 <div className="space-y-2.5">
@@ -895,7 +896,7 @@ export const CreateBookingFlow: React.FC = () => {
                 className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
+                <span>{t('back')}</span>
               </button>
               <button
                 onClick={handleConfirm}
@@ -907,11 +908,11 @@ export const CreateBookingFlow: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Creating booking...</span>
+                    <span>{t('loading')}...</span>
                   </>
                 ) : (
                   <>
-                    <span>Confirm & Generate Token</span>
+                    <span>{t('generateGatePass')}</span>
                     <CheckCircle className="w-4 h-4" />
                   </>
                 )}
@@ -929,14 +930,14 @@ export const CreateBookingFlow: React.FC = () => {
 
             <div>
               <span className="text-xs uppercase tracking-wider font-bold text-[#16803C] bg-[#E7F3EC] px-2.5 py-1 rounded-[4px] border border-[#CBD8D1]">
-                Booking Confirmed & Mandi Token Allotted
+                {t('bookingConfirmedTitle')}
               </span>
               <h2 className="text-2xl font-bold text-[#17231F] mt-2">
-                Token No: <span className="font-mono text-[#063B2A]">{confirmedBooking?.id}</span>
+                {t('token')}: <span className="font-mono text-[#063B2A]">{confirmedBooking?.id}</span>
               </h2>
               {farmer?.mobileNumber && (
                 <p className="text-xs text-[#66736D] mt-1">
-                  Official confirmation dispatched to {farmer.mobileNumber}
+                  {t('bookingConfirmedNotice')} {farmer.mobileNumber}
                 </p>
               )}
             </div>
@@ -946,23 +947,23 @@ export const CreateBookingFlow: React.FC = () => {
               <table className="gov-table">
                 <tbody>
                   <tr>
-                    <td className="w-2/5 bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Crop & Quantity</td>
+                    <td className="w-2/5 bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('cropAndQuantity')}</td>
                     <td className="font-bold text-xs text-[#17231F]">
-                      {selectedCrop.name} — {quantityQuintals} {selectedCrop.unit || 'Qtl'}
+                      {translateCrop(selectedCrop.name)} — {quantityQuintals} {translateUnit(selectedCrop.unit || 'Qtl')}
                     </td>
                   </tr>
                   <tr>
-                    <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Procurement Mandi</td>
+                    <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('mandiCentre')}</td>
                     <td className="text-xs text-[#17231F] font-bold">{selectedCentre.name}</td>
                   </tr>
                   <tr>
-                    <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Allotted Date & Slot</td>
-                    <td className="text-xs text-[#17231F]">{expectedDate} ({selectedSlotWindow})</td>
+                    <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('allottedSlot', 'Allotted Date & Slot')}</td>
+                    <td className="text-xs text-[#17231F]">{formatLocalizedDate(expectedDate)} ({selectedSlotWindow})</td>
                   </tr>
                   <tr>
-                    <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Estimated Gross DBT</td>
+                    <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('estGrossPayout')}</td>
                     <td className="text-xs font-bold text-[#063B2A]">
-                      ₹{estimatedTotalPayout.toLocaleString('en-IN')} (MSP ₹{selectedCrop.mspPerQuintal}/{selectedCrop.unit || 'Qtl'})
+                      ₹{estimatedTotalPayout.toLocaleString('en-IN')} (MSP ₹{selectedCrop.mspPerQuintal}/{translateUnit(selectedCrop.unit || 'Qtl')})
                     </td>
                   </tr>
                 </tbody>
@@ -974,7 +975,7 @@ export const CreateBookingFlow: React.FC = () => {
                 onClick={() => setActiveView('tracking')}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-sm transition-colors"
               >
-                <span>Track Live Mandi Queue</span>
+                <span>{t('viewInQueue')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button
@@ -984,7 +985,7 @@ export const CreateBookingFlow: React.FC = () => {
                 }}
                 className="w-full sm:w-auto h-11 px-5 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] font-semibold text-xs"
               >
-                Book Another Slot
+                {t('createBooking')}
               </button>
             </div>
           </div>

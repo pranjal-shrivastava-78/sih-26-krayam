@@ -7,7 +7,8 @@ export const NotificationsView: React.FC = () => {
     notifications, 
     markNotificationAsRead, 
     markAllNotificationsAsRead, 
-    setActiveView 
+    setActiveView,
+    t
   } = useApp();
 
   const newAlerts = notifications.filter(n => !n.read);
@@ -28,10 +29,10 @@ export const NotificationsView: React.FC = () => {
       <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#17231F]">
-            Alerts & Official Notices / सूचनाएं एवं अलर्ट
+            {t('notificationsTitle')}
           </h1>
           <p className="text-xs sm:text-sm text-[#66736D] mt-0.5">
-            Ministry notifications, mandi token updates, and DBT disbursement alerts
+            {t('descAlerts')}
           </p>
         </div>
 
@@ -41,7 +42,7 @@ export const NotificationsView: React.FC = () => {
             className="h-10 px-4 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-xs font-semibold text-[#17231F] flex items-center gap-1.5 transition-colors self-start sm:self-auto"
           >
             <CheckCheck className="w-4 h-4 text-[#075E43]" />
-            <span>Mark All as Read</span>
+            <span>{t('markAllRead')}</span>
           </button>
         )}
       </div>
@@ -53,13 +54,13 @@ export const NotificationsView: React.FC = () => {
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-1">
             <span className="text-xs font-bold uppercase tracking-wider text-[#D97706] bg-[#FFF3DC] px-2 py-0.5 rounded-[4px] border border-[#F0D7A7]">
-              NEW / नई सूचनाएं ({newAlerts.length})
+              {t('newBadge')} ({newAlerts.length})
             </span>
           </div>
 
           {newAlerts.length === 0 ? (
             <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-6 text-center text-xs text-[#66736D]">
-              No unread alerts. You are fully caught up with the latest procurement updates.
+              {t('noNotifications')}
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -86,7 +87,7 @@ export const NotificationsView: React.FC = () => {
                   </div>
 
                   <button className="text-xs font-semibold text-[#075E43] hover:underline flex-shrink-0 flex items-center gap-1 self-center">
-                    <span>View</span>
+                    <span>{t('viewDetails')}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -99,7 +100,7 @@ export const NotificationsView: React.FC = () => {
         <div className="space-y-3 pt-2">
           <div className="flex items-center gap-2 px-1">
             <span className="text-xs font-bold uppercase tracking-wider text-[#66736D] bg-[#EDF3EF] px-2 py-0.5 rounded-[4px] border border-[#CBD8D1]">
-              READ / पूर्व सूचनाएं ({readAlerts.length})
+              {t('completed')} ({readAlerts.length})
             </span>
           </div>
 
@@ -127,7 +128,7 @@ export const NotificationsView: React.FC = () => {
                 </div>
 
                 <button className="text-xs font-semibold text-[#66736D] hover:underline flex-shrink-0 self-center">
-                  Details →
+                  {t('viewDetails')} →
                 </button>
               </div>
             ))}

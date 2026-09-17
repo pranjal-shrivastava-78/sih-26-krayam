@@ -11,7 +11,7 @@ interface RescheduleModalProps {
 }
 
 export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpen, onClose }) => {
-  const { rescheduleBooking } = useApp();
+  const { rescheduleBooking, t, translateCrop } = useApp();
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -97,7 +97,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpe
             <span className="text-[10px] uppercase tracking-wider text-[#075E43] font-bold block">
               Official Slot Re-allocation
             </span>
-            <h3 className="font-bold text-base text-[#17231F]">Reschedule Mandi Slot / स्लॉट बदलें</h3>
+            <h3 className="font-bold text-base text-[#17231F]">{t('rescheduleBooking')}</h3>
           </div>
           <button onClick={onClose} className="p-1 rounded text-[#66736D] hover:text-[#17231F] hover:bg-[#CBD8D1]/40">
             <X className="w-5 h-5" />
@@ -110,7 +110,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpe
               <div className="w-12 h-12 bg-[#E7F3EC] text-[#16803C] border border-[#B7DCC5] rounded-full flex items-center justify-center mx-auto shadow-xs">
                 <Check className="w-6 h-6 stroke-[3]" />
               </div>
-              <h4 className="text-base font-bold text-[#17231F]">Slot Successfully Rescheduled</h4>
+              <h4 className="text-base font-bold text-[#17231F]">{t('bookingRescheduled')}</h4>
               <p className="text-xs text-[#66736D]">
                 Your booking has been updated to <strong>{newDate}</strong> ({formattedSlotWindow}).
               </p>
@@ -120,7 +120,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpe
               <div className="p-3 bg-[#FFF9ED] border border-[#F0D7A7] rounded-[6px] text-xs text-[#B45309] flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span>
-                  Rescheduling will retain your crop allocation for <strong>{booking.cropName}</strong> at <strong>{booking.centreName}</strong> while generating a new queue slot.
+                  Rescheduling will retain your crop allocation for <strong>{translateCrop(booking.cropName)}</strong> at <strong>{booking.centreName}</strong> while generating a new queue slot.
                 </span>
               </div>
 
@@ -132,7 +132,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpe
 
               <div>
                 <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                  New Preferred Date / नई तारीख
+                  {t('selectDate')}
                 </label>
                 <input
                   type="date"
@@ -146,7 +146,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpe
 
               <div>
                 <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                  Available Slots from Mandi / समय स्लॉट
+                  {t('availableSlots')}
                 </label>
 
                 {isLoadingSlots ? (
@@ -160,7 +160,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpe
                   </div>
                 ) : slots.length === 0 ? (
                   <div className="p-3 bg-[#F3F9F5] border border-[#CBD8D1] rounded-[6px] text-xs text-[#66736D] text-center">
-                    No operating slots available on this date. Please select another date.
+                    {t('noSlotsAvailable')}
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -223,7 +223,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpe
                   disabled={isSubmitting}
                   className="h-10 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-xs font-semibold text-[#17231F]"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
@@ -236,7 +236,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpe
                       <span>Rescheduling...</span>
                     </>
                   ) : (
-                    <span>Confirm Reschedule</span>
+                    <span>{t('confirm')}</span>
                   )}
                 </button>
               </div>

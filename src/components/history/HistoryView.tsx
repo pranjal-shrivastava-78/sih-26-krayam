@@ -5,7 +5,17 @@ import { Search, Calendar, RotateCcw, XCircle, Clock, AlertTriangle } from 'luci
 import { RescheduleModal } from '../booking/RescheduleModal';
 
 export const HistoryView: React.FC = () => {
-  const { procurements, bookings, crops, cancelBooking } = useApp();
+  const { 
+    procurements, 
+    bookings, 
+    crops, 
+    cancelBooking,
+    t,
+    translateCrop,
+    translateStatus,
+    translateUnit,
+    formatLocalizedDate
+  } = useApp();
 
   const [activeTab, setActiveTab] = useState<'bookings' | 'procurements'>('bookings');
   const [selectedCrop, setSelectedCrop] = useState<string>('ALL');
@@ -81,10 +91,10 @@ export const HistoryView: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#17231F]">
-              Ledger & History / गतिविधि एवं इतिहास
+              {t('navHistory')}
             </h1>
             <p className="text-xs sm:text-sm text-[#66736D] mt-0.5">
-              Verified records of procurement slot bookings, mandi gate passes, and Treasury DBT payments
+              {t('descHistory')}
             </p>
           </div>
 
@@ -98,7 +108,7 @@ export const HistoryView: React.FC = () => {
                   : 'text-[#66736D] hover:text-[#17231F]'
               }`}
             >
-              Mandi Bookings ({bookings.length})
+              {t('allBookings')} ({bookings.length})
             </button>
             <button
               onClick={() => setActiveTab('procurements')}
@@ -108,7 +118,7 @@ export const HistoryView: React.FC = () => {
                   : 'text-[#66736D] hover:text-[#17231F]'
               }`}
             >
-              Certified Procurements ({procurements.length})
+              {t('allProcurements')} ({procurements.length})
             </button>
           </div>
         </div>
@@ -120,17 +130,17 @@ export const HistoryView: React.FC = () => {
           {/* Crop Filter */}
           <div className="flex-1 min-w-[160px]">
             <label className="block text-[11px] font-bold text-[#66736D] uppercase mb-1">
-              Crop / फसल
+              {t('selectCrop')}
             </label>
             <select
               value={selectedCrop}
               onChange={(e) => setSelectedCrop(e.target.value)}
               className="w-full h-10 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-xs text-[#17231F] focus:outline-none focus:border-[#16845F]"
             >
-              <option value="ALL">All Crops (सभी फसलें)</option>
+              <option value="ALL">{t('allCropsFilter')}</option>
               {crops.map((c) => (
                 <option key={c.id} value={c.name}>
-                  {c.name}
+                  {translateCrop(c.name)}
                 </option>
               ))}
             </select>
@@ -139,27 +149,27 @@ export const HistoryView: React.FC = () => {
           {/* Status Filter */}
           <div className="flex-1 min-w-[140px]">
             <label className="block text-[11px] font-bold text-[#66736D] uppercase mb-1">
-              Status / स्थिति
+              {t('status')}
             </label>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="w-full h-10 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-xs text-[#17231F] focus:outline-none focus:border-[#16845F]"
             >
-              <option value="ALL">All Status (सभी स्थितियां)</option>
+              <option value="ALL">{t('all', 'All')}</option>
               {activeTab === 'bookings' ? (
                 <>
-                  <option value="CONFIRMED">Confirmed / पुष्ट</option>
-                  <option value="RESCHEDULED">Rescheduled / पुनर्निर्धारित</option>
-                  <option value="CHECKED_IN">Checked In / उपस्थित</option>
-                  <option value="COMPLETED">Completed / पूर्ण</option>
-                  <option value="CANCELLED">Cancelled / रद्द</option>
+                  <option value="CONFIRMED">{translateStatus('CONFIRMED')}</option>
+                  <option value="RESCHEDULED">{translateStatus('RESCHEDULED')}</option>
+                  <option value="CHECKED_IN">{translateStatus('CHECKED_IN')}</option>
+                  <option value="COMPLETED">{translateStatus('COMPLETED')}</option>
+                  <option value="CANCELLED">{translateStatus('CANCELLED')}</option>
                 </>
               ) : (
                 <>
-                  <option value="Paid">Paid / जमा</option>
-                  <option value="Processing">Processing / प्रक्रियाधीन</option>
-                  <option value="Cancelled">Cancelled / रद्द</option>
+                  <option value="Paid">{translateStatus('PAID')}</option>
+                  <option value="Processing">{translateStatus('PROCESSING')}</option>
+                  <option value="Cancelled">{translateStatus('CANCELLED')}</option>
                 </>
               )}
             </select>
@@ -168,13 +178,13 @@ export const HistoryView: React.FC = () => {
           {/* Search Input */}
           <div className="flex-[2] min-w-[220px]">
             <label className="block text-[11px] font-bold text-[#66736D] uppercase mb-1">
-              Search / खोजें
+              {t('search')}
             </label>
             <div className="relative">
               <Search className="w-4 h-4 text-[#66736D] absolute left-3 top-3" />
               <input
                 type="text"
-                placeholder={activeTab === 'bookings' ? "Search by Token, Mandi, Crop..." : "Search by Mandi, Crop, Date..."}
+                placeholder={t('searchHistoryPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-10 pl-9 pr-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-xs text-[#17231F] focus:outline-none focus:border-[#16845F]"
@@ -199,12 +209,12 @@ export const HistoryView: React.FC = () => {
             <table className="gov-table min-w-[720px]">
               <thead>
                 <tr>
-                  <th className="w-1/6">Token ID / टोकन</th>
-                  <th className="w-1/6">Date & Slot / तारीख एवं स्लॉट</th>
-                  <th className="w-1/6">Crop / उपज</th>
-                  <th className="w-2/6">Mandi Centre / क्रय केंद्र</th>
-                  <th className="w-1/6">Status / स्थिति</th>
-                  <th className="w-1/6 text-right">Actions / कार्रवाई</th>
+                  <th className="w-1/6">{t('token')}</th>
+                  <th className="w-1/6">{t('date')}</th>
+                  <th className="w-1/6">{t('cropAndQuantity')}</th>
+                  <th className="w-2/6">{t('mandiCentre')}</th>
+                  <th className="w-1/6">{t('status')}</th>
+                  <th className="w-1/6 text-right">{t('action')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -232,13 +242,13 @@ export const HistoryView: React.FC = () => {
                           {b.id}
                         </td>
                         <td className="text-xs text-[#17231F]">
-                          <div className="font-semibold">{b.expectedDate}</div>
+                          <div className="font-semibold">{formatLocalizedDate(b.expectedDate)}</div>
                           <div className="text-[11px] text-[#66736D]">{b.slot}</div>
                         </td>
                         <td className="text-xs font-semibold text-[#17231F]">
-                          <div>{b.cropName}</div>
+                          <div>{translateCrop(b.cropName)}</div>
                           <div className="font-mono text-[11px] text-[#075E43]">
-                            {b.quantityQuintals} {b.unit || 'Qtl'}
+                            {b.quantityQuintals} {translateUnit(b.unit || 'Qtl')}
                           </div>
                         </td>
                         <td className="text-xs text-[#34443D]">
@@ -247,7 +257,7 @@ export const HistoryView: React.FC = () => {
                         </td>
                         <td>
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[10px] font-bold border uppercase tracking-wider ${statusBadge}`}>
-                            ● {b.status}
+                            ● {translateStatus(b.status)}
                           </span>
                         </td>
                         <td className="text-right">
@@ -259,7 +269,7 @@ export const HistoryView: React.FC = () => {
                                 title="Reschedule Date/Slot"
                               >
                                 <RotateCcw className="w-3 h-3" />
-                                <span>Reschedule</span>
+                                <span>{t('reschedule', 'Reschedule')}</span>
                               </button>
                               <button
                                 onClick={() => setCancelTargetBooking(b)}
@@ -267,7 +277,7 @@ export const HistoryView: React.FC = () => {
                                 title="Cancel Booking"
                               >
                                 <XCircle className="w-3 h-3" />
-                                <span>Cancel</span>
+                                <span>{t('cancel')}</span>
                               </button>
                             </div>
                           ) : (
@@ -300,12 +310,12 @@ export const HistoryView: React.FC = () => {
             <table className="gov-table min-w-[640px]">
               <thead>
                 <tr>
-                  <th className="w-1/6">Date / तारीख</th>
-                  <th className="w-1/6">Crop / फसल</th>
-                  <th className="w-1/6">Quantity / मात्रा</th>
-                  <th className="w-2/6">Centre / क्रय केंद्र</th>
-                  <th className="w-1/6">Amount / राशि</th>
-                  <th className="w-1/6">Status / स्थिति</th>
+                  <th className="w-1/6">{t('date')}</th>
+                  <th className="w-1/6">{t('cropAndQuantity')}</th>
+                  <th className="w-1/6">{t('quantityInQuintals')}</th>
+                  <th className="w-2/6">{t('mandiCentre')}</th>
+                  <th className="w-1/6">{t('payableAmount')}</th>
+                  <th className="w-1/6">{t('status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -327,10 +337,10 @@ export const HistoryView: React.FC = () => {
                     return (
                       <tr key={row.id}>
                         <td className="font-medium text-xs text-[#17231F]">
-                          {row.date}
+                          {formatLocalizedDate(row.date)}
                         </td>
                         <td className="text-xs font-semibold text-[#17231F]">
-                          {row.crop}
+                          {translateCrop(row.crop)}
                         </td>
                         <td className="font-mono text-xs font-bold text-[#075E43]">
                           {row.quantity}
@@ -343,7 +353,7 @@ export const HistoryView: React.FC = () => {
                         </td>
                         <td>
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[10px] font-bold border uppercase tracking-wider ${badgeStyle}`}>
-                            ● {row.status}
+                            ● {translateStatus(row.status)}
                           </span>
                         </td>
                       </tr>

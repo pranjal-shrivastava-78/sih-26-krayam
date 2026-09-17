@@ -1,6 +1,7 @@
 import React from 'react';
 import { ProcurementCentre, CropInfo, RecommendedCentreItem, LocationCoordinates } from '../../types';
 import { calculateDistanceKm, formatDistance } from '../../utils/geo';
+import { useApp } from '../../context/AppContext';
 import { X, Check, Award } from 'lucide-react';
 
 interface CentreComparisonModalProps {
@@ -24,6 +25,8 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
   onSelectCentre,
   farmerCoordinates,
 }) => {
+  const { t, translateCrop } = useApp();
+
   if (!isOpen) return null;
 
   const fLat = farmerCoordinates?.latitude ?? farmerCoordinates?.lat;
@@ -45,10 +48,10 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
               Backend Telemetry & Specifications Matrix
             </span>
             <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#17231F]">
-              Procurement Centre Comparison / क्रय केंद्र तुलना
+              {t('comparisonTitle')}
             </h2>
             <p className="text-xs text-[#66736D] mt-0.5">
-              Direct comparison of authorized government mandis for {selectedCrop?.name || 'Selected Crop'}
+              Direct comparison of authorized government mandis for {selectedCrop ? translateCrop(selectedCrop.name) : t('selectCrop')}
             </p>
           </div>
           <button
@@ -83,7 +86,7 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
                       {isRecommended && (
                         <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-[#E7F3EC] text-[#16803C] border border-[#B7DCC5] text-[10px] font-bold rounded">
                           <Award className="w-3 h-3" />
-                          Recommended
+                          {t('recommendedCentre')}
                         </span>
                       )}
                       {recItem && recItem.reasons && recItem.reasons.length > 0 && (
@@ -103,7 +106,7 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
               {/* Distance */}
               <tr>
                 <td className="p-3 text-[10px] uppercase tracking-wider text-[#66736D] font-bold">
-                  Distance
+                  {t('comparisonDistance')}
                 </td>
                 {centres.map((c) => {
                   const recItem = recommendations.find((r) => r.centre.id === c.id);
@@ -131,7 +134,7 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
               {/* Live Load & Wait */}
               <tr>
                 <td className="p-3 text-[10px] uppercase tracking-wider text-[#66736D] font-bold">
-                  Live Queue & Load
+                  {t('comparisonQueue')}
                 </td>
                 {centres.map((c) => {
                   const recItem = recommendations.find((r) => r.centre.id === c.id);
@@ -163,7 +166,7 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
               {/* Operating Hours */}
               <tr>
                 <td className="p-3 text-[10px] uppercase tracking-wider text-[#66736D] font-bold">
-                  Operating Hours
+                  {t('comparisonHours')}
                 </td>
                 {centres.map((c) => (
                   <td key={c.id} className="p-3">
@@ -178,7 +181,7 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
               {/* Accepted Crops */}
               <tr>
                 <td className="p-3 text-[10px] uppercase tracking-wider text-[#66736D] font-bold">
-                  Crop Acceptance
+                  {t('comparisonCrops')}
                 </td>
                 {centres.map((c) => {
                   const acceptsSelected = selectedCrop
@@ -194,11 +197,11 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
                     <td key={c.id} className="p-3">
                       {acceptsSelected ? (
                         <span className="inline-flex items-center gap-1 text-[#16803C] font-bold text-[11px] bg-[#E7F3EC] px-2 py-0.5 rounded border border-[#B7DCC5]">
-                          <Check className="w-3 h-3" /> Accepts {selectedCrop?.name || 'Crop'}
+                          <Check className="w-3 h-3" /> Accepts {selectedCrop ? translateCrop(selectedCrop.name) : 'Crop'}
                         </span>
                       ) : (
                         <span className="text-[#B42318] font-bold text-[11px] bg-[#FFF5F5] px-2 py-0.5 rounded border border-[#F0C2C2]">
-                          Does not accept {selectedCrop?.name || 'Crop'}
+                          Does not accept {selectedCrop ? translateCrop(selectedCrop.name) : 'Crop'}
                         </span>
                       )}
                     </td>
@@ -209,7 +212,7 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
               {/* Action Selection Row */}
               <tr>
                 <td className="p-3 text-[10px] uppercase tracking-wider text-[#66736D] font-bold">
-                  Action
+                  {t('action')}
                 </td>
                 {centres.map((c) => {
                   const isSelected = c.id === selectedCentreId;
@@ -226,7 +229,7 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
                             : 'bg-[#FFFFFF] border border-[#CBD8D1] text-[#17231F] hover:bg-[#F3F9F5]'
                         }`}
                       >
-                        {isSelected ? 'Currently Selected' : 'Select Centre'}
+                        {isSelected ? t('recommendedCentre') : t('selectCentre')}
                       </button>
                     </td>
                   );
@@ -242,7 +245,7 @@ export const CentreComparisonModal: React.FC<CentreComparisonModalProps> = ({
             onClick={onClose}
             className="h-10 px-5 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] text-xs font-semibold transition-colors"
           >
-            Close Comparison
+            {t('close')}
           </button>
         </div>
       </div>

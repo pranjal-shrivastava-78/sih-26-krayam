@@ -18,7 +18,8 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
     t,
     isLoggedIn,
     logout,
-    language
+    language,
+    formatLocalizedDate
   } = useApp();
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -33,14 +34,26 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
     return () => clearInterval(timer);
   }, []);
 
-  const formattedDate = currentDateTime.toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-IN', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  });
+  const formattedDate = formatLocalizedDate(currentDateTime);
 
-  const formattedTime = currentDateTime.toLocaleTimeString(language === 'hi' ? 'hi-IN' : 'en-IN', {
+  const getLocaleCode = (lang: string) => {
+    const locales: Record<string, string> = {
+      hi: 'hi-IN',
+      bn: 'bn-IN',
+      mr: 'mr-IN',
+      te: 'te-IN',
+      ta: 'ta-IN',
+      gu: 'gu-IN',
+      ur: 'ur-PK',
+      kn: 'kn-IN',
+      or: 'or-IN',
+      pa: 'pa-IN',
+      en: 'en-IN'
+    };
+    return locales[lang] || 'en-IN';
+  };
+
+  const formattedTime = currentDateTime.toLocaleTimeString(getLocaleCode(language), {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -177,7 +190,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
                       className="w-full text-left px-3 py-2 text-xs text-[#17231F] hover:bg-[#F5F8F6] flex items-center gap-2"
                     >
                       <ShieldCheck className="w-4 h-4 text-[#075E43]" />
-                      <span>View Full Profile & Land</span>
+                      <span>{t('farmerProfile')}</span>
                     </button>
 
                     <button
@@ -188,7 +201,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
                       className="w-full text-left px-3 py-2 text-xs text-[#17231F] hover:bg-[#F5F8F6] flex items-center gap-2"
                     >
                       <LogIn className="w-4 h-4 text-[#075E43]" />
-                      <span>Switch Account / Register</span>
+                      <span>{t('login')} / {t('register')}</span>
                     </button>
 
                     <div className="border-t border-[#EDF3EF] my-1" />
@@ -201,7 +214,7 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
                       className="w-full text-left px-3 py-2 text-xs text-[#DC2626] hover:bg-[#FEF2F2] flex items-center gap-2 font-medium"
                     >
                       <LogOut className="w-4 h-4 text-[#DC2626]" />
-                      <span>Sign Out (लॉग आउट)</span>
+                      <span>{t('logout')}</span>
                     </button>
                   </div>
                 )}
@@ -212,8 +225,8 @@ export const GovernmentHeader: React.FC<GovernmentHeaderProps> = ({ onOpenSideba
                 className="h-9 px-2.5 sm:px-4 rounded-[6px] bg-[#075E43] hover:bg-[#063B2A] text-[#FFFFFF] text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
               >
                 <LogIn className="w-4 h-4" />
-                <span className="hidden sm:inline">Login / Register</span>
-                <span className="sm:hidden">Login</span>
+                <span className="hidden sm:inline">{t('login')} / {t('register')}</span>
+                <span className="sm:hidden">{t('login')}</span>
               </button>
             )}
           </div>

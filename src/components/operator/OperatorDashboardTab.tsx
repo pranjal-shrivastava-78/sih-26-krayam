@@ -34,7 +34,10 @@ export const OperatorDashboardTab: React.FC = () => {
     syncOfflineQueue, 
     setOperatorActiveTab, 
     operatorCallNext, 
-    language 
+    language,
+    translateCrop,
+    translateStatus,
+    translateUnit
   } = useApp();
 
   const ot = getOperatorText(language);
@@ -294,8 +297,8 @@ export const OperatorDashboardTab: React.FC = () => {
                       <div className="text-[11px] text-[#66736D] font-mono">{b.farmerMobile}</div>
                     </td>
                     <td className="px-3 py-3">
-                      <div className="font-medium">{b.cropName}</div>
-                      <div className="text-[11px] text-[#66736D] font-mono">{b.quantityQuintals} Qtl</div>
+                      <div className="font-medium">{translateCrop(b.cropName)}</div>
+                      <div className="text-[11px] text-[#66736D] font-mono">{b.quantityQuintals} {translateUnit('Qtl')}</div>
                     </td>
                     <td className="px-3 py-3 text-[11px] text-[#66736D]">
                       {b.slot.split(' ')[0]}
@@ -312,7 +315,7 @@ export const OperatorDashboardTab: React.FC = () => {
                           ? 'bg-[#B42318]/10 text-[#B42318]'
                           : 'bg-[#063B2A]/10 text-[#063B2A]'
                       }`}>
-                        {b.status}
+                        {translateStatus(b.status)}
                       </span>
                     </td>
                     <td className="px-3 py-3 text-right">
@@ -329,7 +332,7 @@ export const OperatorDashboardTab: React.FC = () => {
                 {bookings.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-3 py-6 text-center text-[#66736D]">
-                      No active vehicles in the queue currently.
+                      {ot.noVehiclesInQueue || 'No active vehicles in the queue currently.'}
                     </td>
                   </tr>
                 )}

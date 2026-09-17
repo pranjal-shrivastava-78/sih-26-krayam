@@ -17,6 +17,7 @@ import {
   SyncOperation
 } from '../types';
 import { translations, TranslationStrings } from '../i18n/translations';
+import { isRtlLanguage, translateCrop, translateStatus, translateUnit, formatLocalizedDate } from '../i18n/helpers';
 import api, { ApiError, BackendOperator, BackendQueueEntry, BackendQueueSummary, OperatorDashboardData, SyncEventIn } from '../services/api';
 import { realtimeService, RealtimeStatus, BackendEvent } from '../services/realtime';
 import { offlineDb, OfflineActionRecord } from '../services/db';
@@ -24,7 +25,12 @@ import { offlineDb, OfflineActionRecord } from '../services/db';
 interface AppContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: keyof TranslationStrings) => string;
+  t: (key: any, fallback?: string) => string;
+  translateCrop: (cropNameOrId: string) => string;
+  translateStatus: (status: string) => string;
+  translateUnit: (unit: string) => string;
+  formatLocalizedDate: (date: string | Date) => string;
+  isRtl: boolean;
   
   // Auth & Profile
   farmer: FarmerProfile | null;
@@ -224,9 +230,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
   const [isCookieModalOpen, setIsCookieModalOpen] = useState<boolean>(false);
 
-  // Persist only UI configuration in localStorage (Rule 11)
+  // Persist only UI configuration in localStorage (Rule 11) & update document direction
   useEffect(() => {
     localStorage.setItem('kisan_lang', language);
+    if (typeof document !== 'undefined') {
+      document.documentElement.dir = isRtlLanguage(language) ? 'rtl' : 'ltr';
+      document.documentElement.lang = language;
+    }
   }, [language]);
 
   const setLanguage = (lang: Language) => {
@@ -242,9 +252,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUserRole(role);
   };
 
-  const t = (key: keyof TranslationStrings): string => {
-    return translations[language]?.[key] || translations.en[key] || String(key);
-  };
+  const t = useCallback((key: any, fallback?: string): string => {
+    const k = key as keyof TranslationStrings;
+    const str = translations[language]?.[k] || translations.en?.[k];
+    if (str) return str;
+    return fallback !== undefined ? fallback : String(key);
+  }, [language]);
+
+  const localizedCrop = useCallback((cropNameOrId: string) => translateCrop(cropNameOrId, language), [language]);
+  const localizedStatus = useCallback((status: string) => translateStatus(status, language), [language]);
+  const localizedUnit = useCallback((unit: string) => translateUnit(unit, language), [language]);
+  const localizedDate = useCallback((date: string | Date) => formatLocalizedDate(date, language), [language]);
 
   // Fetch farmer profile, bookings, and notifications from FastAPI backend
   const refreshFarmerData = useCallback(async () => {
@@ -2348,6 +2366,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         language,
         setLanguage,
         t,
+        translateCrop: localizedCrop,
+        translateStatus: localizedStatus,
+        translateUnit: localizedUnit,
+        formatLocalizedDate: localizedDate,
+        isRtl: isRtlLanguage(language),
         farmer,
         isLoggedIn,
         authStatus,

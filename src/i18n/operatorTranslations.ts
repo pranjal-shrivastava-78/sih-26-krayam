@@ -141,10 +141,36 @@ export interface OperatorTranslations {
   syncAllNowBtn: string;
   lastSyncTimestamp: string;
   retrySyncBtn: string;
+
+  // Extended Operator UI Translations
+  confirmedSlots: string;
+  waitingInYard: string;
+  atWeighbridges: string;
+  jFormsIssued: string;
+  pfmsAwaiting: string;
+  manageFullQueue: string;
+  noVehiclesInQueue: string;
+  aiArrivalTelemetry: string;
+  fastApiMlModel: string;
+  normalOperatingStatus: string;
+  loadAdvisory: string;
+  predictedWaitTime: string;
 }
 
 export const operatorTranslations: Record<Language, OperatorTranslations> = {
   "en": {
+    "confirmedSlots": "Confirmed Slots",
+    "waitingInYard": "Waiting in Yard",
+    "atWeighbridges": "At Weighbridges",
+    "jFormsIssued": "J-Forms Issued",
+    "pfmsAwaiting": "PFMS Awaiting",
+    "manageFullQueue": "Manage Full Queue",
+    "noVehiclesInQueue": "No active vehicles in the queue currently.",
+    "aiArrivalTelemetry": "AI Arrival Telemetry",
+    "fastApiMlModel": "FastAPI ML Model",
+    "normalOperatingStatus": "Mandi Operating Status: Normal",
+    "loadAdvisory": "Load Advisory",
+    "predictedWaitTime": "Predicted Wait Time",
     "portalName": "Centre Operator Web App",
     "mandiCentreBadge": "Samrala Main Grain Mandi (APMC Punjab)",
     "onlineBadge": "ONLINE (Connected)",
@@ -271,6 +297,18 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "retrySyncBtn": "Retry Sync"
   },
   "hi": {
+    "confirmedSlots": "पुष्ट स्लॉट",
+    "waitingInYard": "मंडी प्रांगण में प्रतीक्षारत",
+    "atWeighbridges": "तौल कांटे पर",
+    "jFormsIssued": "जे-फॉर्म जारी",
+    "pfmsAwaiting": "पीएफएमएस भुगतान लंबित",
+    "manageFullQueue": "पूरी कतार प्रबंधित करें",
+    "noVehiclesInQueue": "वर्तमान में कतार में कोई वाहन नहीं है।",
+    "aiArrivalTelemetry": "एआई आगमन अनुमान",
+    "fastApiMlModel": "फास्टएपीआई एमएल मॉडल",
+    "normalOperatingStatus": "मंडी संचालन स्थिति: सामान्य",
+    "loadAdvisory": "भार संबंधी सलाह",
+    "predictedWaitTime": "अनुमानित प्रतीक्षा समय",
     "portalName": "केंद्र संचालक वेब ऐप (Krayam)",
     "mandiCentreBadge": "समराला मुख्य अनाज मंडी (APMC पंजाब)",
     "onlineBadge": "ऑनलाइन (सक्रिय)",
@@ -397,6 +435,18 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "retrySyncBtn": "पुनः सिंक का प्रयास करें"
   },
   "pa": {
+    "confirmedSlots": "ਪੁਸ਼ਟੀ ਕੀਤੇ ਸਲਾਟ",
+    "waitingInYard": "ਮੰਡੀ ਵਿੱਚ ਉਡੀਕ ਕਰ ਰਹੇ",
+    "atWeighbridges": "ਤੋਲ ਕਾਂਟਿਆਂ ਤੇ",
+    "jFormsIssued": "ਜੇ-ਫਾਰਮ ਜਾਰੀ ਕੀਤੇ",
+    "pfmsAwaiting": "ਭੁਗਤਾਨ ਬਕਾਇਆ",
+    "manageFullQueue": "ਪੂਰੀ ਕਤਾਰ ਦਾ ਪ੍ਰਬੰਧ ਕਰੋ",
+    "noVehiclesInQueue": "ਮੌਜੂਦਾ ਸਮੇਂ ਕਤਾਰ ਵਿੱਚ ਕੋਈ ਵਾਹਨ ਨਹੀਂ ਹੈ।",
+    "aiArrivalTelemetry": "ਏ.ਆਈ. ਆਮਦ ਅੰਦਾਜ਼ਾ",
+    "fastApiMlModel": "ਐੱਮ.ਐੱਲ. ਮਾਡਲ",
+    "normalOperatingStatus": "ਮੰਡੀ ਦੀ ਸਥਿਤੀ: ਆਮ",
+    "loadAdvisory": "ਭੀੜ ਸੰਬੰਧੀ ਸਲਾਹ",
+    "predictedWaitTime": "ਅੰਦਾਜ਼ਨ ਉਡੀਕ ਸਮਾਂ",
     "portalName": "ਕੇਂਦਰ ਸੰਚਾਲਕ ਵੈੱਬ ਐਪ (Krayam)",
     "mandiCentreBadge": "ਸਮਰਾਲਾ ਮੁੱਖ ਅਨਾਜ ਮੰਡੀ (APMC ਪੰਜਾਬ)",
     "onlineBadge": "ਆਨਲਾਈਨ (ਜੁੜਿਆ ਹੋਇਆ)",
@@ -523,6 +573,18 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "retrySyncBtn": "ਮੁੜ ਸਿੰਕ ਕਰੋ"
   },
   "bn": {
+    "confirmedSlots": "নিশ্চিত স্লট",
+    "waitingInYard": "প্রাঙ্গণে অপেক্ষারত",
+    "atWeighbridges": "ওজন কাঁটায়",
+    "jFormsIssued": "জে-ফর্ম প্রদান",
+    "pfmsAwaiting": "পেমেন্ট অপেক্ষারত",
+    "manageFullQueue": "সম্পূর্ণ লাইন পরিচালনা করুন",
+    "noVehiclesInQueue": "বর্তমানে লাইনে কোনো গাড়ি নেই।",
+    "aiArrivalTelemetry": "এআই আগমন অনুমান",
+    "fastApiMlModel": "এমএল মডেল",
+    "normalOperatingStatus": "কার্যক্রম স্বাভাবিক",
+    "loadAdvisory": "ভিড় সংক্রান্ত পরামর্শ",
+    "predictedWaitTime": "আনুমানিক অপেক্ষার সময়",
     "portalName": "কেন্দ্র অপারেটর ওয়েব অ্যাপ (Krayam)",
     "mandiCentreBadge": "সমরালা প্রধান শস্য মাণ্ডি (APMC পাঞ্জাব)",
     "onlineBadge": "অনলাইন (সংযুক্ত)",
@@ -649,6 +711,18 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "retrySyncBtn": "Retry Sync"
   },
   "mr": {
+    "confirmedSlots": "निश्चित स्लॉट",
+    "waitingInYard": "मंडई आवारात प्रतीक्षेत",
+    "atWeighbridges": "तौल काट्यावर",
+    "jFormsIssued": "जे-फॉर्म जारी",
+    "pfmsAwaiting": "पीएफएमएस पेमेंट बाकी",
+    "manageFullQueue": "संपूर्ण रांग व्यवस्थापित करा",
+    "noVehiclesInQueue": "सध्या रांगेत कोणतेही वाहन नाही.",
+    "aiArrivalTelemetry": "एआय आगमन अंदाज",
+    "fastApiMlModel": "एमएल मॉडेल",
+    "normalOperatingStatus": "मंडई कामकाज स्थिती: सामान्य",
+    "loadAdvisory": "गर्दीविषयक सल्ला",
+    "predictedWaitTime": "अपेक्षित प्रतीक्षा वेळ",
     "portalName": "केंद्र ऑपरेटर वेब ॲप (Krayam)",
     "mandiCentreBadge": "समराला मुख्य धान्य बाजार (APMC पंजाब)",
     "onlineBadge": "ऑनलाइन (कनेक्टेड)",
@@ -775,6 +849,18 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "retrySyncBtn": "Retry Sync"
   },
   "te": {
+    "confirmedSlots": "ఖరారైన స్లాట్‌లు",
+    "waitingInYard": "యార్డ్‌లో వేచి ఉన్నారు",
+    "atWeighbridges": "తూకం కేంద్రాల వద్ద",
+    "jFormsIssued": "జే-ఫారమ్‌లు జారీ చేయబడ్డాయి",
+    "pfmsAwaiting": "పీఎఫ్‌ఎంఎస్ చెల్లింపు పెండింగ్",
+    "manageFullQueue": "పూర్తి క్యూ నిర్వహించండి",
+    "noVehiclesInQueue": "ప్రస్తుతం క్యూలో వాహనాలు లేవు.",
+    "aiArrivalTelemetry": "ఏఐ రాక అంచనా",
+    "fastApiMlModel": "ఎంఎల్ మోడల్",
+    "normalOperatingStatus": "మార్కెట్ స్థితి: సాధారణం",
+    "loadAdvisory": "రద్దీ సలహా",
+    "predictedWaitTime": "అంచనా వేసిన వేచి ఉండే సమయం",
     "portalName": "సెంటర్ ఆపరేటర్ వెబ్ యాప్ (Krayam)",
     "mandiCentreBadge": "సమరాల ప్రధాన ధాన్యపు మార్కెట్ (APMC పంజాబ్)",
     "onlineBadge": "ఆన్‌లైన్ (కనెక్ట్ చేయబడింది)",
@@ -901,6 +987,18 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "retrySyncBtn": "Retry Sync"
   },
   "ta": {
+    "confirmedSlots": "உறுதிப்படுத்தப்பட்டவை",
+    "waitingInYard": "யார்டில் காத்திருப்பவர்கள்",
+    "atWeighbridges": "எடை மேடைகளில்",
+    "jFormsIssued": "வழங்கப்பட்ட ஜே-படிவங்கள்",
+    "pfmsAwaiting": "நிலுவையிலுள்ள பணம்",
+    "manageFullQueue": "முழு வரிಸையை நிர்வகிக்கவும்",
+    "noVehiclesInQueue": "தற்போது வரிசையில் வாகனங்கள் இல்லை.",
+    "aiArrivalTelemetry": "ஏஐ வருகை மதிப்பீடு",
+    "fastApiMlModel": "எம்எல் மாதிரி",
+    "normalOperatingStatus": "மண்டி நிலை: இயல்பு",
+    "loadAdvisory": "நெரிசல் ஆலோசனை",
+    "predictedWaitTime": "கணிக்கப்பட்ட காத்திருப்பு நேரம்",
     "portalName": "மைய ஆபரேட்டர் வலைத்தளம் (Krayam)",
     "mandiCentreBadge": "சம்ராலா முதன்மை தானிய சந்தை (APMC பஞ்சாப்)",
     "onlineBadge": "ஆன்லைன் (இணைக்கப்பட்டது)",
@@ -1027,6 +1125,18 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "retrySyncBtn": "Retry Sync"
   },
   "gu": {
+    "confirmedSlots": "પાક્કા સ્લોટ",
+    "waitingInYard": "યાર્ડમાં પ્રતીક્ષારત",
+    "atWeighbridges": "તોલ કાંટા પર",
+    "jFormsIssued": "જે-ફોર્મ જારી",
+    "pfmsAwaiting": "પેમેન્ટ બાકી",
+    "manageFullQueue": "સંપૂર્ણ કતાર સંચાલિત કરો",
+    "noVehiclesInQueue": "હાલમાં કતારમાં કોઈ વાહન નથી.",
+    "aiArrivalTelemetry": "એઆઈ આગમન અંદાજ",
+    "fastApiMlModel": "એમએલ મોડેલ",
+    "normalOperatingStatus": "યાર્ડ સ્થિતિ: સામાન્ય",
+    "loadAdvisory": "લોડ સલાહ",
+    "predictedWaitTime": "અંદાજિત રાહ જોવાનો સમય",
     "portalName": "કેન્દ્ર ઓપરેટર વેબ એપ (Krayam)",
     "mandiCentreBadge": "સમરાલા મુખ્ય અનાજ માર્કેટ (APMC પંજાબ)",
     "onlineBadge": "ઓનલાઈન (કનેક્ટેડ)",
@@ -1153,6 +1263,18 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "retrySyncBtn": "Retry Sync"
   },
   "ur": {
+    "confirmedSlots": "تصدیق شدہ سلاٹس",
+    "waitingInYard": "منڈی میں منتظر",
+    "atWeighbridges": "تول کانٹوں پر",
+    "jFormsIssued": "جے فارم جاری",
+    "pfmsAwaiting": "ادائیگی زیر التوا",
+    "manageFullQueue": "مکمل قطار کا انتظام کریں",
+    "noVehiclesInQueue": "فی الحال قطار میں کوئی گاڑی نہیں ہے۔",
+    "aiArrivalTelemetry": "اے آئی آمد کا تخمینہ",
+    "fastApiMlModel": "ایم ایل ماڈل",
+    "normalOperatingStatus": "منڈی کی حالت: معمول کے مطابق",
+    "loadAdvisory": "لوڈ ایڈوائزری",
+    "predictedWaitTime": "متوقع انتظار کا وقت",
     "portalName": "سینٹر آپریٹر ویب ایپ (Krayam)",
     "mandiCentreBadge": "سمرالہ مرکزی اناج منڈی (APMC پنجاب)",
     "onlineBadge": "آن لائن (منسلک)",
@@ -1279,6 +1401,18 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "retrySyncBtn": "Retry Sync"
   },
   "kn": {
+    "confirmedSlots": "ದೃಢೀಕೃತ ಸ್ಲಾಟ್‌ಗಳು",
+    "waitingInYard": "ಮಂಡಿ ಆವರಣದಲ್ಲಿ ಕಾಯುತ್ತಿದ್ದಾರೆ",
+    "atWeighbridges": "ತೂಕದ ಸ್ಥಳಗಳಲ್ಲಿ",
+    "jFormsIssued": "ಜೆ-ಫಾರ್ಮ್‌ಗಳನ್ನು ನೀಡಲಾಗಿದೆ",
+    "pfmsAwaiting": "ಪಾವತಿ ಬಾಕಿ ಇದೆ",
+    "manageFullQueue": "ಪೂರ್ಣ ಸರದಿಯನ್ನು ನಿರ್ವಹಿಸಿ",
+    "noVehiclesInQueue": "ಪ್ರಸ್ತುತ ಸರದಿಯಲ್ಲಿ ಯಾವುದೇ ವಾಹನಗಳಿಲ್ಲ.",
+    "aiArrivalTelemetry": "ಎಐ ಆಗಮನದ ಅಂದಾಜು",
+    "fastApiMlModel": "ಎಂಎಲ್ ಮಾದರಿ",
+    "normalOperatingStatus": "ಮಂಡಿ ಸ್ಥಿತಿ: ಸಾಮಾನ್ಯ",
+    "loadAdvisory": "ದಟ್ಟಣೆ ಸಲಹೆ",
+    "predictedWaitTime": "ನಿರೀಕ್ಷಿತ ಕಾಯುವ ಸಮಯ",
     "portalName": "ಕೇಂದ್ರ ಆಪರೇಟರ್ ವೆಬ್ ಅಪ್ಲಿಕೇಶನ್ (Krayam)",
     "mandiCentreBadge": "ಸಮರಾಲ ಮುಖ್ಯ ಧಾನ್ಯ ಮಾರುಕಟ್ಟೆ (APMC ಪಂಜಾಬ್)",
     "onlineBadge": "ಆನ್‌ಲೈನ್ (ಸಂಪರ್ಕಗೊಂಡಿದೆ)",
@@ -1405,6 +1539,18 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "retrySyncBtn": "Retry Sync"
   },
   "or": {
+    "confirmedSlots": "ନିଶ୍ଚିତ ସ୍ଲଟ୍",
+    "waitingInYard": "ମଣ୍ଡି ପ୍ରାଙ୍ଗଣରେ ଅପେକ୍ଷା",
+    "atWeighbridges": "ଓଜନ କଣ୍ଟାରେ",
+    "jFormsIssued": "ଜେ-ଫର୍ମ ପ୍ରଦତ୍ତ",
+    "pfmsAwaiting": "ଦେୟ ବକେୟା",
+    "manageFullQueue": "ସମ୍ପୂର୍ଣ୍ଣ ଧାଡ଼ି ପରିଚାଳନା କରନ୍ତୁ",
+    "noVehiclesInQueue": "ବର୍ତ୍ତମାନ ଧାଡ଼ିରେ କୌଣସି ଗାଡ଼ି ନାହିଁ।",
+    "aiArrivalTelemetry": "ଏଆଇ ଆଗମନ ଆକଳନ",
+    "fastApiMlModel": "ଏମଏଲ୍ ମଡେଲ୍",
+    "normalOperatingStatus": "ମଣ୍ଡି ସ୍ଥିତି: ସ୍ୱାଭାବିକ",
+    "loadAdvisory": "ଭିଡ଼ ପରାମର୍ଶ",
+    "predictedWaitTime": "ଅନୁମାନିକ ଅପେକ୍ଷା ସମୟ",
     "portalName": "କେନ୍ଦ୍ର ଅପରେଟର ୱେବ୍ ଆପ୍ (Krayam)",
     "mandiCentreBadge": "ସମରାଲା ମୁଖ୍ୟ ଶସ୍ୟ ମଣ୍ଡି (APMC ପଞ୍ଜାବ)",
     "onlineBadge": "ଅନଲାଇନ୍ (ସଂଯୁକ୍ତ)",

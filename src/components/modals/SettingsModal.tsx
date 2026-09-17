@@ -9,7 +9,8 @@ export const SettingsModal: React.FC = () => {
     isSettingsModalOpen, 
     setIsSettingsModalOpen, 
     language, 
-    setLanguage 
+    setLanguage,
+    t
   } = useApp();
 
   const [smsTokenAlert, setSmsTokenAlert] = useState(true);
@@ -25,7 +26,7 @@ export const SettingsModal: React.FC = () => {
         <div className="bg-[#EDF3EF] px-5 py-3.5 border-b border-[#CBD8D1] flex items-center justify-between flex-shrink-0">
           <div>
             <h3 className="text-base font-bold text-[#17231F]">
-              Portal Settings / सेटिंग्स
+              {t('settings')}
             </h3>
             <p className="text-xs text-[#66736D]">
               Top 10 Most Spoken Languages in India + English
@@ -45,7 +46,7 @@ export const SettingsModal: React.FC = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 text-xs uppercase font-bold tracking-wider text-[#17231F]">
                 <Globe className="w-4 h-4 text-[#075E43]" />
-                <span>Language Preference / भाषा चुनें</span>
+                <span>{t('language')}</span>
               </div>
               <span className="text-[10px] bg-[#E7F3EC] text-[#075E43] font-bold px-2 py-0.5 rounded border border-[#CBD8D1]">
                 11 Languages
@@ -98,7 +99,7 @@ export const SettingsModal: React.FC = () => {
               <label className="flex items-center justify-between p-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF]">
                 <div>
                   <div className="font-semibold text-[#17231F]">Weighbridge Turn Approaching Alert</div>
-                  <div className="text-[#66736D] text-[11px]">SMS & Sound signal when 2 vehicles remain ahead</div>
+                  <div className="text-[#66736D] text-[11px]">Advance SMS warning when 2 vehicles remain ahead</div>
                 </div>
                 <input
                   type="checkbox"
@@ -110,8 +111,8 @@ export const SettingsModal: React.FC = () => {
 
               <label className="flex items-center justify-between p-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF]">
                 <div>
-                  <div className="font-semibold text-[#17231F]">Direct Benefit Transfer (DBT) SMS</div>
-                  <div className="text-[#66736D] text-[11px]">Bank UTR confirmation upon treasury release</div>
+                  <div className="font-semibold text-[#17231F]">DBT Direct Payment Confirmation</div>
+                  <div className="text-[#66736D] text-[11px]">PFMS transaction and credit SMS alert</div>
                 </div>
                 <input
                   type="checkbox"
@@ -129,7 +130,7 @@ export const SettingsModal: React.FC = () => {
             onClick={() => setIsSettingsModalOpen(false)}
             className="h-10 px-5 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-xs"
           >
-            Save & Close / सहेजें
+            {t('save')} & {t('close')}
           </button>
         </div>
       </div>

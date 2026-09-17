@@ -17,7 +17,7 @@ import { INDIAN_STATES } from '../../data/states';
 import { getDistrictsForState } from '../../data/districts';
 
 export const ProfileView: React.FC = () => {
-  const { farmer, updateProfile, logout, setActiveView } = useApp();
+  const { farmer, updateProfile, logout, setActiveView, t } = useApp();
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -103,18 +103,17 @@ export const ProfileView: React.FC = () => {
         fullName: formData.fullName.trim(),
         mobileNumber: formData.mobileNumber.trim(),
         location: {
-          ...(farmer?.location || {}),
-          village: formData.village.trim() || undefined,
-          district: formData.district.trim() || undefined,
-          state: formData.state.trim() || undefined,
-          pincode: formData.pincode.trim() || undefined,
+          village: formData.village.trim(),
+          district: formData.district,
+          state: formData.state,
+          pincode: formData.pincode.trim(),
+          coordinates: farmer?.location?.coordinates,
         },
       });
-      setSaveSuccess('Profile updated successfully.');
+      setSaveSuccess(t('profileUpdated'));
       setIsEditing(false);
-      setTimeout(() => setSaveSuccess(null), 4000);
     } catch (err: any) {
-      setSaveError(err.message || 'Failed to update profile. Please try again.');
+      setSaveError(err.message || 'Failed to save profile changes.');
     } finally {
       setIsSaving(false);
     }
@@ -125,10 +124,10 @@ export const ProfileView: React.FC = () => {
       <div className="w-full py-8">
         <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-8 sm:p-12 text-center max-w-xl mx-auto shadow-sm">
           <div className="w-12 h-12 rounded-[6px] bg-[#E7F3EC] text-[#075E43] border border-[#CBD8D1] flex items-center justify-center mx-auto mb-4">
-            <ShieldCheck className="w-6 h-6" />
+            <User className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-bold text-[#17231F]">
-            Farmer Profile Not Loaded
+            {t('farmerProfile')}
           </h2>
           <p className="text-xs text-[#66736D] mt-2 mb-6">
             Please log in with your registered mobile number or Farmer ID to view and manage your personal details.
@@ -144,10 +143,10 @@ export const ProfileView: React.FC = () => {
       <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#17231F]">
-            Farmer Identity / किसान पहचान
+            {t('farmerProfile')}
           </h1>
           <p className="text-xs sm:text-sm text-[#66736D] mt-0.5">
-            Ministry of Agriculture & Farmers Welfare — Official Farmer Registry
+            {t('ministryName')} — {t('verifiedFarmer')}
           </p>
         </div>
 
@@ -160,7 +159,7 @@ export const ProfileView: React.FC = () => {
             className="h-10 px-4 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-xs font-semibold text-[#17231F] flex items-center gap-1.5 transition-colors"
           >
             <Edit3 className="w-3.5 h-3.5 text-[#075E43]" />
-            <span>{isEditing ? 'Cancel Edit' : 'Edit Information'}</span>
+            <span>{isEditing ? t('cancel') : t('edit')}</span>
           </button>
 
           <button
@@ -169,7 +168,7 @@ export const ProfileView: React.FC = () => {
             title="Switch or Register Another Account"
           >
             <LogIn className="w-3.5 h-3.5 text-[#075E43]" />
-            <span className="hidden sm:inline">Switch Account</span>
+            <span className="hidden sm:inline">{t('login')}</span>
           </button>
 
           <button
@@ -178,7 +177,7 @@ export const ProfileView: React.FC = () => {
             title="Sign Out"
           >
             <LogOut className="w-3.5 h-3.5 text-[#DC2626]" />
-            <span>Sign Out</span>
+            <span>{t('logout')}</span>
           </button>
         </div>
       </div>
@@ -261,13 +260,13 @@ export const ProfileView: React.FC = () => {
               {/* Row 1: Full Name & Mobile Number */}
               <div>
                 <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                  FULL NAME / पूरा नाम *
+                  {t('fullName')} *
                 </label>
                 <input
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  placeholder="Full Name"
+                  placeholder={t('fullName')}
                   className="w-full h-11 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-sm text-[#17231F] focus:outline-none focus:border-[#16845F]"
                   required
                 />
@@ -275,13 +274,13 @@ export const ProfileView: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                  MOBILE NUMBER / मोबाइल *
+                  {t('mobileNumber')} *
                 </label>
                 <input
                   type="tel"
                   value={formData.mobileNumber}
                   onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
-                  placeholder="Mobile Number"
+                  placeholder={t('mobileNumber')}
                   className="w-full h-11 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-sm text-[#17231F] focus:outline-none focus:border-[#16845F]"
                   required
                 />
@@ -290,7 +289,7 @@ export const ProfileView: React.FC = () => {
               {/* Row 2: State & District */}
               <div>
                 <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                  STATE / राज्य *
+                  {t('state')} *
                 </label>
                 <select
                   value={formData.state}
@@ -298,7 +297,7 @@ export const ProfileView: React.FC = () => {
                   className="w-full h-11 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-sm text-[#17231F] focus:outline-none focus:border-[#16845F]"
                   required
                 >
-                  <option value="">Select State</option>
+                  <option value="">{t('state')}</option>
                   {INDIAN_STATES.map((stateName) => (
                     <option key={stateName} value={stateName}>
                       {stateName}
@@ -309,7 +308,7 @@ export const ProfileView: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                  DISTRICT / जिला *
+                  {t('district')} *
                 </label>
                 <select
                   required
@@ -319,7 +318,7 @@ export const ProfileView: React.FC = () => {
                   className="w-full h-11 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-sm text-[#17231F] focus:outline-none focus:border-[#16845F] disabled:bg-[#F4F7F5] disabled:text-[#94A3B8] disabled:cursor-not-allowed"
                 >
                   <option value="">
-                    {formData.state ? 'Select District' : 'Select State First'}
+                    {t('district')}
                   </option>
                   {getDistrictsForState(formData.state).map((d) => (
                     <option key={d} value={d}>
@@ -335,14 +334,14 @@ export const ProfileView: React.FC = () => {
               {/* Row 3: PIN Code & Village */}
               <div>
                 <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                  PIN CODE / पिन कोड *
+                  {t('pincode')} *
                 </label>
                 <input
                   type="text"
                   maxLength={6}
                   value={formData.pincode}
                   onChange={(e) => setFormData({ ...formData, pincode: e.target.value.replace(/\D/g, '') })}
-                  placeholder="Pincode"
+                  placeholder={t('pincode')}
                   className="w-full h-11 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-sm text-[#17231F] focus:outline-none focus:border-[#16845F]"
                   required
                 />
@@ -350,13 +349,13 @@ export const ProfileView: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-[#17231F] uppercase mb-1">
-                  VILLAGE / गाँव *
+                  {t('village')} *
                 </label>
                 <input
                   type="text"
                   value={formData.village}
                   onChange={(e) => setFormData({ ...formData, village: e.target.value })}
-                  placeholder="Village"
+                  placeholder={t('village')}
                   className="w-full h-11 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-sm text-[#17231F] focus:outline-none focus:border-[#16845F]"
                   required
                 />
@@ -370,7 +369,7 @@ export const ProfileView: React.FC = () => {
                 className="inline-flex items-center gap-2 h-11 px-6 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] disabled:opacity-50 text-[#FFFFFF] font-semibold text-xs transition-colors"
               >
                 <Save className="w-3.5 h-3.5" />
-                <span>{isSaving ? 'Saving to National Grid...' : 'Save Profile Changes'}</span>
+                <span>{isSaving ? t('loading') : t('save')}</span>
               </button>
               <button
                 type="button"
@@ -381,7 +380,7 @@ export const ProfileView: React.FC = () => {
                 }}
                 className="h-11 px-4 rounded-[6px] border border-[#CBD8D1] text-xs font-semibold text-[#17231F] hover:bg-[#F3F9F5]"
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </form>
@@ -390,36 +389,36 @@ export const ProfileView: React.FC = () => {
             <table className="gov-table">
               <tbody>
                 <tr>
-                  <td className="w-2/5 bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Farmer Full Name</td>
-                  <td className="font-bold text-xs text-[#17231F]">{farmer.fullName || 'Not provided'}</td>
+                  <td className="w-2/5 bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('fullName')}</td>
+                  <td className="font-bold text-xs text-[#17231F]">{farmer.fullName || '—'}</td>
                 </tr>
                 <tr>
-                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Mobile Number</td>
-                  <td className="font-mono text-xs text-[#17231F]">{farmer.mobileNumber || 'Not provided'}</td>
+                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('mobileNumber')}</td>
+                  <td className="font-mono text-xs text-[#17231F]">{farmer.mobileNumber || '—'}</td>
                 </tr>
                 <tr>
-                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Village</td>
-                  <td className="text-xs text-[#17231F]">{farmer.location?.village || 'Not provided'}</td>
+                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('village')}</td>
+                  <td className="text-xs text-[#17231F]">{farmer.location?.village || '—'}</td>
                 </tr>
                 <tr>
-                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">District</td>
-                  <td className="text-xs text-[#17231F]">{farmer.location?.district || 'Not provided'}</td>
+                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('district')}</td>
+                  <td className="text-xs text-[#17231F]">{farmer.location?.district || '—'}</td>
                 </tr>
                 <tr>
-                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">State</td>
-                  <td className="text-xs text-[#17231F]">{farmer.location?.state || 'Not provided'}</td>
+                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('state')}</td>
+                  <td className="text-xs text-[#17231F]">{farmer.location?.state || '—'}</td>
                 </tr>
                 <tr>
-                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">PIN Code</td>
-                  <td className="font-mono text-xs text-[#17231F]">{farmer.location?.pincode || 'Not provided'}</td>
+                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('pincode')}</td>
+                  <td className="font-mono text-xs text-[#17231F]">{farmer.location?.pincode || '—'}</td>
                 </tr>
                 <tr>
-                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Farmer ID</td>
-                  <td className="font-mono text-xs font-bold text-[#063B2A]">{farmer.farmerId || 'Not provided'}</td>
+                  <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('farmerId')}</td>
+                  <td className="font-mono text-xs font-bold text-[#063B2A]">{farmer.farmerId || '—'}</td>
                 </tr>
                 {farmer.registeredDate && (
                   <tr>
-                    <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">Registration Date</td>
+                    <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">{t('registeredOn')}</td>
                     <td className="text-xs text-[#17231F]">{farmer.registeredDate}</td>
                   </tr>
                 )}

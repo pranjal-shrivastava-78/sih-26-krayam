@@ -13,24 +13,34 @@ import {
 } from 'lucide-react';
 
 export const ProcurementPaymentView: React.FC = () => {
-  const { procurements, payments, farmer, setActiveView } = useApp();
+  const { 
+    procurements, 
+    payments, 
+    farmer, 
+    setActiveView,
+    t,
+    translateCrop,
+    translateStatus,
+    translateUnit,
+    formatLocalizedDate
+  } = useApp();
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
 
   const selectedRecord = (selectedRecordId 
     ? procurements.find(p => p.id === selectedRecordId) 
     : procurements[0]) || null;
 
-  // Lifecycle stages based on Section 18
+  // Lifecycle stages
   const getLifecycleStages = (record: ProcurementRecord) => {
     const isCompleted = record.procurementStatus === 'Accepted' || record.procurementStatus === 'completed';
     const isPaid = record.paymentStatus === 'Credited' || record.paymentStatus === 'confirmed';
     return [
-      { name: 'Vehicle Entry', nameHi: 'वाहन प्रवेश', status: 'done' },
-      { name: 'Document Check', nameHi: 'दस्तावेज जांच', status: 'done' },
-      { name: 'Weighing', nameHi: 'तौल (कांटा)', status: 'done' },
-      { name: 'Quality Check', nameHi: 'गुणवत्ता जांच', status: isCompleted ? 'done' : 'current' },
-      { name: 'Procurement', nameHi: 'क्रय अभिलेख', status: isCompleted ? 'done' : 'upcoming' },
-      { name: 'Payment / DBT', nameHi: 'प्रत्यक्ष लाभ अंतरण', status: isPaid ? 'done' : 'upcoming' },
+      { name: t('vehicleEntry'), status: 'done' },
+      { name: t('documentCheck'), status: 'done' },
+      { name: t('weighing'), status: 'done' },
+      { name: t('qualityGrade', 'Quality Grade'), status: isCompleted ? 'done' : 'current' },
+      { name: t('procurementSlip'), status: isCompleted ? 'done' : 'upcoming' },
+      { name: t('dbtPayment'), status: isPaid ? 'done' : 'upcoming' },
     ];
   };
 
@@ -39,10 +49,10 @@ export const ProcurementPaymentView: React.FC = () => {
       <div className="space-y-6 w-full">
         <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-5 sm:p-6 shadow-sm">
           <h1 className="text-xl sm:text-2xl font-bold text-[#17231F]">
-            Procurement & DBT Clearance / तौल एवं भुगतान
+            {t('procurementDbtTitle')}
           </h1>
           <p className="text-xs sm:text-sm text-[#66736D] mt-0.5">
-            Verified mandi intake weighbridge slips, moisture grading, and automated bank disbursement
+            {t('procurementDbtSubtitle')}
           </p>
         </div>
 
@@ -51,16 +61,16 @@ export const ProcurementPaymentView: React.FC = () => {
             <FileText className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-bold text-[#17231F]">
-            No Procurement Records Found
+            {t('noProcurementFound')}
           </h2>
           <p className="text-xs text-[#66736D] mt-2 mb-6">
-            Procurement weighbridge slips and DBT payment receipts will appear here once your produce is verified at the procurement centre.
+            {t('noProcurementDesc')}
           </p>
           <button
             onClick={() => setActiveView('booking')}
             className="inline-flex items-center gap-2 h-10 px-5 rounded-[6px] bg-[#075E43] hover:bg-[#063B2A] text-[#FFFFFF] font-semibold text-xs transition-colors"
           >
-            <span>Book Procurement Slot</span>
+            <span>{t('bookSlotAction')}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -75,10 +85,10 @@ export const ProcurementPaymentView: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#17231F]">
-              Procurement & DBT Clearance / तौल एवं भुगतान
+              {t('procurementDbtTitle')}
             </h1>
             <p className="text-xs sm:text-sm text-[#66736D] mt-0.5">
-              Verified mandi intake weighbridge slips, moisture grading, and automated bank disbursement
+              {t('procurementDbtSubtitle')}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -95,7 +105,7 @@ export const ProcurementPaymentView: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#CBD8D1]">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#17231F]">
-              Select Consignment:
+              {t('selectConsignment', 'Select Consignment')}:
             </span>
             <div className="flex items-center gap-1.5 flex-wrap">
               {procurements.map((p) => (
@@ -123,7 +133,7 @@ export const ProcurementPaymentView: React.FC = () => {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold uppercase tracking-wider text-[#17231F]">
-              Procurement Status / प्रक्रिया की स्थिति
+              {t('status')}
             </h2>
             <span className="text-xs text-[#075E43] font-semibold">
               Live Mandi Weighbridge Pipeline
@@ -154,9 +164,6 @@ export const ProcurementPaymentView: React.FC = () => {
                     <div className="text-xs font-bold text-[#17231F] leading-tight">
                       {stage.name}
                     </div>
-                    <div className="text-[10px] text-[#66736D] font-['Noto_Sans_Devanagari'] mt-0.5">
-                      {stage.nameHi}
-                    </div>
                   </div>
                 );
               })}
@@ -171,10 +178,10 @@ export const ProcurementPaymentView: React.FC = () => {
           <div className="lg:col-span-8 space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold uppercase tracking-wider text-[#17231F]">
-                Weighing & Payment Information / वित्तीय एवं तौल विवरण
+                {t('weighing')} & {t('dbtPayment')}
               </h2>
               <span className="text-xs text-[#66736D]">
-                Mandi Weighbridge Slip #WB-88192
+                Slip #{selectedRecord.id}
               </span>
             </div>
 
@@ -183,39 +190,39 @@ export const ProcurementPaymentView: React.FC = () => {
                 <tbody>
                   <tr>
                     <td className="w-1/2 bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">
-                      Gross Weight (Laden Tractor) / सकल भार
+                      {t('grossWeight')}
                     </td>
                     <td className="font-mono font-bold text-xs text-[#17231F]">
-                      {selectedRecord.grossWeight || 78.4} Qtl
+                      {selectedRecord.grossWeight || 78.4} {translateUnit('Qtl')}
                     </td>
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">
-                      Tare Weight (Empty Tractor) / खाली वाहन भार
+                      {t('tareWeight')}
                     </td>
                     <td className="font-mono font-bold text-xs text-[#66736D]">
-                      {selectedRecord.tareWeight || 13.4} Qtl
+                      {selectedRecord.tareWeight || 13.4} {translateUnit('Qtl')}
                     </td>
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">
-                      Net Produce Weight / शुद्ध उपज भार
+                      {t('netWeight')}
                     </td>
                     <td className="font-mono font-bold text-xs text-[#063B2A]">
-                      {selectedRecord.acceptedQuantity} Quintals (Qtl)
+                      {selectedRecord.acceptedQuantity} {translateUnit('Quintals')} ({translateUnit('Qtl')})
                     </td>
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">
-                      Official MSP Rate / न्यूनतम समर्थन मूल्य
+                      MSP
                     </td>
                     <td className="font-bold text-xs text-[#17231F]">
-                      ₹{selectedRecord.mspRate || 2275} per Quintal
+                      ₹{selectedRecord.mspRate || 2275} / {translateUnit('Qtl')}
                     </td>
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">
-                      Gross Amount / कुल राशि
+                      {t('estGrossPayout')}
                     </td>
                     <td className="font-mono font-bold text-xs text-[#17231F]">
                       ₹{(selectedRecord.grossAmount || (selectedRecord.acceptedQuantity * (selectedRecord.mspRate || 2275))).toLocaleString('en-IN')}
@@ -223,7 +230,7 @@ export const ProcurementPaymentView: React.FC = () => {
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">
-                      Standard Deductions (Moisture / Dockage)
+                      {t('qualityDeductions')}
                     </td>
                     <td className="font-mono text-xs text-[#B45309]">
                       - ₹{(selectedRecord.deductions || 0).toLocaleString('en-IN')} ({selectedRecord.deductionReason})
@@ -231,7 +238,7 @@ export const ProcurementPaymentView: React.FC = () => {
                   </tr>
                   <tr className="bg-[#F4FAF6]">
                     <td className="bg-[#E7F3EC] font-bold text-sm text-[#063B2A]">
-                      Final Payable Amount / शुद्ध देय राशि
+                      {t('payableAmount')}
                     </td>
                     <td className="font-mono font-black text-base text-[#063B2A]">
                       ₹{selectedRecord.paymentAmount.toLocaleString('en-IN')}
@@ -239,7 +246,7 @@ export const ProcurementPaymentView: React.FC = () => {
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-xs text-[#17231F]">
-                      Payment Status / भुगतान स्थिति
+                      {t('status')}
                     </td>
                     <td>
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-xs font-bold border ${
@@ -247,7 +254,7 @@ export const ProcurementPaymentView: React.FC = () => {
                           ? 'bg-[#E7F3EC] text-[#16803C] border-[#B7DCC5]'
                           : 'bg-[#FFF9ED] text-[#B45309] border-[#F0D7A7]'
                       }`}>
-                        {selectedRecord.paymentStatus === 'Credited' || selectedRecord.paymentStatus === 'confirmed' ? '● CREDITED VIA DBT' : '● PROCESSING VIA PFMS'}
+                        {translateStatus(selectedRecord.paymentStatus)}
                       </span>
                     </td>
                   </tr>
@@ -260,24 +267,24 @@ export const ProcurementPaymentView: React.FC = () => {
           <div className="lg:col-span-4 bg-[#F5F8F6] border border-[#CBD8D1] rounded-[6px] p-5 flex flex-col justify-between space-y-4">
             <div>
               <div className="text-xs uppercase font-bold tracking-wider text-[#17231F] pb-2 border-b border-[#CBD8D1]">
-                Disbursement Account Details
+                {t('disbursementAccount')}
               </div>
 
               <div className="mt-3 space-y-2 text-xs">
                 <div>
-                  <span className="text-[#66736D] block">Beneficiary Farmer:</span>
+                  <span className="text-[#66736D] block">{t('fullName')}:</span>
                   <span className="font-bold text-[#17231F]">{farmer?.fullName}</span>
                 </div>
                 <div>
-                  <span className="text-[#66736D] block">Farmer ID:</span>
+                  <span className="text-[#66736D] block">{t('farmerId')}:</span>
                   <span className="font-mono font-bold text-[#17231F]">{farmer?.farmerId}</span>
                 </div>
                 <div>
-                  <span className="text-[#66736D] block">Bank Account (Aadhaar Seeded):</span>
+                  <span className="text-[#66736D] block">{t('disbursementAccount')}:</span>
                   <span className="font-mono font-bold text-[#063B2A]">{farmer?.bankAccountMasked}</span>
                 </div>
                 <div>
-                  <span className="text-[#66736D] block">Procurement Centre:</span>
+                  <span className="text-[#66736D] block">{t('mandiCentre')}:</span>
                   <span className="text-[#17231F] font-medium">{selectedRecord.centreName}</span>
                 </div>
               </div>
@@ -291,14 +298,14 @@ export const ProcurementPaymentView: React.FC = () => {
                 className="w-full h-10 rounded-[6px] bg-[#075E43] hover:bg-[#063B2A] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>View Official J-Form Receipt / जे-फॉर्म देखें</span>
+                <span>{t('viewJFormBtn')}</span>
               </a>
               <button
                 onClick={() => window.print()}
                 className="w-full h-10 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#EDF3EF] text-[#17231F] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
               >
                 <Printer className="w-3.5 h-3.5 text-[#075E43]" />
-                <span>Print Official Slip / रसीद प्रिंट करें</span>
+                <span>{t('printReceipt')}</span>
               </button>
             </div>
           </div>
@@ -309,32 +316,32 @@ export const ProcurementPaymentView: React.FC = () => {
       {/* Past DBT Payments History Strip */}
       <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] p-5 sm:p-6 shadow-sm">
         <h2 className="text-base font-bold text-[#17231F] mb-3">
-          Direct Benefit Transfer (DBT) Ledger / बैंक अंतरण इतिहास
+          {t('dbtDisbursementStage')}
         </h2>
 
         <div className="border border-[#CBD8D1] rounded-[6px] overflow-x-auto">
           <table className="gov-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Transaction UTR</th>
-                <th>Crop</th>
-                <th>Amount</th>
-                <th>Account</th>
-                <th>Status</th>
+                <th>{t('date')}</th>
+                <th>UTR</th>
+                <th>{t('cropAndQuantity')}</th>
+                <th>{t('amount', 'Amount')}</th>
+                <th>{t('disbursementAccount')}</th>
+                <th>{t('status')}</th>
               </tr>
             </thead>
             <tbody>
               {payments.map((pay) => (
                 <tr key={pay.id}>
-                  <td className="text-xs">{pay.date}</td>
+                  <td className="text-xs">{formatLocalizedDate(pay.date)}</td>
                   <td className="font-mono text-xs font-bold text-[#17231F]">{pay.utrNumber || pay.transactionId}</td>
-                  <td className="text-xs">{pay.cropName}</td>
+                  <td className="text-xs">{translateCrop(pay.cropName)}</td>
                   <td className="font-mono font-bold text-xs text-[#063B2A]">₹{pay.amount.toLocaleString('en-IN')}</td>
                   <td className="text-xs text-[#66736D]">{pay.bankAccountMasked}</td>
                   <td>
                     <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-bold bg-[#E7F3EC] text-[#16803C] border border-[#B7DCC5]">
-                      {pay.paymentStatus}
+                      {translateStatus(pay.paymentStatus)}
                     </span>
                   </td>
                 </tr>

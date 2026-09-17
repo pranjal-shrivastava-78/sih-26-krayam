@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { X, Phone, FileQuestion, ExternalLink, ShieldCheck } from 'lucide-react';
 
 export const HelpSupportModal: React.FC = () => {
-  const { isHelpModalOpen, setIsHelpModalOpen } = useApp();
+  const { isHelpModalOpen, setIsHelpModalOpen, t } = useApp();
 
   if (!isHelpModalOpen) return null;
 
@@ -14,10 +14,10 @@ export const HelpSupportModal: React.FC = () => {
         <div className="bg-[#EDF3EF] px-5 py-3.5 border-b border-[#CBD8D1] flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-[#17231F]">
-              Help & Grievance Support / सहायता एवं संपर्क
+              {t('helpSupport')}
             </h3>
             <p className="text-xs text-[#66736D]">
-              Ministry of Agriculture & Farmers Welfare, Government of India
+              {t('ministryName')}, {t('govOfIndia')}
             </p>
           </div>
           <button
@@ -108,7 +108,7 @@ export const HelpSupportModal: React.FC = () => {
             onClick={() => setIsHelpModalOpen(false)}
             className="h-10 px-5 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] font-semibold text-xs"
           >
-            Close / बंद करें
+            {t('close')}
           </button>
         </div>
       </div>

@@ -20,7 +20,10 @@ export const OperatorBookingsTab: React.FC = () => {
     crops, 
     operatorCancelBooking, 
     operatorRescheduleBooking,
-    language 
+    language,
+    translateCrop,
+    translateStatus,
+    translateUnit
   } = useApp();
 
   const ot = getOperatorText(language);
@@ -124,10 +127,9 @@ export const OperatorBookingsTab: React.FC = () => {
               className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-2.5 py-1.5 focus:border-[#075E43] focus:outline-none"
             >
               <option value="">{ot.allCrops}</option>
-              <option value="Wheat">Wheat (गेहूं)</option>
-              <option value="Mustard">Mustard (सरसों)</option>
-              <option value="Paddy">Paddy / Rice (धान)</option>
-              <option value="Gram">Gram / Chana (चना)</option>
+              {crops.map(c => (
+                <option key={c.id} value={c.name}>{translateCrop(c.name)}</option>
+              ))}
             </select>
           </div>
 
@@ -142,14 +144,14 @@ export const OperatorBookingsTab: React.FC = () => {
               className="w-full bg-[#FFFFFF] border border-[#CBD8D1] rounded-[6px] px-2.5 py-1.5 focus:border-[#075E43] focus:outline-none"
             >
               <option value="">{ot.allStatuses}</option>
-              <option value="CONFIRMED">CONFIRMED</option>
-              <option value="CHECKED_IN">CHECKED_IN</option>
-              <option value="IN_QUEUE">IN_QUEUE</option>
-              <option value="TURN_APPROACHING">TURN_APPROACHING</option>
-              <option value="PROCESSING">PROCESSING</option>
-              <option value="COMPLETED">COMPLETED</option>
-              <option value="NO_SHOW">NO_SHOW</option>
-              <option value="CANCELLED">CANCELLED</option>
+              <option value="CONFIRMED">{translateStatus('CONFIRMED')}</option>
+              <option value="CHECKED_IN">{translateStatus('CHECKED_IN')}</option>
+              <option value="IN_QUEUE">{translateStatus('IN_QUEUE')}</option>
+              <option value="TURN_APPROACHING">{translateStatus('TURN_APPROACHING')}</option>
+              <option value="PROCESSING">{translateStatus('PROCESSING')}</option>
+              <option value="COMPLETED">{translateStatus('COMPLETED')}</option>
+              <option value="NO_SHOW">{translateStatus('NO_SHOW')}</option>
+              <option value="CANCELLED">{translateStatus('CANCELLED')}</option>
             </select>
           </div>
 
@@ -199,9 +201,9 @@ export const OperatorBookingsTab: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-semibold text-[#17231F]">{b.cropName}</div>
+                    <div className="font-semibold text-[#17231F]">{translateCrop(b.cropName)}</div>
                     <div className="text-[11px] text-[#075E43] font-bold font-mono">
-                      {b.quantityQuintals} Quintals
+                      {b.quantityQuintals} {translateUnit('Quintals')}
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -217,7 +219,7 @@ export const OperatorBookingsTab: React.FC = () => {
                       b.status === 'TURN_APPROACHING' ? 'bg-[#EA8A0A]/10 text-[#B45309]' :
                       'bg-[#063B2A]/10 text-[#063B2A]'
                     }`}>
-                      {b.status}
+                      {translateStatus(b.status)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right space-x-1.5 whitespace-nowrap">

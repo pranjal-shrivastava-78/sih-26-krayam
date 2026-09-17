@@ -28,7 +28,8 @@ export const OperatorHeader: React.FC = () => {
     toggleOfflineMode, 
     syncQueue, 
     syncOfflineQueue, 
-    language 
+    language,
+    formatLocalizedDate
   } = useApp();
 
   const ot = getOperatorText(language);
@@ -44,14 +45,26 @@ export const OperatorHeader: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const formattedDate = currentDateTime.toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-IN', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  });
+  const getLocaleCode = (lang: string) => {
+    const locales: Record<string, string> = {
+      hi: 'hi-IN',
+      bn: 'bn-IN',
+      mr: 'mr-IN',
+      te: 'te-IN',
+      ta: 'ta-IN',
+      gu: 'gu-IN',
+      ur: 'ur-PK',
+      kn: 'kn-IN',
+      or: 'or-IN',
+      pa: 'pa-IN',
+      en: 'en-IN'
+    };
+    return locales[lang] || 'en-IN';
+  };
 
-  const formattedTime = currentDateTime.toLocaleTimeString(language === 'hi' ? 'hi-IN' : 'en-IN', {
+  const formattedDate = formatLocalizedDate(currentDateTime);
+
+  const formattedTime = currentDateTime.toLocaleTimeString(getLocaleCode(language), {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',

@@ -38,10 +38,10 @@ export const Breadcrumb: React.FC = () => {
         <button
           onClick={() => setActiveView('dashboard')}
           className="flex items-center gap-1 hover:text-[#063B2A] transition-colors"
-          title="Go to Home"
+          title={t('home')}
         >
           <Home className="w-3.5 h-3.5 text-[#075E43]" />
-          <span>Home</span>
+          <span>{t('home')}</span>
         </button>
 
         {activeView !== 'dashboard' && (

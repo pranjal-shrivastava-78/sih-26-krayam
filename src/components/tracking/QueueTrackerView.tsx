@@ -22,7 +22,11 @@ export const QueueTrackerView: React.FC = () => {
     lastQueueUpdate,
     setActiveView,
     farmer,
-    t
+    t,
+    translateCrop,
+    translateStatus,
+    translateUnit,
+    formatLocalizedDate
   } = useApp();
 
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
@@ -68,53 +72,47 @@ export const QueueTrackerView: React.FC = () => {
   const timelineStages = [
     { 
       number: 1, 
-      titleEn: 'Token Issued & Slot Confirmed', 
-      titleHi: 'टोकन जारी एवं स्लॉट पुष्ट', 
-      time: activeBooking.createdAt ? new Date(activeBooking.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Confirmed', 
+      title: t('tokenIssuedStage'), 
+      time: activeBooking.createdAt ? formatLocalizedDate(activeBooking.createdAt) : t('confirmed'), 
       isDone: true, 
       isCurrent: status === 'CONFIRMED' || status === 'RESCHEDULED' 
     },
     { 
       number: 2, 
-      titleEn: 'Mandi Gate Check-in', 
-      titleHi: 'मंडी गेट आगमन व सत्यापन', 
-      time: isCheckedIn ? 'Checked in by Mandi Operator' : 'Awaiting farmer arrival at mandi', 
+      title: t('mandiGateCheckInStage'), 
+      time: isCheckedIn ? t('checkedInByMandi', 'Checked in by Mandi Operator') : t('awaitingFarmerArrival', 'Awaiting farmer arrival at mandi'), 
       isDone: isCheckedIn, 
       isCurrent: false 
     },
     { 
       number: 3, 
-      titleEn: 'In Queue for Weighbridge', 
-      titleHi: 'तौल कांटे के लिए कतार में', 
+      title: t('inQueueStage'), 
       time: status === 'TURN_APPROACHING' 
-        ? 'Your turn is approaching — Proceed to gate' 
-        : (queuePos !== null ? `Position #${queuePos} in official queue` : (isCheckedIn ? 'Waiting in Mandi Queue' : 'Upcoming stage')), 
+        ? t('turnApproachingBannerMsg') 
+        : (queuePos !== null ? `#${queuePos} ${t('officialTokenOrder')}` : (isCheckedIn ? t('in_queue', 'Waiting in Mandi Queue') : t('upcomingStage', 'Upcoming stage'))), 
       isDone: isProcessing, 
       isCurrent: status === 'IN_QUEUE' || status === 'CHECKED_IN' || status === 'TURN_APPROACHING' 
     },
     { 
       number: 4, 
-      titleEn: 'Weighbridge & Quality Verification', 
-      titleHi: 'तौल एवं गुणवत्ता जांच', 
+      title: t('weighbridgeStage'), 
       time: status === 'PROCESSING' 
-        ? 'Produce currently being weighed on weighbridge' 
-        : (isCompleted ? 'Weighbridge & Quality Grade Completed' : 'Upcoming stage'), 
+        ? t('atWeighbridgeBannerMsg') 
+        : (isCompleted ? t('completed') : t('upcomingStage', 'Upcoming stage')), 
       isDone: isCompleted, 
       isCurrent: status === 'PROCESSING' 
     },
     { 
       number: 5, 
-      titleEn: 'Procurement Completion & J-Form', 
-      titleHi: 'क्रय पूर्णता एवं जे-फॉर्म जारी', 
-      time: isCompleted ? 'J-Form Generated' : 'Upcoming stage', 
+      title: t('procurementCompleteStage'), 
+      time: isCompleted ? t('officialJForm') : t('upcomingStage', 'Upcoming stage'), 
       isDone: isCompleted, 
       isCurrent: false 
     },
     { 
       number: 6, 
-      titleEn: 'DBT Payment Disbursement', 
-      titleHi: 'प्रत्यक्ष लाभ अंतरण (DBT)', 
-      time: isCompleted ? 'DBT payment verification initiated' : 'Upcoming stage', 
+      title: t('dbtDisbursementStage'), 
+      time: isCompleted ? t('dbtDisbursementInitiated', 'DBT payment verification initiated') : t('upcomingStage', 'Upcoming stage'), 
       isDone: isCompleted, 
       isCurrent: false 
     },
@@ -139,10 +137,10 @@ export const QueueTrackerView: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xl sm:text-2xl font-bold text-[#17231F]">
-                {activeBooking.cropName}
+                {translateCrop(activeBooking.cropName)}
               </span>
               <span className="text-base sm:text-lg font-normal text-[#34443D]">
-                / {activeBooking.quantityQuintals} Qtl
+                / {activeBooking.quantityQuintals} {translateUnit('Qtl')}
               </span>
             </div>
 
@@ -161,14 +159,14 @@ export const QueueTrackerView: React.FC = () => {
               <div className="flex items-center gap-1.5">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-xs font-bold bg-[#E7F3EC] text-[#16803C] border border-[#CBD8D1]">
                   <span className="w-2 h-2 rounded-full bg-[#16803C] animate-pulse" />
-                  LIVE QUEUE
+                  {t('liveQueueBadge')}
                 </span>
               </div>
               <div className="text-xs text-[#66736D]">
-                Token No: <span className="font-mono font-bold text-[#17231F]">{activeBooking.id}</span>
+                {t('token')}: <span className="font-mono font-bold text-[#17231F]">{activeBooking.id}</span>
               </div>
               <div className="text-xs text-[#66736D]">
-                Booking: <span className="font-semibold text-[#17231F]">{activeBooking.expectedDate} ({activeBooking.slot.split('(')[0].trim()})</span>
+                {t('date')}: <span className="font-semibold text-[#17231F]">{formatLocalizedDate(activeBooking.expectedDate)} ({activeBooking.slot.split('(')[0].trim()})</span>
               </div>
             </div>
 
@@ -179,7 +177,7 @@ export const QueueTrackerView: React.FC = () => {
                 className="h-10 px-4 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:border-[#075E43] hover:bg-[#F3F9F5] text-[#17231F] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-[#075E43]" />
-                <span>Reschedule Booking</span>
+                <span>{t('reschedule', 'Reschedule')}</span>
               </button>
 
               <button
@@ -187,7 +185,7 @@ export const QueueTrackerView: React.FC = () => {
                 className="h-10 px-3.5 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:border-[#B42318] hover:bg-[#FFF5F5] text-[#B42318] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
               >
                 <XCircle className="w-3.5 h-3.5" />
-                <span>Cancel</span>
+                <span>{t('cancel')}</span>
               </button>
             </div>
           </div>
@@ -202,10 +200,10 @@ export const QueueTrackerView: React.FC = () => {
           </div>
           <div>
             <h3 className="font-bold text-sm text-[#B45309]">
-              Your Turn is Approaching! / आपकी बारी आने वाली है
+              {t('turnApproachingBannerTitle')}
             </h3>
             <p className="text-xs text-[#92400E] mt-0.5 leading-relaxed">
-              Mandi operator has called your token. Please proceed to the weighbridge gate immediately with your transport vehicle.
+              {t('turnApproachingBannerMsg')}
             </p>
           </div>
         </div>
@@ -219,10 +217,10 @@ export const QueueTrackerView: React.FC = () => {
           </div>
           <div>
             <h3 className="font-bold text-sm text-[#175CD3]">
-              At Weighbridge / तौल केंद्र पर — Under Processing
+              {t('atWeighbridgeBannerTitle')}
             </h3>
             <p className="text-xs text-[#1E40AF] mt-0.5 leading-relaxed">
-              Your transport vehicle is currently on the electronic weighbridge. The mandi operator is recording gross weight, tare weight, and moisture analysis.
+              {t('atWeighbridgeBannerMsg')}
             </p>
           </div>
         </div>
@@ -237,10 +235,10 @@ export const QueueTrackerView: React.FC = () => {
             </div>
             <div>
               <h3 className="font-bold text-sm text-[#063B2A]">
-                Procurement Completed / क्रय पूर्ण हुआ
+                {t('procurementCompletedBannerTitle')}
               </h3>
               <p className="text-xs text-[#16803C] mt-0.5 leading-relaxed">
-                Mandi weighing and intake verified. Your J-Form has been generated and PFMS DBT clearance is initiated.
+                {t('procurementCompletedBannerMsg')}
               </p>
             </div>
           </div>
@@ -249,7 +247,7 @@ export const QueueTrackerView: React.FC = () => {
             onClick={() => setActiveView('procurement')}
             className="bg-[#063B2A] hover:bg-[#075E43] text-white text-xs font-bold px-4 py-2 rounded-[6px] transition-colors inline-flex items-center gap-1.5"
           >
-            <span>View J-Form & Payment</span>
+            <span>{t('viewJFormBtn')}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -259,10 +257,10 @@ export const QueueTrackerView: React.FC = () => {
       <div className="bg-[#FFFFFF] border border-[#CBD8D1] rounded-[8px] overflow-hidden shadow-sm">
         <div className="bg-[#EDF3EF] px-5 py-2.5 border-b border-[#CBD8D1] flex items-center justify-between">
           <span className="text-xs uppercase font-bold tracking-wider text-[#17231F]">
-            Queue Status / कतार स्थिति
+            {t('queueStatusTitle')}
           </span>
           <span className="text-xs text-[#075E43] font-semibold">
-            Mandi Gate No. 2
+            {t('mandiGateNo')} 2
           </span>
         </div>
 
@@ -270,23 +268,23 @@ export const QueueTrackerView: React.FC = () => {
           {/* Queue Position */}
           <div className="py-2 sm:py-0">
             <div className="text-xs uppercase font-bold tracking-wider text-[#66736D]">
-              Queue Position / कतार संख्या
+              {t('liveQueuePosition')}
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-[#063B2A] font-mono mt-1">
-              {queuePos !== null ? `#${queuePos}` : (status === 'CONFIRMED' || status === 'RESCHEDULED' ? 'Pending Check-in' : 'Not available')}
+              {queuePos !== null ? `#${queuePos}` : (status === 'CONFIRMED' || status === 'RESCHEDULED' ? t('pendingCheckIn') : '—')}
             </div>
             <div className="text-xs text-[#66736D] mt-1">
-              Official Token Order
+              {t('officialTokenOrder')}
             </div>
           </div>
 
           {/* Farmers Ahead */}
           <div className="py-2 sm:py-0">
             <div className="text-xs uppercase font-bold tracking-wider text-[#66736D]">
-              {t('farmersAhead')}
+              {t('aheadBadge')}
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-[#063B2A] font-mono mt-1">
-              {farmersAhead !== null ? farmersAhead : (status === 'CONFIRMED' || status === 'RESCHEDULED' ? 'Pending Check-in' : 'Not available')}
+              {farmersAhead !== null ? farmersAhead : (status === 'CONFIRMED' || status === 'RESCHEDULED' ? t('pendingCheckIn') : '—')}
             </div>
             <div className="text-xs text-[#66736D] mt-1">
               {t('people')}
@@ -296,13 +294,13 @@ export const QueueTrackerView: React.FC = () => {
           {/* Estimated Waiting Time */}
           <div className="py-2 sm:py-0">
             <div className="text-xs uppercase font-bold tracking-wider text-[#66736D]">
-              {t('estimatedWaitTime')}
+              {t('estWaitBadge')}
             </div>
             <div className="text-2xl sm:text-3xl font-bold text-[#063B2A] mt-1">
-              {waitMinutes !== null ? `~${waitMinutes} ${t('minutesAbbr')}` : (status === 'CONFIRMED' || status === 'RESCHEDULED' ? 'Pending Check-in' : 'Not available')}
+              {waitMinutes !== null ? `~${waitMinutes} ${t('minutesAbbr')}` : (status === 'CONFIRMED' || status === 'RESCHEDULED' ? t('pendingCheckIn') : '—')}
             </div>
             <div className="text-xs text-[#66736D] mt-1">
-              Weighbridge processing pace
+              {t('weighbridgePace')}
             </div>
           </div>
         </div>
@@ -312,11 +310,11 @@ export const QueueTrackerView: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className={`w-2 h-2 rounded-full ${realtimeStatus === 'connected' ? 'bg-[#16803C] animate-pulse' : realtimeStatus === 'reconnecting' ? 'bg-[#EA8A0A] animate-ping' : 'bg-[#66736D]'}`} />
             <span className="font-semibold text-[#17231F]">
-              {realtimeStatus === 'connected' ? 'Live Mandi SSE Stream' : realtimeStatus === 'reconnecting' ? 'Reconnecting to Mandi Stream...' : 'Auto-polling Active'}
+              {realtimeStatus === 'connected' ? t('liveSseStream') : realtimeStatus === 'reconnecting' ? t('reconnectingStream') : t('autoPolling')}
             </span>
           </div>
           <div className="text-[11px] text-[#66736D]">
-            Last updated: <span className="font-semibold text-[#17231F]">{lastQueueUpdate || 'Just now'}</span>
+            {t('lastUpdated')}: <span className="font-semibold text-[#17231F]">{lastQueueUpdate || 'Just now'}</span>
           </div>
         </div>
       </div>
@@ -329,14 +327,14 @@ export const QueueTrackerView: React.FC = () => {
           <div className="border-b border-[#CBD8D1] pb-3 mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-[#17231F]">
-                Queue Progress / कतार प्रगति
+                {t('queueProgressTitle')}
               </h2>
               <p className="text-xs text-[#66736D]">
-                Step-by-step verification and weighing pipeline
+                {t('pipelineSubtitle')}
               </p>
             </div>
             <span className="text-xs font-semibold px-2 py-0.5 rounded-[4px] bg-[#E7F3EC] text-[#075E43] border border-[#CBD8D1]">
-              Live Feed
+              {t('liveFeed')}
             </span>
           </div>
 
@@ -377,22 +375,18 @@ export const QueueTrackerView: React.FC = () => {
                   }`}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="text-sm font-bold text-[#17231F] leading-tight">
-                        {stage.titleEn}
+                        {stage.title}
                       </div>
                       {stage.isCurrent && (
                         <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-[4px] bg-[#063B2A] text-[#FFFFFF] flex-shrink-0">
-                          Current Stage
+                          {t('processing')}
                         </span>
                       )}
                       {stage.isDone && (
                         <span className="text-[11px] font-semibold text-[#16803C] flex-shrink-0">
-                          Completed ✓
+                          {t('completed')} ✓
                         </span>
                       )}
-                    </div>
-
-                    <div className="text-xs text-[#34443D] font-['Noto_Sans_Devanagari'] mt-0.5">
-                      {stage.titleHi}
                     </div>
 
                     <div className="text-[11px] text-[#66736D] mt-1">
@@ -411,10 +405,10 @@ export const QueueTrackerView: React.FC = () => {
             <div className="border-b border-[#CBD8D1] pb-3 mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-base font-bold text-[#17231F]">
-                  Booking Details / बुकिंग विवरण
+                  {t('bookingDetails')}
                 </h2>
                 <p className="text-xs text-[#66736D]">
-                  Official allocation certificate data
+                  {t('officialCertificateData', 'Official allocation certificate data')}
                 </p>
               </div>
               <span className="font-mono text-xs text-[#075E43] font-bold">
@@ -428,7 +422,7 @@ export const QueueTrackerView: React.FC = () => {
                 <tbody>
                   <tr>
                     <td className="w-2/5 bg-[#EDF3EF] font-semibold text-[#17231F] text-xs">
-                      Token Number
+                      {t('token')}
                     </td>
                     <td className="font-mono font-bold text-[#17231F] text-xs">
                       {activeBooking.id}
@@ -436,23 +430,23 @@ export const QueueTrackerView: React.FC = () => {
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-[#17231F] text-xs">
-                      Crop / फसल
+                      {t('cropAndQuantity')}
                     </td>
                     <td className="font-medium text-[#17231F] text-xs">
-                      {activeBooking.cropName}
+                      {translateCrop(activeBooking.cropName)}
                     </td>
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-[#17231F] text-xs">
-                      Quantity / मात्रा
+                      {t('quantityInQuintals')}
                     </td>
                     <td className="font-bold text-[#075E43] text-xs">
-                      {activeBooking.quantityQuintals} Quintals (Qtl)
+                      {activeBooking.quantityQuintals} {translateUnit('Quintals')} ({translateUnit('Qtl')})
                     </td>
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-[#17231F] text-xs">
-                      Procurement Centre
+                      {t('mandiCentre')}
                     </td>
                     <td className="text-xs text-[#17231F]">
                       <div className="font-bold">{activeBooking.centreName}</div>
@@ -461,15 +455,15 @@ export const QueueTrackerView: React.FC = () => {
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-[#17231F] text-xs">
-                      Booking Date
+                      {t('date')}
                     </td>
                     <td className="text-xs text-[#17231F]">
-                      {activeBooking.expectedDate} ({activeBooking.slot.split('(')[0].trim()})
+                      {formatLocalizedDate(activeBooking.expectedDate)} ({activeBooking.slot.split('(')[0].trim()})
                     </td>
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-[#17231F] text-xs">
-                      Farmer Name
+                      {t('fullName')}
                     </td>
                     <td className="font-bold text-[#17231F] text-xs">
                       {activeBooking.farmerName}
@@ -477,7 +471,7 @@ export const QueueTrackerView: React.FC = () => {
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-[#17231F] text-xs">
-                      Village / गाँव
+                      {t('village')}
                     </td>
                     <td className="text-xs text-[#17231F]">
                       {farmer?.location?.village || '—'}
@@ -485,7 +479,7 @@ export const QueueTrackerView: React.FC = () => {
                   </tr>
                   <tr>
                     <td className="bg-[#EDF3EF] font-semibold text-[#17231F] text-xs">
-                      District / जिला
+                      {t('district')}
                     </td>
                     <td className="text-xs text-[#17231F]">
                       {[farmer?.location?.district, farmer?.location?.state].filter(Boolean).join(', ') || '—'}
@@ -500,7 +494,7 @@ export const QueueTrackerView: React.FC = () => {
           <div className="mt-4 pt-3 border-t border-[#EDF3EF] flex items-center justify-between text-xs text-[#66736D]">
             <span className="flex items-center gap-1 text-[#16803C] font-semibold">
               <Check className="w-3.5 h-3.5" />
-              Direct Mandi Linkage Verified
+              {t('verifiedFarmer')}
             </span>
             <span>Ref: PFMS-AGRI-2026</span>
           </div>
@@ -516,26 +510,22 @@ export const QueueTrackerView: React.FC = () => {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-[#17231F]">
-                Important Instructions / महत्वपूर्ण निर्देश
+                {t('importantInstructions', 'Important Instructions')}
               </h3>
             </div>
             
             <ol className="mt-3 space-y-2.5 text-xs sm:text-sm text-[#34443D] list-decimal pl-5 leading-relaxed">
               <li>
-                <div className="font-semibold text-[#17231F]">Keep your original documents ready.</div>
-                <div className="text-xs text-[#66736D] font-['Noto_Sans_Devanagari']">कृपया अपने मूल दस्तावेज (आधार कार्ड, बैंक पासबुक, एवं फर्द) तैयार रखें।</div>
+                <div className="font-semibold text-[#17231F]">Keep your original documents ready (Aadhaar & Bank Passbook).</div>
               </li>
               <li>
                 <div className="font-semibold text-[#17231F]">Be present at the centre when your token is called.</div>
-                <div className="text-xs text-[#66736D] font-['Noto_Sans_Devanagari']">आपकी टोकन संख्या बुलाए जाने पर केंद्र पर उपस्थित रहें।</div>
               </li>
               <li>
                 <div className="font-semibold text-[#17231F]">Ensure your produce meets prescribed quality standards.</div>
-                <div className="text-xs text-[#66736D] font-['Noto_Sans_Devanagari']">सुनिश्चित करें कि आपकी उपज सरकार द्वारा निर्धारित नमी और गुणवत्ता मानकों के अनुरूप है।</div>
               </li>
               <li>
-                <div className="font-semibold text-[#17231F]">Follow the instructions of centre officials.</div>
-                <div className="text-xs text-[#66736D] font-['Noto_Sans_Devanagari']">खरीद केंद्र के अधिकारियों और तौल कांटे कर्मचारियों के निर्देशों का पालन करें।</div>
+                <div className="font-semibold text-[#17231F]">Follow the instructions of centre officials and weighbridge operators.</div>
               </li>
             </ol>
           </div>
@@ -556,12 +546,12 @@ export const QueueTrackerView: React.FC = () => {
             <div className="flex items-center gap-3 text-[#B42318] mb-3">
               <XCircle className="w-6 h-6" />
               <h3 className="text-lg font-bold text-[#17231F]">
-                Cancel Booking?
+                {t('cancelBookingDialogTitle')}
               </h3>
             </div>
 
             <p className="text-sm text-[#34443D] leading-relaxed mb-6">
-              Your booking for <span className="font-bold text-[#17231F]">{activeBooking.cropName} — {activeBooking.quantityQuintals} Qtl</span> at <span className="font-bold text-[#17231F]">{activeBooking.centreName}</span> will be cancelled. Your queue token <span className="font-mono font-bold text-[#17231F]">#{queuePos}</span> will be released.
+              {t('cancelBookingDialogMsg')} ({translateCrop(activeBooking.cropName)} — {activeBooking.quantityQuintals} {translateUnit('Qtl')})
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#EDF3EF]">
@@ -569,13 +559,13 @@ export const QueueTrackerView: React.FC = () => {
                 onClick={() => setShowCancelDialog(false)}
                 className="h-10 px-4 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-[#17231F] font-semibold text-xs"
               >
-                Keep Booking
+                {t('goBack')}
               </button>
               <button
                 onClick={handleConfirmCancel}
                 className="h-10 px-4 rounded-[6px] bg-[#B42318] hover:bg-[#911b12] text-[#FFFFFF] font-semibold text-xs transition-colors"
               >
-                Cancel Booking
+                {t('confirmCancellation')}
               </button>
             </div>
           </div>

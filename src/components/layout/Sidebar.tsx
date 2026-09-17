@@ -101,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Section: Main Services Navigation */}
         <div className="px-3.5 pt-4 pb-1">
           <div className="text-[10px] uppercase tracking-wider text-[#CBD8D1] font-bold px-2 mb-2">
-            Main Services / मुख्य सेवाएं
+            {t('servicesTitle')}
           </div>
 
           <nav className="space-y-1">
@@ -154,8 +154,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           >
             <HelpCircle className="w-4 h-4 text-[#CBD8D1]" />
             <div className="leading-tight">
-              <div>Help & Support</div>
-              <div className="text-[10px] text-[#CBD8D1] font-['Noto_Sans_Devanagari']">सहायता (1800-180-1551)</div>
+              <div>{t('helpSupport')}</div>
+              <div className="text-[10px] text-[#CBD8D1]">1800-180-1551</div>
             </div>
           </button>
 
@@ -165,8 +165,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           >
             <Settings className="w-4 h-4 text-[#CBD8D1]" />
             <div className="leading-tight">
-              <div>Settings</div>
-              <div className="text-[10px] text-[#CBD8D1] font-['Noto_Sans_Devanagari']">पोर्टल सेटिंग्स</div>
+              <div>{t('settings')}</div>
+              <div className="text-[10px] text-[#CBD8D1]">Krayam Portal</div>
             </div>
           </button>
 
@@ -177,8 +177,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             >
               <LogIn className="w-4 h-4 text-[#A3D99D]" />
               <div className="leading-tight">
-                <div>Login / Register</div>
-                <div className="text-[10px] text-[#A3D99D]/80 font-['Noto_Sans_Devanagari']">लॉग इन / पंजीकरण</div>
+                <div>{t('login')} / {t('register')}</div>
               </div>
             </button>
           )}
@@ -237,8 +236,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       Gov Menu
                     </span>
                   </div>
-                  <div className="text-[11px] text-[#CBD8D1] font-['Noto_Sans_Devanagari']">
-                    अतिरिक्त सेवाएं एवं किसान खाता
+                  <div className="text-[11px] text-[#CBD8D1]">
+                    {t('appSubtitle')}
                   </div>
                 </div>
 
@@ -256,7 +255,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div className="px-3.5 py-3">
                 <div className="flex items-center justify-between px-2 mb-2">
                   <span className="text-[10px] uppercase tracking-wider text-[#CBD8D1] font-bold">
-                    Additional Services / अन्य सेवाएं
+                    {t('officialServices')}
                   </span>
                   <span className="text-[9px] text-[#CBD8D1] bg-[#075E43] px-1.5 py-0.2 rounded">
                     Mandi Grid
@@ -306,7 +305,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               {/* Bottom Bar Reminder Strip (Explains why Home/Book/Queue/History aren't duplicated) */}
               <div className="mx-3.5 my-2 p-2.5 rounded-[6px] bg-[#04261B] border border-[#0B4734] text-[11px] text-[#CBD8D1]">
                 <div className="font-bold text-[#E7F3EC] mb-1">
-                  Primary Daily Actions:
+                  {t('servicesTitle')}
                 </div>
                 <div className="text-[10px] text-[#CBD8D1] leading-relaxed">
                   Home • Book • Queue • History are pinned to the bottom bar for instant 1-tap access.
@@ -320,7 +319,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center justify-between text-xs text-[#CBD8D1] pb-2 border-b border-[#0B4734]">
                 <span className="flex items-center gap-1 text-[11px]">
                   <Globe className="w-3.5 h-3.5 text-[#CBD8D1]" />
-                  Language / भाषा:
+                  {t('language')}:
                 </span>
                 <LanguageDropdown variant="header" direction="up" align="right" />
               </div>
@@ -331,7 +330,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   className="h-9 px-2.5 rounded-[6px] bg-[#075E43] hover:bg-[#0B6B4F] text-[#FFFFFF] text-xs font-semibold flex items-center justify-center gap-1.5"
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
-                  <span>Help (1800)</span>
+                  <span>{t('helpSupport')}</span>
                 </button>
 
                 <button
@@ -339,7 +338,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   className="h-9 px-2.5 rounded-[6px] bg-[#075E43] hover:bg-[#0B6B4F] text-[#FFFFFF] text-xs font-semibold flex items-center justify-center gap-1.5"
                 >
                   <Settings className="w-3.5 h-3.5" />
-                  <span>Settings</span>
+                  <span>{t('settings')}</span>
                 </button>
               </div>
 
@@ -354,7 +353,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     className="w-full h-9 px-2.5 rounded-[6px] bg-[#075E43] hover:bg-[#0B6B4F] text-[#A3D99D] text-xs font-semibold flex items-center justify-center gap-1.5 border border-[#16845F]"
                   >
                     <LogIn className="w-3.5 h-3.5" />
-                    <span>Login / Register (लॉग इन)</span>
+                    <span>{t('login')} / {t('register')}</span>
                   </button>
                 </div>
               )}

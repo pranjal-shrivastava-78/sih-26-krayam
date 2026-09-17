@@ -20,7 +20,9 @@ export const CentresView: React.FC = () => {
     farmer, 
     selectedCentre, 
     setSelectedCentre, 
-    setActiveView 
+    setActiveView,
+    t,
+    translateCrop
   } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,10 +80,10 @@ export const CentresView: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#17231F]">
-              Procurement Centres / अधिकृत क्रय केंद्र
+              {t('centresHeader')}
             </h1>
             <p className="text-xs sm:text-sm text-[#66736D] mt-0.5">
-              Verified State Mandis, Agro Terminals, and MSP Procurement Yards
+              {t('centresSubtitle')}
             </p>
           </div>
 
@@ -91,7 +93,7 @@ export const CentresView: React.FC = () => {
               <Search className="w-4 h-4 text-[#66736D] absolute left-3 top-3" />
               <input
                 type="text"
-                placeholder="Search mandi, district or tehsil..."
+                placeholder={t('searchCentresPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-10 pl-9 pr-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-xs text-[#17231F] w-full focus:outline-none focus:border-[#16845F]"
@@ -104,10 +106,10 @@ export const CentresView: React.FC = () => {
               onChange={(e) => setCropFilter(e.target.value)}
               className="h-10 px-3 rounded-[6px] border border-[#CBD8D1] bg-[#FFFFFF] text-xs text-[#17231F] focus:outline-none focus:border-[#16845F] w-full sm:w-auto"
             >
-              <option value="ALL">All Crops (सभी फसलें)</option>
+              <option value="ALL">{t('allCropsFilter')}</option>
               {crops.map((c) => (
                 <option key={c.id} value={c.name}>
-                  {c.name}
+                  {translateCrop(c.name)}
                 </option>
               ))}
             </select>
@@ -200,10 +202,10 @@ export const CentresView: React.FC = () => {
                   {/* Crops Accepted & Action */}
                   <div className="mt-3 pt-3 border-t border-[#EDF3EF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[11px] text-[#66736D] font-semibold">Accepted Crops:</span>
+                      <span className="text-[11px] text-[#66736D] font-semibold">{t('cropAndQuantity')}:</span>
                       {centre.acceptedCropIds.map((cropName) => (
                         <span key={cropName} className="text-[10px] bg-[#EDF3EF] text-[#17231F] px-2 py-0.5 rounded border border-[#CBD8D1]">
-                          {cropName}
+                          {translateCrop(cropName)}
                         </span>
                       ))}
                     </div>
@@ -216,7 +218,7 @@ export const CentresView: React.FC = () => {
                       className="inline-flex items-center justify-center gap-1.5 h-9 px-4 rounded-[6px] bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] text-xs font-semibold transition-colors flex-shrink-0"
                     >
                       <CalendarPlus className="w-3.5 h-3.5" />
-                      <span>Book Slot Here</span>
+                      <span>{t('bookSlotAtMandi')}</span>
                     </button>
                   </div>
                 </div>

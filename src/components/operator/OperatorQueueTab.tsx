@@ -27,7 +27,11 @@ export const OperatorQueueTab: React.FC = () => {
     queueSummary,
     realtimeStatus,
     lastQueueUpdate,
-    language 
+    language,
+    translateCrop,
+    translateStatus,
+    translateUnit,
+    t
   } = useApp();
 
   const ot = getOperatorText(language);
@@ -294,7 +298,7 @@ export const OperatorQueueTab: React.FC = () => {
 
                   <div className="flex items-center gap-4 text-xs text-[#66736D] mt-1.5 flex-wrap">
                     <span>📱 {b.farmerMobile}</span>
-                    <span>🌾 {b.cropName} ({b.quantityQuintals} Qtl)</span>
+                    <span>🌾 {translateCrop(b.cropName)} ({b.quantityQuintals} {translateUnit('Qtl')})</span>
                     <span>⏰ Slot: {b.slot.split(' ')[0]}</span>
                     <span>📍 {b.centreLocation}</span>
                   </div>
@@ -314,7 +318,7 @@ export const OperatorQueueTab: React.FC = () => {
                     ? 'bg-[#B42318]/15 text-[#B42318]'
                     : 'bg-[#063B2A]/10 text-[#063B2A]'
                 }`}>
-                  {b.status}
+                  {translateStatus(b.status)}
                 </span>
 
                 {/* State-dependent Operator Actions */}

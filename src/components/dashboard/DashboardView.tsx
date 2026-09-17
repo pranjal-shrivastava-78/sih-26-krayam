@@ -23,7 +23,8 @@ export const DashboardView: React.FC = () => {
     setActiveView, 
     setIsHelpModalOpen,
     unreadCount,
-    t
+    t,
+    translateCrop
   } = useApp();
 
   const services: {
@@ -39,7 +40,7 @@ export const DashboardView: React.FC = () => {
       id: 'booking',
       titleKey: 'navBooking',
       titleEn: 'Book Slot',
-      desc: 'Reserve a procurement slot at government mandi',
+      desc: t('descBooking'),
       icon: CalendarPlus,
       action: () => setActiveView('booking'),
     },
@@ -47,7 +48,7 @@ export const DashboardView: React.FC = () => {
       id: 'tracking',
       titleKey: 'navTracking',
       titleEn: 'Queue Track',
-      desc: 'Track live vehicle position & estimated waiting time',
+      desc: t('descTracking'),
       icon: Activity,
       action: () => setActiveView('tracking'),
     },
@@ -55,7 +56,7 @@ export const DashboardView: React.FC = () => {
       id: 'centres',
       titleKey: 'navCentres',
       titleEn: 'Procurement Centres',
-      desc: 'Find nearby operational mandis & sub-yards on map',
+      desc: t('descCentres'),
       icon: MapPin,
       action: () => setActiveView('centres'),
     },
@@ -63,7 +64,7 @@ export const DashboardView: React.FC = () => {
       id: 'procurement',
       titleKey: 'navProcurement',
       titleEn: 'Procurement & DBT',
-      desc: 'View weighing slip, quality grade, & bank disbursement',
+      desc: t('descProcurement'),
       icon: IndianRupee,
       action: () => setActiveView('procurement'),
     },
@@ -71,7 +72,7 @@ export const DashboardView: React.FC = () => {
       id: 'history',
       titleKey: 'navHistory',
       titleEn: 'Transaction History',
-      desc: 'Access verified records of previous crop procurements',
+      desc: t('descHistory'),
       icon: History,
       action: () => setActiveView('history'),
     },
@@ -79,7 +80,7 @@ export const DashboardView: React.FC = () => {
       id: 'alerts',
       titleKey: 'navNotifications',
       titleEn: 'Important Alerts',
-      desc: 'Procurement schedule updates & MSP announcements',
+      desc: t('descAlerts'),
       icon: Bell,
       badge: unreadCount,
       action: () => setActiveView('notifications'),
@@ -88,7 +89,7 @@ export const DashboardView: React.FC = () => {
       id: 'help',
       titleKey: 'helpSupport',
       titleEn: 'Help & Support',
-      desc: 'Toll-free helpline (1800-180-1551) & grievance redressal',
+      desc: t('descHelp'),
       icon: HelpCircle,
       action: () => setIsHelpModalOpen(true),
     },
@@ -96,7 +97,7 @@ export const DashboardView: React.FC = () => {
       id: 'profile',
       titleKey: 'navProfile',
       titleEn: 'Farmer Profile & Land',
-      desc: 'Aadhaar linkage, landholding, & linked bank account',
+      desc: t('descProfile'),
       icon: ShieldCheck,
       action: () => setActiveView('profile'),
     }
@@ -170,10 +171,10 @@ export const DashboardView: React.FC = () => {
               <div className="space-y-1">
                 <div className="text-xs text-[#66736D] uppercase font-semibold">{t('cropAndQuantity')}</div>
                 <div className="text-xl sm:text-2xl font-bold text-[#17231F]">
-                  {activeBooking.cropName}
+                  {translateCrop(activeBooking.cropName)}
                 </div>
                 <div className="text-sm font-semibold text-[#075E43]">
-                  {t('quantityInQuintals')}: {activeBooking.quantityQuintals} Qtl
+                  {t('quantityInQuintals')}: {activeBooking.quantityQuintals} {t('qtl', 'Qtl')}
                 </div>
               </div>
 
@@ -195,12 +196,12 @@ export const DashboardView: React.FC = () => {
                   <div className="text-[11px] font-bold text-[#66736D] uppercase">{t('liveQueuePosition')}</div>
                   <div className="text-sm sm:text-lg font-black text-[#063B2A] font-mono">
                     {activeBooking.status === 'PROCESSING'
-                      ? 'At Weighbridge'
+                      ? t('atWeighbridge')
                       : activeBooking.status === 'COMPLETED'
-                      ? 'Completed'
+                      ? t('completed')
                       : activeBooking.queuePosition
                       ? `#${activeBooking.queuePosition}`
-                      : 'Scheduled'}
+                      : t('scheduled')}
                   </div>
                 </div>
                 <div className="w-[1px] h-8 bg-[#CBD8D1]" />
@@ -217,7 +218,7 @@ export const DashboardView: React.FC = () => {
                     <Clock className="w-3.5 h-3.5" />
                     {activeBooking.estimatedWaitMinutes
                       ? `~${activeBooking.estimatedWaitMinutes} ${t('minutesAbbr')}`
-                      : 'Pending Check-in'}
+                      : t('pendingCheckIn')}
                   </div>
                 </div>
               </div>
@@ -254,7 +255,7 @@ export const DashboardView: React.FC = () => {
             {t('servicesTitle')}
           </h2>
           <span className="text-xs text-[#66736D]">
-            Official Agriculture Services
+            {t('officialServices')}
           </span>
         </div>
 
@@ -274,7 +275,7 @@ export const DashboardView: React.FC = () => {
                     </div>
                     {item.badge !== undefined && item.badge > 0 && (
                       <span className="px-1.5 py-0.5 rounded-[4px] text-[10px] font-bold bg-[#D97706] text-[#FFFFFF]">
-                        {item.badge} New
+                        {item.badge} {t('newBadge')}
                       </span>
                     )}
                   </div>
@@ -307,10 +308,10 @@ export const DashboardView: React.FC = () => {
           </div>
           <div>
             <div className="text-xs font-bold text-[#17231F]">
-              Kisan Call Centre & Mandi Grievance Redressal
+              {t('helplineTitle')}
             </div>
             <div className="text-xs text-[#66736D]">
-              Toll-Free Helpline: <span className="font-mono font-bold text-[#D97706]">1800-180-1551</span> (Available 06:00 AM – 10:00 PM, All Days)
+              {t('helplineDesc')}
             </div>
           </div>
         </div>
@@ -318,7 +319,7 @@ export const DashboardView: React.FC = () => {
           onClick={() => setIsHelpModalOpen(true)}
           className="text-xs font-bold text-[#0B6B4F] hover:underline flex-shrink-0"
         >
-          View Mandi Contacts & FAQs →
+          {t('viewFaqsBtn')} →
         </button>
       </div>
     </div>
