@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { api } from '../../services/api';
 import { getOperatorText } from '../../i18n/operatorTranslations';
 import { 
   Scale, 
@@ -154,7 +155,16 @@ export const OperatorProcurementTab: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                  <a
+                    href={api.procurements.getReceiptUrl(completedRecordId)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#075E43] hover:bg-[#063B2A] text-white font-bold text-xs px-4 py-2 rounded-[6px] transition-colors inline-flex items-center gap-1.5 shadow-sm"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>View Official J-Form</span>
+                  </a>
                   <button
                     type="button"
                     onClick={() => {
@@ -162,7 +172,7 @@ export const OperatorProcurementTab: React.FC = () => {
                       setGrossWeightKg(8000);
                       setTareWeightKg(1600);
                     }}
-                    className="bg-[#063B2A] hover:bg-[#075E43] text-white font-bold text-xs px-5 py-2 rounded-[6px] transition-colors"
+                    className="bg-[#EDF3EF] hover:bg-[#CBD8D1] text-[#063B2A] font-bold text-xs px-4 py-2 rounded-[6px] border border-[#CBD8D1] transition-colors"
                   >
                     {ot.callNextFarmerBtn}
                   </button>
@@ -457,14 +467,15 @@ export const OperatorProcurementTab: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        type="button"
-                        onClick={() => alert(`J-Form Certificate ${p.id}`)}
+                      <a
+                        href={api.procurements.getReceiptUrl(p.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="bg-[#EDF3EF] hover:bg-[#CBD8D1] text-[#063B2A] font-bold text-[11px] px-2.5 py-1 rounded border border-[#CBD8D1] transition-colors inline-flex items-center gap-1"
                       >
                         <Download className="w-3 h-3" />
                         <span>J-Form</span>
-                      </button>
+                      </a>
                     </td>
                   </tr>
                 ))}

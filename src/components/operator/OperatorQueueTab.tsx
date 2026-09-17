@@ -41,7 +41,7 @@ export const OperatorQueueTab: React.FC = () => {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const filteredBookings = bookings.filter(b => {
-    if (filter === 'ALL') return true;
+    if (filter === 'ALL') return b.status !== 'COMPLETED' && b.status !== 'CANCELLED' && b.status !== 'NO_SHOW';
     if (filter === 'WAITING') return b.status === 'IN_QUEUE' || b.status === 'CHECKED_IN' || b.status === 'TURN_APPROACHING' || b.status === 'CONFIRMED';
     if (filter === 'PROCESSING') return b.status === 'PROCESSING' || b.status === 'WEIGHING' || b.status === 'QUALITY_CHECK';
     if (filter === 'COMPLETED') return b.status === 'COMPLETED';
@@ -219,7 +219,7 @@ export const OperatorQueueTab: React.FC = () => {
           onClick={() => setFilter('ALL')}
           className={`px-3 py-1.5 rounded-[4px] transition-colors ${filter === 'ALL' ? 'bg-[#063B2A] text-white' : 'hover:bg-[#EDF3EF]'}`}
         >
-          {ot.filterAll} ({bookings.length})
+          {ot.filterAll} ({bookings.filter(b => b.status !== 'COMPLETED' && b.status !== 'CANCELLED' && b.status !== 'NO_SHOW').length})
         </button>
         <button
           onClick={() => setFilter('WAITING')}
@@ -320,7 +320,7 @@ export const OperatorQueueTab: React.FC = () => {
                     <button
                       type="button"
                       disabled={isActionLoading}
-                      onClick={() => handleStartProcessing(b.uuid || b.id)}
+                      onClick={() => handleStartProcessing(b.queueEntryId || b.uuid || b.id)}
                       className="bg-[#075E43] hover:bg-[#063B2A] text-white text-xs font-bold px-3 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50"
                     >
                       <Play className="w-3.5 h-3.5" />
@@ -329,7 +329,7 @@ export const OperatorQueueTab: React.FC = () => {
                     <button
                       type="button"
                       disabled={isActionLoading}
-                      onClick={() => handleMarkNoShow(b.uuid || b.id)}
+                      onClick={() => handleMarkNoShow(b.queueEntryId || b.uuid || b.id)}
                       className="bg-[#FFF5F5] hover:bg-[#FEE4E2] text-[#B42318] text-xs font-semibold px-2.5 py-1.5 rounded-[6px] border border-[#F0C2C2] transition-colors flex items-center gap-1 disabled:opacity-50"
                     >
                       <UserX className="w-3.5 h-3.5" />
@@ -343,7 +343,7 @@ export const OperatorQueueTab: React.FC = () => {
                     <button
                       type="button"
                       disabled={isActionLoading}
-                      onClick={() => handleCompleteProcessing(b.uuid || b.id)}
+                      onClick={() => handleCompleteProcessing(b.queueEntryId || b.uuid || b.id)}
                       className="bg-[#16803C] hover:bg-[#0F5A2A] text-white text-xs font-bold px-3 py-1.5 rounded-[6px] transition-colors flex items-center gap-1 shadow-sm disabled:opacity-50"
                     >
                       <Check className="w-3.5 h-3.5" />

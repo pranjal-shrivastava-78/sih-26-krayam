@@ -479,9 +479,17 @@ class ApiClient {
         throw err;
       }
       if (err.name === 'AbortError') {
-        throw new ApiError('Request timed out while connecting to the backend.', 'NETWORK_ERROR');
+        throw new ApiError('Request timed out while connecting to the backend. Please try again.', 'NETWORK_ERROR');
       }
-      throw new ApiError(err.message || 'Network connection failure.', 'NETWORK_ERROR');
+      const isNetErr = (typeof navigator !== 'undefined' && !navigator.onLine) ||
+        err.message === 'Failed to fetch' ||
+        err.message?.includes('NetworkError') ||
+        err.message?.includes('Failed to load') ||
+        err.message?.includes('network');
+      const msg = isNetErr
+        ? 'Unable to connect to the server. Please try again.'
+        : (err.message || 'Unable to connect to the server. Please try again.');
+      throw new ApiError(msg, 'NETWORK_ERROR');
     }
   }
 
@@ -530,6 +538,10 @@ class ApiClient {
       });
 
       this.setToken(data.access_token);
+      this.setOperatorToken(null);
+      try {
+        localStorage.removeItem('krayam_operator_profile');
+      } catch {}
 
       let farmerProfile: FarmerProfile | undefined;
       if (data.is_registered) {
@@ -607,6 +619,9 @@ class ApiClient {
       token: string;
       operator: OperatorProfile;
     }> => {
+      // Clear any prior farmer session so operator authentication is isolated
+      this.setToken(null);
+
       const data = await this.request<{
         access_token: string;
         token_type: string;
@@ -693,7 +708,12 @@ class ApiClient {
     },
 
     getById: async (bookingId: string): Promise<Booking> => {
-      const b = await this.request<BackendBooking>(`/bookings/${bookingId}`, { method: 'GET' });
+      const cleanId = bookingId.trim();
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+      if (!isUuid) {
+        throw new ApiError('Unable to identify this booking. Please refresh your bookings and try again.', 'VALIDATION_ERROR');
+      }
+      const b = await this.request<BackendBooking>(`/bookings/${cleanId}`, { method: 'GET' });
       return this.transformBooking(b);
     },
 
@@ -721,8 +741,18 @@ class ApiClient {
       return this.transformBooking(backendBooking, undefined, payload.slotWindow);
     },
 
-    cancel: async (bookingId: string): Promise<Booking> => {
-      const b = await this.request<BackendBooking>(`/bookings/${bookingId}/cancel`, { method: 'POST' });
+    cancel: async (bookingId: string, useOperatorToken?: boolean): Promise<Booking> => {
+      const cleanId = bookingId.trim();
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+      if (!isUuid) {
+        throw new ApiError('Unable to identify this booking. Please refresh your bookings and try again.', 'VALIDATION_ERROR');
+      }
+      const shouldUseOperator = useOperatorToken !== undefined ? useOperatorToken : Boolean(this.operatorToken);
+      const b = await this.request<BackendBooking>(
+        `/bookings/${cleanId}/cancel`,
+        { method: 'POST' },
+        shouldUseOperator
+      );
       return this.transformBooking(b);
     },
 
@@ -731,20 +761,31 @@ class ApiClient {
       centreId?: string | null;
       slotId?: string | null;
       slotWindow?: SlotTimeWindow;
-    }): Promise<Booking> => {
-      const b = await this.request<BackendBooking>(`/bookings/${bookingId}/reschedule`, {
+    }, useOperatorToken?: boolean): Promise<Booking> => {
+      const cleanId = bookingId.trim();
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+      if (!isUuid) {
+        throw new ApiError('Unable to identify this booking. Please refresh your bookings and try again.', 'VALIDATION_ERROR');
+      }
+      const shouldUseOperator = useOperatorToken !== undefined ? useOperatorToken : Boolean(this.operatorToken);
+      const b = await this.request<BackendBooking>(`/bookings/${cleanId}/reschedule`, {
         method: 'POST',
         body: JSON.stringify({
           expected_date: data.expectedDate,
           centre_id: data.centreId || null,
           slot_id: data.slotId || null,
         }),
-      });
+      }, shouldUseOperator);
       return this.transformBooking(b, undefined, data.slotWindow);
     },
 
     getQr: async (bookingId: string): Promise<BackendQRCodeResponse> => {
-      return await this.request<BackendQRCodeResponse>(`/bookings/${bookingId}/qr`, { method: 'GET' });
+      const cleanId = bookingId.trim();
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+      if (!isUuid) {
+        throw new ApiError('Unable to identify this booking. Please refresh your bookings and try again.', 'VALIDATION_ERROR');
+      }
+      return await this.request<BackendQRCodeResponse>(`/bookings/${cleanId}/qr`, { method: 'GET' });
     },
 
     recommend: async (crop: string, expectedDate: string): Promise<RecommendedCentreItem[]> => {
@@ -773,9 +814,14 @@ class ApiClient {
     },
 
     checkIn: async (bookingId: string): Promise<BackendQueueEntry> => {
+      const cleanId = bookingId.trim();
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+      if (!isUuid) {
+        throw new ApiError('Unable to identify this booking. Please refresh your bookings and try again.', 'VALIDATION_ERROR');
+      }
       return await this.request<BackendQueueEntry>('/operator/check-in', {
         method: 'POST',
-        body: JSON.stringify({ booking_id: bookingId }),
+        body: JSON.stringify({ booking_id: cleanId }),
       }, true);
     },
 
@@ -806,10 +852,15 @@ class ApiClient {
       unit?: string;
       quality_notes?: string;
     }): Promise<BackendProcurement> => {
+      const cleanBookingId = payload.booking_id.trim();
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanBookingId);
+      if (!isUuid) {
+        throw new ApiError('Unable to identify this booking. Please refresh your bookings and try again.', 'VALIDATION_ERROR');
+      }
       return await this.request<BackendProcurement>('/operator/procurements', {
         method: 'POST',
         body: JSON.stringify({
-          booking_id: payload.booking_id,
+          booking_id: cleanBookingId,
           accepted_quantity: payload.accepted_quantity,
           unit_price: payload.unit_price,
           quality_grade: payload.quality_grade,
@@ -831,6 +882,11 @@ class ApiClient {
 
     review: async (procurementId: string): Promise<any> => {
       return await this.request<any>(`/operator/procurements/${procurementId}/review`, { method: 'GET' }, true);
+    },
+
+    getReceiptUrl: (identifier: string): string => {
+      const rootUrl = resolveApiBaseUrl().replace(/\/api\/v1\/?$/, '');
+      return `${rootUrl}/r/${encodeURIComponent(identifier)}`;
     },
   };
 

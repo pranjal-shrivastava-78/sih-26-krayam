@@ -75,7 +75,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({ booking, isOpe
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      await rescheduleBooking(booking.id, newDate, formattedSlotWindow, selectedSlotId);
+      await rescheduleBooking(booking.uuid || booking.id, newDate, formattedSlotWindow, selectedSlotId);
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);

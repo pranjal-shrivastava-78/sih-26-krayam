@@ -8,7 +8,9 @@ import {
   AlertTriangle, 
   FastForward,
   CalendarPlus,
-  ArrowRight
+  ArrowRight,
+  Scale,
+  CheckCircle2
 } from 'lucide-react';
 import { RescheduleModal } from '../booking/RescheduleModal';
 
@@ -19,6 +21,7 @@ export const QueueTrackerView: React.FC = () => {
     realtimeStatus,
     lastQueueUpdate,
     setActiveView,
+    farmer,
     t
   } = useApp();
 
@@ -119,7 +122,7 @@ export const QueueTrackerView: React.FC = () => {
 
   const handleConfirmCancel = async () => {
     try {
-      await cancelBooking(activeBooking.id);
+      await cancelBooking(activeBooking.uuid || activeBooking.id);
       setShowCancelDialog(false);
     } catch (err: any) {
       alert(err.message || 'Failed to cancel booking.');
@@ -205,6 +208,50 @@ export const QueueTrackerView: React.FC = () => {
               Mandi operator has called your token. Please proceed to the weighbridge gate immediately with your transport vehicle.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Produce Being Processed Banner */}
+      {status === 'PROCESSING' && (
+        <div className="bg-[#F5F8FF] border-2 border-[#175CD3] rounded-[8px] p-4 flex items-center gap-3.5 shadow-md">
+          <div className="w-10 h-10 rounded-full bg-[#175CD3] text-white flex items-center justify-center shrink-0">
+            <Scale className="w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <h3 className="font-bold text-sm text-[#175CD3]">
+              At Weighbridge / तौल केंद्र पर — Under Processing
+            </h3>
+            <p className="text-xs text-[#1E40AF] mt-0.5 leading-relaxed">
+              Your transport vehicle is currently on the electronic weighbridge. The mandi operator is recording gross weight, tare weight, and moisture analysis.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Produce Completed Banner */}
+      {status === 'COMPLETED' && (
+        <div className="bg-[#E7F3EC] border-2 border-[#16803C] rounded-[8px] p-4 flex items-center justify-between gap-3.5 shadow-md flex-wrap">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-full bg-[#16803C] text-white flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-[#063B2A]">
+                Procurement Completed / क्रय पूर्ण हुआ
+              </h3>
+              <p className="text-xs text-[#16803C] mt-0.5 leading-relaxed">
+                Mandi weighing and intake verified. Your J-Form has been generated and PFMS DBT clearance is initiated.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveView('procurement')}
+            className="bg-[#063B2A] hover:bg-[#075E43] text-white text-xs font-bold px-4 py-2 rounded-[6px] transition-colors inline-flex items-center gap-1.5"
+          >
+            <span>View J-Form & Payment</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -433,7 +480,7 @@ export const QueueTrackerView: React.FC = () => {
                       Village / गाँव
                     </td>
                     <td className="text-xs text-[#17231F]">
-                      Rampur Kalan (Samrala Tehsil)
+                      {farmer?.location?.village || '—'}
                     </td>
                   </tr>
                   <tr>
@@ -441,7 +488,7 @@ export const QueueTrackerView: React.FC = () => {
                       District / जिला
                     </td>
                     <td className="text-xs text-[#17231F]">
-                      Ludhiana, Punjab
+                      {[farmer?.location?.district, farmer?.location?.state].filter(Boolean).join(', ') || '—'}
                     </td>
                   </tr>
                 </tbody>

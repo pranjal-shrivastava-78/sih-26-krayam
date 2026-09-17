@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { api } from '../../services/api';
 import { ProcurementRecord, PaymentRecord } from '../../types';
 import { 
   Check, 
@@ -283,6 +284,15 @@ export const ProcurementPaymentView: React.FC = () => {
             </div>
 
             <div className="pt-3 border-t border-[#CBD8D1] space-y-2">
+              <a
+                href={api.procurements.getReceiptUrl(selectedRecord.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-10 rounded-[6px] bg-[#075E43] hover:bg-[#063B2A] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>View Official J-Form Receipt / जे-फॉर्म देखें</span>
+              </a>
               <button
                 onClick={() => window.print()}
                 className="w-full h-10 rounded-[6px] bg-[#FFFFFF] border border-[#CBD8D1] hover:bg-[#EDF3EF] text-[#17231F] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"

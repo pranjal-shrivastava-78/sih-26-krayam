@@ -20,6 +20,8 @@ import {
   AlertCircle,
   ArrowRight
 } from 'lucide-react';
+import { INDIAN_STATES } from '../../data/states';
+import { getDistrictsForState } from '../../data/districts';
 
 interface AuthPageProps {
   onSuccess?: () => void;
@@ -40,9 +42,42 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
 
   const at = getAuthText(language);
 
-  // Role & Action selectors: matching the target design
-  const [selectedRole, setSelectedRole] = useState<'farmer' | 'operator'>('farmer');
-  const [selectedAction, setSelectedAction] = useState<'login' | 'register'>('login');
+  // Role & Action selectors: preserved so component remounts or state updates don't revert to Farmer
+  const [selectedRole, setSelectedRole] = useState<'farmer' | 'operator'>(() => {
+    try {
+      const saved = sessionStorage.getItem('krayam_auth_selected_role');
+      if (saved === 'farmer' || saved === 'operator') return saved;
+      const role = localStorage.getItem('kisan_role');
+      if (role === 'operator') return 'operator';
+    } catch {}
+    return 'farmer';
+  });
+
+  const [selectedAction, setSelectedAction] = useState<'login' | 'register'>(() => {
+    try {
+      const saved = sessionStorage.getItem('krayam_auth_selected_action');
+      if (saved === 'login' || saved === 'register') return saved;
+    } catch {}
+    return 'login';
+  });
+
+  const handleSelectRole = (role: 'farmer' | 'operator') => {
+    setSelectedRole(role);
+    setAuthError('');
+    setAuthSuccess(null);
+    try {
+      sessionStorage.setItem('krayam_auth_selected_role', role);
+    } catch {}
+  };
+
+  const handleSelectAction = (action: 'login' | 'register') => {
+    setSelectedAction(action);
+    setAuthError('');
+    setAuthSuccess(null);
+    try {
+      sessionStorage.setItem('krayam_auth_selected_action', action);
+    } catch {}
+  };
   
   // Mandatory Terms & Conditions Agreement
   const [agreedToTc, setAgreedToTc] = useState(false);
@@ -74,7 +109,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
   const [opRegCentreId, setOpRegCentreId] = useState(centres[0]?.id || '');
   const [opRegServiceKey, setOpRegServiceKey] = useState('');
 
-  // Farmer Registration fields
   const [farmerRegName, setFarmerRegName] = useState('');
   const [farmerRegMobile, setFarmerRegMobile] = useState('');
   const [farmerRegVillage, setFarmerRegVillage] = useState('');
@@ -86,6 +120,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
   const [farmerRegOtpCode, setFarmerRegOtpCode] = useState('');
   const [farmerRegCooldown, setFarmerRegCooldown] = useState(0);
   const [farmerSuccessId, setFarmerSuccessId] = useState<string | null>(null);
+
+  // Available districts dependent on selected state
+  const availableDistricts = farmerRegState ? getDistrictsForState(farmerRegState) : [];
+
+  // Reset district automatically whenever state changes
+  const handleFarmerStateChange = (selectedState: string) => {
+    setFarmerRegState(selectedState);
+    setFarmerRegDistrict('');
+    setAuthError('');
+  };
 
   // Sync default centre when centres catalog loads
   useEffect(() => {
@@ -163,6 +207,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
     setAuthError('');
     setAuthSuccess(null);
 
+    // Prevent duplicate login requests
+    if (isSubmitting) return;
+
     if (!agreedToTc) {
       setAuthError(termsErrorMsg);
       return;
@@ -182,8 +229,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
     setIsSubmitting(true);
     try {
       const success = await operatorLogin(cleanDigits, password);
-      setIsSubmitting(false);
-
       if (success) {
         if (onSuccess) onSuccess();
         setActiveView('dashboard');
@@ -191,8 +236,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
         setAuthError('Invalid phone or password');
       }
     } catch (err: any) {
-      setIsSubmitting(false);
       setAuthError(err.message || 'Invalid phone or password');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -315,14 +361,27 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       return;
     }
 
-    if (!farmerRegName.trim() || !farmerRegMobile.trim() || !farmerRegVillage.trim()) {
-      setAuthError('Please fill required fields (Name, Mobile, Village).');
+    if (!farmerRegName.trim() || !farmerRegMobile.trim() || !farmerRegState.trim() || !farmerRegDistrict.trim() || !farmerRegPincode.trim() || !farmerRegVillage.trim()) {
+      setAuthError('Please fill all required fields (Name, Mobile, State, District, Pincode, Village).');
       return;
     }
 
     const cleanDigits = farmerRegMobile.replace(/[^\d]/g, '');
     if (cleanDigits.length < 10) {
       setAuthError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    // Validate that district belongs to selected state
+    const validDistricts = getDistrictsForState(farmerRegState);
+    if (validDistricts.length > 0 && !validDistricts.includes(farmerRegDistrict)) {
+      setAuthError(`Selected district "${farmerRegDistrict}" does not belong to ${farmerRegState}. Please select a valid district.`);
+      return;
+    }
+
+    const cleanPincode = farmerRegPincode.replace(/[^\d]/g, '');
+    if (cleanPincode.length !== 6) {
+      setAuthError('Please enter a valid 6-digit Indian PIN code.');
       return;
     }
 
@@ -358,10 +417,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
         fullName: farmerRegName.trim(),
         mobileNumber: cleanDigits,
         village: farmerRegVillage.trim(),
-        tehsil: 'Main',
-        district: farmerRegDistrict.trim() || 'Ludhiana',
-        state: farmerRegState.trim() || 'Punjab',
-        pincode: farmerRegPincode.trim() || '141001',
+        tehsil: '',
+        district: farmerRegDistrict.trim(),
+        state: farmerRegState.trim(),
+        pincode: cleanPincode,
         landHoldingAcres: Number(farmerRegLand) || 5,
       });
 
@@ -425,11 +484,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
               <button
                 type="button"
                 id="btn-select-farmer"
-                onClick={() => {
-                  setSelectedRole('farmer');
-                  setAuthError('');
-                  setAuthSuccess(null);
-                }}
+                onClick={() => handleSelectRole('farmer')}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-[10px] font-bold text-xs sm:text-sm transition-all duration-150 ${
                   selectedRole === 'farmer'
                     ? 'bg-[#064e3b] text-[#FFFFFF] shadow-sm'
@@ -443,11 +498,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
               <button
                 type="button"
                 id="btn-select-operator"
-                onClick={() => {
-                  setSelectedRole('operator');
-                  setAuthError('');
-                  setAuthSuccess(null);
-                }}
+                onClick={() => handleSelectRole('operator')}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-[10px] font-bold text-xs sm:text-sm transition-all duration-150 ${
                   selectedRole === 'operator'
                     ? 'bg-[#064e3b] text-[#FFFFFF] shadow-sm'
@@ -464,11 +515,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
               <button
                 type="button"
                 id="btn-select-login"
-                onClick={() => {
-                  setSelectedAction('login');
-                  setAuthError('');
-                  setAuthSuccess(null);
-                }}
+                onClick={() => handleSelectAction('login')}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-[10px] font-bold text-xs sm:text-sm transition-all duration-150 ${
                   selectedAction === 'login'
                     ? 'bg-[#064e3b] text-[#FFFFFF] shadow-sm'
@@ -482,11 +529,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
               <button
                 type="button"
                 id="btn-select-register"
-                onClick={() => {
-                  setSelectedAction('register');
-                  setAuthError('');
-                  setAuthSuccess(null);
-                }}
+                onClick={() => handleSelectAction('register')}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-[10px] font-bold text-xs sm:text-sm transition-all duration-150 ${
                   selectedAction === 'register'
                     ? 'bg-[#064e3b] text-[#FFFFFF] shadow-sm'
@@ -892,7 +935,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                   </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-2 gap-2">
+                    {/* Row 1: Full Name * & Mobile Number * */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <label className="block text-[10px] font-bold text-[#17231F] uppercase mb-0.5">
                           FULL NAME *
@@ -913,15 +957,74 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                         <input
                           type="tel"
                           required
+                          maxLength={10}
                           value={farmerRegMobile}
-                          onChange={(e) => setFarmerRegMobile(e.target.value)}
+                          onChange={(e) => setFarmerRegMobile(e.target.value.replace(/\D/g, ''))}
                           placeholder="10-digit mobile"
                           className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-xs text-[#17231F] focus:border-[#075E43] focus:outline-none"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2">
+                    {/* Row 2: State * & District * (Dependent Dropdown) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17231F] uppercase mb-0.5">
+                          STATE *
+                        </label>
+                        <select
+                          required
+                          value={farmerRegState}
+                          onChange={(e) => handleFarmerStateChange(e.target.value)}
+                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-xs text-[#17231F] focus:border-[#075E43] focus:outline-none"
+                        >
+                          <option value="">Select State</option>
+                          {INDIAN_STATES.map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17231F] uppercase mb-0.5">
+                          DISTRICT *
+                        </label>
+                        <select
+                          required
+                          disabled={!farmerRegState}
+                          value={farmerRegDistrict}
+                          onChange={(e) => setFarmerRegDistrict(e.target.value)}
+                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-xs text-[#17231F] focus:border-[#075E43] focus:outline-none disabled:bg-[#F4F7F5] disabled:text-[#94A3B8] disabled:cursor-not-allowed"
+                        >
+                          <option value="">
+                            {farmerRegState ? 'Select District' : 'Select State First'}
+                          </option>
+                          {availableDistricts.map((d) => (
+                            <option key={d} value={d}>
+                              {d}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Row 3: Pincode * & Village * */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17231F] uppercase mb-0.5">
+                          PINCODE *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={6}
+                          value={farmerRegPincode}
+                          onChange={(e) => setFarmerRegPincode(e.target.value.replace(/\D/g, ''))}
+                          placeholder="6-digit pincode"
+                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-xs text-[#17231F] focus:border-[#075E43] focus:outline-none"
+                        />
+                      </div>
                       <div>
                         <label className="block text-[10px] font-bold text-[#17231F] uppercase mb-0.5">
                           VILLAGE *
@@ -932,18 +1035,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
                           value={farmerRegVillage}
                           onChange={(e) => setFarmerRegVillage(e.target.value)}
                           placeholder="Village name"
-                          className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-xs text-[#17231F] focus:border-[#075E43] focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-[#17231F] uppercase mb-0.5">
-                          DISTRICT
-                        </label>
-                        <input
-                          type="text"
-                          value={farmerRegDistrict}
-                          onChange={(e) => setFarmerRegDistrict(e.target.value)}
-                          placeholder="District"
                           className="w-full bg-white border border-[#CBD8D1] rounded-[6px] px-3 py-1.5 text-xs text-[#17231F] focus:border-[#075E43] focus:outline-none"
                         />
                       </div>

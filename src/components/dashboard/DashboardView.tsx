@@ -193,8 +193,14 @@ export const DashboardView: React.FC = () => {
               <div className="bg-[#F4FAF6] border border-[#B7DCC5] rounded-[6px] p-3 flex items-center justify-around text-center">
                 <div>
                   <div className="text-[11px] font-bold text-[#66736D] uppercase">{t('liveQueuePosition')}</div>
-                  <div className="text-xl sm:text-2xl font-black text-[#063B2A] font-mono">
-                    {activeBooking.queuePosition ? `#${activeBooking.queuePosition}` : 'Scheduled'}
+                  <div className="text-sm sm:text-lg font-black text-[#063B2A] font-mono">
+                    {activeBooking.status === 'PROCESSING'
+                      ? 'At Weighbridge'
+                      : activeBooking.status === 'COMPLETED'
+                      ? 'Completed'
+                      : activeBooking.queuePosition
+                      ? `#${activeBooking.queuePosition}`
+                      : 'Scheduled'}
                   </div>
                 </div>
                 <div className="w-[1px] h-8 bg-[#CBD8D1]" />

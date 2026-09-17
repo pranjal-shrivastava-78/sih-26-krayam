@@ -61,7 +61,7 @@ interface AppContextType {
     coordinates?: { lat: number; lng: number };
   }) => Promise<FarmerProfile>;
   logout: () => void;
-  updateProfile: (data: Partial<FarmerProfile>) => void;
+  updateProfile: (data: Partial<FarmerProfile>) => Promise<FarmerProfile>;
   updateFarmerLocation: (location: FarmerProfile['location']) => void;
 
   // Catalog & Centres
@@ -128,7 +128,7 @@ interface AppContextType {
   }) => Promise<ProcurementRecord>;
   operatorConfirmPayment: (paymentId: string) => Promise<void>;
   refreshOperatorPayments: () => Promise<void>;
-  operatorCancelBooking: (bookingId: string, reason: string) => void;
+  operatorCancelBooking: (bookingId: string, reason: string) => Promise<void>;
   operatorRescheduleBooking: (bookingId: string, newDate: string, newSlot: SlotTimeWindow) => void;
 
   // Offline Synchronization Mode
@@ -266,10 +266,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const backendBookings = await api.bookings.getMyBookings();
       if (backendBookings) {
         setBookings(backendBookings);
+        offlineDb.setOperationalData('farmer_bookings', backendBookings).catch(() => {});
       }
     } catch (err: any) {
       console.warn('Backend getMyBookings error:', err.message);
+      try {
+        const cachedBookings = await offlineDb.getOperationalData<Booking[]>('farmer_bookings');
+        if (cachedBookings && cachedBookings.length > 0) {
+          setBookings(cachedBookings);
+        }
+      } catch {}
     }
+
+    try {
+      const cachedProc = await offlineDb.getOperationalData<ProcurementRecord[]>('procurements');
+      if (cachedProc && cachedProc.length > 0) {
+        setProcurements(cachedProc);
+      }
+    } catch {}
 
     try {
       const backendNotifications = await api.notifications.getAll();
@@ -356,6 +370,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           confirmedAt: item.confirmed_at,
         }));
         setPayments(mappedPayments);
+
+        // Authoritatively reconstruct and reconcile completed procurements from backend payments
+        setProcurements((prev) => {
+          const merged = [...prev];
+          for (const item of paymentData.items) {
+            const existingIdx = merged.findIndex(
+              (p) => p.uuid === item.procurement_id || p.id === item.procurement_id || (item.booking_id && p.bookingId === item.booking_id)
+            );
+            const rec: ProcurementRecord = {
+              id: item.procurement_id || item.payment_id || `PRC-${item.booking_id}`,
+              uuid: item.procurement_id,
+              bookingId: item.booking_id || '',
+              farmerId: item.farmer_id,
+              farmerName: item.farmer_name,
+              farmerMobile: item.farmer_phone,
+              cropName: 'Produce',
+              date: new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+              centreName: 'Procurement Mandi',
+              bookedQuantity: item.quantity,
+              acceptedQuantity: item.quantity,
+              grossWeight: item.quantity,
+              tareWeight: 0,
+              netWeight: item.quantity,
+              mspRate: item.rate,
+              grossAmount: item.amount,
+              deductions: 0,
+              qualityGrade: 'Grade A',
+              procurementStatus: 'Accepted',
+              paymentStatus: item.status as any,
+              paymentAmount: item.amount,
+              paymentId: item.payment_id || item.id,
+            };
+            if (existingIdx >= 0) {
+              merged[existingIdx] = { ...merged[existingIdx], ...rec };
+            } else {
+              merged.unshift(rec);
+            }
+          }
+          offlineDb.setOperationalData('procurements', merged).catch(() => {});
+          return merged;
+        });
       }
     } catch (payErr: any) {
       console.warn('[Operator] Payments refresh notice:', payErr.message);
@@ -513,6 +568,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (isMounted && lastSync) {
           setLastSyncTime(new Date(lastSync).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (Confirmed)');
         }
+
+        // Hydrate persisted procurements from operational cache
+        const cachedProc = await offlineDb.getOperationalData<ProcurementRecord[]>('procurements');
+        if (isMounted && cachedProc && cachedProc.length > 0) {
+          setProcurements(cachedProc);
+        }
+
+        // Hydrate persisted bookings from operational cache
+        const cachedBookings = await offlineDb.getOperationalData<Booking[]>('farmer_bookings');
+        if (isMounted && cachedBookings && cachedBookings.length > 0) {
+          setBookings((prev) => (prev.length === 0 ? cachedBookings : prev));
+        }
       } catch (err) {
         console.warn('[OfflineDB] Initialization error:', err);
       }
@@ -616,6 +683,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const initAuth = async () => {
       const token = api.getToken();
       const opToken = api.getOperatorToken();
+      const storedRole = localStorage.getItem('kisan_role');
+
+      // If user was an operator and has valid operator token, restore operator session
+      if (storedRole === 'operator' && opToken) {
+        if (isMounted) {
+          setIsLoggedIn(true);
+          setAuthStatus('authenticated');
+          setUserRoleState('operator');
+          try {
+            const rawOp = localStorage.getItem('krayam_operator_profile');
+            if (rawOp) {
+              const parsedOp = JSON.parse(rawOp);
+              setOperator(parsedOp);
+            }
+          } catch (e) {
+            // ignore
+          }
+          refreshOperatorData().catch((err) => console.warn('Init operator refresh error:', err));
+        }
+        return;
+      }
 
       if (token) {
         setIsAuthLoading(true);
@@ -834,19 +922,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveView('dashboard');
   };
 
-  const updateProfile = (data: Partial<FarmerProfile>) => {
-    setFarmer(prev => (prev ? { ...prev, ...data } : null));
-    if (api.getToken()) {
-      api.auth.updateMe({
-        name: data.fullName,
-        village: data.location?.village,
-        district: data.location?.district,
-        state: data.location?.state,
-        pincode: data.location?.pincode,
-        latitude: data.location?.coordinates?.latitude || data.location?.coordinates?.lat,
-        longitude: data.location?.coordinates?.longitude || data.location?.coordinates?.lng,
-      }).catch(err => console.warn('Backend updateMe notice:', err));
+  const updateProfile = async (data: Partial<FarmerProfile>): Promise<FarmerProfile> => {
+    if (!api.getToken()) {
+      throw new Error('Not authenticated');
     }
+
+    const payload = {
+      name: data.fullName,
+      village: data.location?.village,
+      district: data.location?.district,
+      state: data.location?.state,
+      pincode: data.location?.pincode,
+      latitude: data.location?.coordinates?.latitude || data.location?.coordinates?.lat,
+      longitude: data.location?.coordinates?.longitude || data.location?.coordinates?.lng,
+    };
+
+    const updated = await api.auth.updateMe(payload);
+    const refreshed = await api.auth.getMe();
+    const finalProfile = refreshed || updated;
+
+    setFarmer(finalProfile);
+    await offlineDb.setOperationalData('farmer_profile', finalProfile);
+    return finalProfile;
   };
 
   const updateFarmerLocation = (location: FarmerProfile['location']) => {
@@ -914,7 +1011,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       estimatedWaitMinutes: undefined,
     };
 
-    setBookings(prev => [fullBooking, ...prev.filter(b => b.id !== fullBooking.id)]);
+    setBookings(prev => {
+      const next = [fullBooking, ...prev.filter(b => b.id !== fullBooking.id && (!fullBooking.uuid || b.uuid !== fullBooking.uuid))];
+      offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+      return next;
+    });
 
     const newNotif: AppNotification = {
       id: `notif-${Date.now()}`,
@@ -931,77 +1032,169 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Bookings: Cancel via FastAPI backend
-  const cancelBooking = async (bookingId: string): Promise<void> => {
-    const updated = await api.bookings.cancel(bookingId);
+  const cancelBooking = async (bookingIdOrUuid: string): Promise<void> => {
+    const cleanId = bookingIdOrUuid.trim();
+    const isUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let matched = bookings.find(b => b.uuid === cleanId || b.id === cleanId);
 
-    setBookings(prev => prev.map(b => {
-      if (b.id === bookingId || (b.uuid && b.uuid === updated.uuid)) {
-        return {
-          ...b,
-          ...updated,
-          status: 'CANCELLED',
-          queuePosition: undefined,
-          farmersAhead: undefined,
-          estimatedWaitMinutes: undefined,
-        };
+    let targetUuid = matched?.uuid;
+    if (!targetUuid && isUuidRegex.test(cleanId)) {
+      targetUuid = cleanId;
+    }
+
+    // If UUID not in current state, attempt fresh fetch from backend
+    if (!targetUuid) {
+      try {
+        const freshBookings = await api.bookings.getMyBookings();
+        if (freshBookings) {
+          setBookings(freshBookings);
+          offlineDb.setOperationalData('farmer_bookings', freshBookings).catch(() => {});
+          matched = freshBookings.find(b => b.uuid === cleanId || b.id === cleanId);
+          targetUuid = matched?.uuid;
+        }
+      } catch (fetchErr) {
+        console.warn('Failed to refresh bookings to locate UUID:', fetchErr);
       }
-      return b;
-    }));
+    }
+
+    if (!targetUuid || !isUuidRegex.test(targetUuid)) {
+      api.bookings.getMyBookings().then(fresh => fresh && setBookings(fresh)).catch(() => {});
+      throw new Error('Unable to identify this booking. Please refresh your bookings and try again.');
+    }
+
+    const updated = await api.bookings.cancel(targetUuid);
+    const displayRef = matched?.id || updated.id || cleanId;
+
+    setBookings(prev => {
+      const next = prev.map(b => {
+        if (b.uuid === targetUuid || b.id === cleanId || (updated.uuid && b.uuid === updated.uuid)) {
+          return {
+            ...b,
+            ...updated,
+            id: b.id || updated.id,
+            uuid: targetUuid,
+            status: 'CANCELLED' as const,
+            queuePosition: undefined,
+            farmersAhead: undefined,
+            estimatedWaitMinutes: undefined,
+          };
+        }
+        return b;
+      });
+      offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+      return next;
+    });
 
     const cancelNotif: AppNotification = {
       id: `notif-${Date.now()}`,
       type: 'BOOKING',
-      title: `Booking Cancelled: ${bookingId}`,
-      message: `Your procurement slot for booking ${bookingId} has been cancelled successfully.`,
+      title: `Booking Cancelled: ${displayRef}`,
+      message: `Your procurement slot for booking ${displayRef} has been cancelled successfully.`,
       timestamp: 'Just now',
       read: false,
-      referenceId: bookingId,
+      referenceId: displayRef,
     };
     setNotifications(prev => [cancelNotif, ...prev]);
+
+    // Refetch authoritative backend bookings and queue
+    try {
+      if (userRole === 'operator') {
+        await refreshOperatorData();
+      } else {
+        await refreshFarmerData();
+      }
+    } catch (refetchErr) {
+      console.warn('Post-cancellation refetch error:', refetchErr);
+    }
   };
 
   // Bookings: Reschedule via FastAPI backend
   const rescheduleBooking = async (
-    bookingId: string,
+    bookingIdOrUuid: string,
     newDate: string,
     newSlot: SlotTimeWindow,
     newSlotId?: string | null
   ): Promise<void> => {
-    const isSlotUuid = newSlotId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(newSlotId);
-    const existing = bookings.find(b => b.id === bookingId);
+    const cleanId = bookingIdOrUuid.trim();
+    const isUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let matched = bookings.find(b => b.uuid === cleanId || b.id === cleanId);
 
-    const updated = await api.bookings.reschedule(bookingId, {
+    let targetUuid = matched?.uuid;
+    if (!targetUuid && isUuidRegex.test(cleanId)) {
+      targetUuid = cleanId;
+    }
+
+    if (!targetUuid) {
+      try {
+        const freshBookings = await api.bookings.getMyBookings();
+        if (freshBookings) {
+          setBookings(freshBookings);
+          offlineDb.setOperationalData('farmer_bookings', freshBookings).catch(() => {});
+          matched = freshBookings.find(b => b.uuid === cleanId || b.id === cleanId);
+          targetUuid = matched?.uuid;
+        }
+      } catch (fetchErr) {
+        console.warn('Failed to refresh bookings to locate UUID:', fetchErr);
+      }
+    }
+
+    if (!targetUuid || !isUuidRegex.test(targetUuid)) {
+      api.bookings.getMyBookings().then(fresh => fresh && setBookings(fresh)).catch(() => {});
+      throw new Error('Unable to identify this booking. Please refresh your bookings and try again.');
+    }
+
+    const isSlotUuid = newSlotId && isUuidRegex.test(newSlotId);
+
+    const updated = await api.bookings.reschedule(targetUuid, {
       expectedDate: newDate,
-      centreId: existing?.centreId,
+      centreId: matched?.centreId,
       slotId: isSlotUuid ? newSlotId : null,
       slotWindow: newSlot,
     });
 
-    setBookings(prev => prev.map(b => {
-      if (b.id === bookingId || (b.uuid && b.uuid === updated.uuid)) {
-        return {
-          ...b,
-          ...updated,
-          expectedDate: newDate,
-          slot: newSlot,
-          status: 'RESCHEDULED',
-          isRescheduled: true,
-          rescheduleCount: (b.rescheduleCount || 0) + 1,
-        };
-      }
-      return b;
-    }));
+    const displayRef = matched?.id || updated.id || cleanId;
+
+    setBookings(prev => {
+      const next = prev.map(b => {
+        if (b.uuid === targetUuid || b.id === cleanId || (updated.uuid && b.uuid === updated.uuid)) {
+          return {
+            ...b,
+            ...updated,
+            id: b.id || updated.id,
+            uuid: targetUuid,
+            expectedDate: newDate,
+            slot: newSlot,
+            status: 'RESCHEDULED' as const,
+            isRescheduled: true,
+            rescheduleCount: (b.rescheduleCount || 0) + 1,
+          };
+        }
+        return b;
+      });
+      offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+      return next;
+    });
 
     const rescheduleNotif: AppNotification = {
       id: `notif-${Date.now()}`,
       type: 'BOOKING',
-      title: `Booking Rescheduled: ${bookingId}`,
-      message: `Your booking ${bookingId} has been rescheduled to ${newDate}, slot: ${newSlot}.`,
+      title: `Booking Rescheduled: ${displayRef}`,
+      message: `Your booking ${displayRef} has been rescheduled to ${newDate} (${newSlot}).`,
       timestamp: 'Just now',
       read: false,
-      referenceId: bookingId,
+      referenceId: displayRef,
     };
     setNotifications(prev => [rescheduleNotif, ...prev]);
+
+    try {
+      if (userRole === 'operator') {
+        await refreshOperatorData();
+      } else {
+        await refreshFarmerData();
+      }
+    } catch (refetchErr) {
+      console.warn('Post-reschedule refetch error:', refetchErr);
+    }
   };
 
   const markNotificationAsRead = async (id: string) => {
@@ -1034,14 +1227,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    const res = await api.auth.operatorLogin(operatorIdOrPhone.trim(), passwordOrPin || '');
-    if (res.token && res.operator) {
-      setOperator(res.operator);
-      setUserRole('operator');
-      setIsLoggedIn(true);
-      return true;
+    setIsAuthLoading(true);
+    setAuthError(null);
+    try {
+      const res = await api.auth.operatorLogin(operatorIdOrPhone.trim(), passwordOrPin || '');
+      if (res.token && res.operator) {
+        setFarmer(null);
+        setOperator(res.operator);
+        setUserRole('operator');
+        setIsLoggedIn(true);
+        setAuthStatus('authenticated');
+        setActiveView('dashboard');
+        // Pre-fetch operator operational metrics in background so dashboard is populated immediately
+        refreshOperatorData().catch((err) => console.warn('[Operator] Post-login refresh notice:', err));
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      setAuthError(err.message || 'Invalid phone or password');
+      throw err;
+    } finally {
+      setIsAuthLoading(false);
     }
-    return false;
   };
 
   const operatorRegister = async (data: {
@@ -1195,18 +1402,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               case 'MARK_NO_SHOW':
                 await api.queue.markNoShow(action.entityId);
                 break;
-              case 'CANCEL_BOOKING':
-                await api.bookings.cancel(action.entityId);
+              case 'CANCEL_BOOKING': {
+                const targetId = action.payload?.bookingUuid || action.entityId;
+                if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId)) {
+                  await api.bookings.cancel(targetId);
+                } else {
+                  console.warn(`[Sync] Skipping CANCEL_BOOKING with non-UUID: ${targetId}`);
+                }
                 break;
+              }
               case 'BOOKING_RESCHEDULE':
-              case 'RESCHEDULE':
-                if (action.payload?.expectedDate && action.payload?.slotWindow) {
-                  await api.bookings.reschedule(action.entityId, {
+              case 'RESCHEDULE': {
+                const targetId = action.payload?.bookingUuid || action.entityId;
+                if (action.payload?.expectedDate && action.payload?.slotWindow && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId)) {
+                  await api.bookings.reschedule(targetId, {
                     expectedDate: action.payload.expectedDate,
                     slotWindow: action.payload.slotWindow,
                   });
                 }
                 break;
+              }
               case 'COMPLETE_PROCUREMENT':
                 if (action.payload) {
                   const bProc = await api.procurements.record({
@@ -1283,27 +1498,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const operatorCheckIn = async (bookingId: string): Promise<void> => {
     const cleanId = bookingId.trim();
+    const isUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const matched = bookings.find((b) => b.id === cleanId || b.uuid === cleanId || b.farmerMobile === cleanId);
-    const idToSend = matched?.uuid || matched?.id || cleanId;
+    const targetUuid = matched?.uuid || (isUuidRegex.test(cleanId) ? cleanId : null);
+
+    if (!targetUuid) {
+      throw new Error('Unable to identify this booking. Please verify the booking reference and try again.');
+    }
 
     if (isOffline) {
       setBookings((prev) =>
-        prev.map((b) => (b.id === cleanId || b.uuid === cleanId ? { ...b, status: 'CHECKED_IN' as const } : b))
+        prev.map((b) => (b.id === cleanId || b.uuid === targetUuid ? { ...b, status: 'CHECKED_IN' as const } : b))
       );
-      await logSyncOp('CHECK_IN', idToSend, `Gate check-in recorded offline for ${idToSend}`);
+      await logSyncOp('CHECK_IN', targetUuid, `Gate check-in recorded offline for ${matched?.id || cleanId}`, {
+        bookingUuid: targetUuid,
+        displayId: matched?.id || cleanId,
+      });
       return;
     }
 
     try {
-      await api.queue.checkIn(idToSend);
-      await logSyncOp('CHECK_IN', idToSend, `Gate check-in recorded for booking ${idToSend}`);
+      await api.queue.checkIn(targetUuid);
+      await logSyncOp('CHECK_IN', targetUuid, `Gate check-in recorded for booking ${matched?.id || cleanId}`, {
+        bookingUuid: targetUuid,
+        displayId: matched?.id || cleanId,
+      });
       await refreshOperatorData();
     } catch (err: any) {
       console.warn('Operator check-in error, queuing offline:', err.message);
       setBookings((prev) =>
-        prev.map((b) => (b.id === cleanId || b.uuid === cleanId ? { ...b, status: 'CHECKED_IN' as const } : b))
+        prev.map((b) => (b.id === cleanId || b.uuid === targetUuid ? { ...b, status: 'CHECKED_IN' as const } : b))
       );
-      await logSyncOp('CHECK_IN', idToSend, `Gate check-in buffered offline for ${idToSend}`);
+      await logSyncOp('CHECK_IN', targetUuid, `Gate check-in buffered offline for ${matched?.id || cleanId}`, {
+        bookingUuid: targetUuid,
+        displayId: matched?.id || cleanId,
+      });
     }
   };
 
@@ -1336,83 +1565,243 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const operatorStartProcessing = async (bookingIdOrQueueEntryId: string): Promise<void> => {
     const cleanId = bookingIdOrQueueEntryId.trim();
-    const queueEntry = operatorQueueEntries.find((e) => e.id === cleanId || e.booking_id === cleanId);
-    const matchedBooking = bookings.find((b) => b.id === cleanId || b.uuid === cleanId);
-    const entryId = queueEntry?.id || matchedBooking?.queueEntryId || cleanId;
+    const isUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const matchedBooking = bookings.find((b) => b.id === cleanId || b.uuid === cleanId || b.queueEntryId === cleanId);
+    const bookingUuid = matchedBooking?.uuid || (isUuidRegex.test(cleanId) ? cleanId : null);
 
     if (isOffline) {
-      setBookings((prev) =>
-        prev.map((b) => (b.id === cleanId || b.uuid === cleanId ? { ...b, status: 'PROCESSING' as const } : b))
-      );
+      setBookings((prev) => {
+        const next = prev.map((b) => (b.id === cleanId || b.uuid === cleanId || (bookingUuid && b.uuid === bookingUuid) ? { ...b, status: 'PROCESSING' as const } : b));
+        offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+        return next;
+      });
       await logSyncOp('START_PROCESSING', cleanId, `Procurement weighing started offline for ${cleanId}`);
       return;
     }
 
-    try {
-      await api.queue.startProcessing(entryId);
-      await logSyncOp('START_PROCESSING', cleanId, `Procurement weighing started for ${cleanId}`);
-      await refreshOperatorData();
-    } catch (err: any) {
-      console.warn('Operator start processing error, queuing offline:', err.message);
-      setBookings((prev) =>
-        prev.map((b) => (b.id === cleanId || b.uuid === cleanId ? { ...b, status: 'PROCESSING' as const } : b))
-      );
-      await logSyncOp('START_PROCESSING', cleanId, `Procurement weighing buffered offline for ${cleanId}`);
+    // 1. Find existing queue entry in active queue
+    let queueEntry = operatorQueueEntries.find(
+      (e) => e.id === cleanId || (bookingUuid && e.booking_id === bookingUuid) || e.booking_id === cleanId
+    );
+    let entryId = queueEntry?.id || matchedBooking?.queueEntryId;
+
+    // 2. Check latest queue summary if not found in memory
+    if (!entryId) {
+      const centreId = operator?.centreId || selectedCentre?.id || centres[0]?.id;
+      if (centreId) {
+        try {
+          const freshSummary = await api.queue.getSummary(centreId);
+          if (freshSummary?.waiting) {
+            const freshMatch = freshSummary.waiting.find(
+              (e) => e.id === cleanId || (bookingUuid && e.booking_id === bookingUuid) || e.booking_id === cleanId
+            );
+            if (freshMatch) {
+              entryId = freshMatch.id;
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
     }
+
+    // 3. If booking has not been checked in to the queue yet, check it in first to establish queueEntryId
+    if (!entryId && bookingUuid && isUuidRegex.test(bookingUuid)) {
+      try {
+        const checkInRes = await api.queue.checkIn(bookingUuid);
+        entryId = checkInRes.id;
+        if (matchedBooking) {
+          matchedBooking.queueEntryId = entryId;
+        }
+      } catch (checkInErr: any) {
+        console.warn('Auto check-in before start processing:', checkInErr.message);
+      }
+    }
+
+    if (!entryId || !isUuidRegex.test(entryId)) {
+      throw new Error('Unable to locate queue entry for this booking. Please ensure the booking is checked in to the queue.');
+    }
+
+    // 4. Start processing on backend
+    await api.queue.startProcessing(entryId);
+    await logSyncOp('START_PROCESSING', cleanId, `Procurement weighing started for ${cleanId}`);
+
+    // Update state to PROCESSING
+    setBookings((prev) => {
+      const next = prev.map((b) =>
+        b.id === cleanId || b.uuid === cleanId || (bookingUuid && b.uuid === bookingUuid)
+          ? { ...b, status: 'PROCESSING' as const, queueEntryId: entryId }
+          : b
+      );
+      offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+      return next;
+    });
+
+    await refreshOperatorData();
   };
 
   const operatorCompleteProcessing = async (bookingIdOrQueueEntryId: string): Promise<void> => {
     const cleanId = bookingIdOrQueueEntryId.trim();
-    const queueEntry = operatorQueueEntries.find((e) => e.id === cleanId || e.booking_id === cleanId);
-    const matchedBooking = bookings.find((b) => b.id === cleanId || b.uuid === cleanId);
-    const entryId = queueEntry?.id || matchedBooking?.queueEntryId || cleanId;
+    const isUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const matchedBooking = bookings.find((b) => b.id === cleanId || b.uuid === cleanId || b.queueEntryId === cleanId);
+    const bookingUuid = matchedBooking?.uuid || (isUuidRegex.test(cleanId) ? cleanId : null);
 
     if (isOffline) {
-      setBookings((prev) =>
-        prev.map((b) => (b.id === cleanId || b.uuid === cleanId ? { ...b, status: 'COMPLETED' as const } : b))
+      setBookings((prev) => {
+        const next = prev.map((b) => (b.id === cleanId || b.uuid === cleanId || (bookingUuid && b.uuid === bookingUuid) ? { ...b, status: 'COMPLETED' as const, queuePosition: undefined, farmersAhead: undefined } : b));
+        offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+        return next;
+      });
+      setOperatorQueueEntries((prev) =>
+        prev.filter((e) => e.id !== cleanId && e.booking_id !== bookingUuid && e.booking_id !== cleanId)
       );
       await logSyncOp('COMPLETE_PROCESSING', cleanId, `Queue processing completed offline for ${cleanId}`);
       return;
     }
 
-    try {
-      await api.queue.completeProcessing(entryId);
-      await logSyncOp('COMPLETE_PROCESSING', cleanId, `Queue processing completed for ${cleanId}`);
-      await refreshOperatorData();
-    } catch (err: any) {
-      console.warn('Operator complete processing error, queuing offline:', err.message);
-      setBookings((prev) =>
-        prev.map((b) => (b.id === cleanId || b.uuid === cleanId ? { ...b, status: 'COMPLETED' as const } : b))
+    // If already marked completed in booking or procurement exists, reconcile active queue
+    const hasProcurement = procurements.some(
+      (p) => p.bookingId === cleanId || p.bookingId === matchedBooking?.id || (bookingUuid && p.bookingId === bookingUuid)
+    );
+
+    if (matchedBooking?.status === 'COMPLETED' || hasProcurement) {
+      setBookings((prev) => {
+        const next = prev.map((b) =>
+          b.id === cleanId || b.uuid === cleanId || (bookingUuid && b.uuid === bookingUuid)
+            ? { ...b, status: 'COMPLETED' as const, queuePosition: undefined, farmersAhead: undefined }
+            : b
+        );
+        offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+        return next;
+      });
+      setOperatorQueueEntries((prev) =>
+        prev.filter((e) => e.id !== cleanId && e.booking_id !== bookingUuid && e.booking_id !== cleanId)
       );
-      await logSyncOp('COMPLETE_PROCESSING', cleanId, `Queue processing buffered offline for ${cleanId}`);
+      await refreshQueue();
+      return;
     }
+
+    // 1. Resolve active queue entry ID
+    let queueEntry = operatorQueueEntries.find(
+      (e) => e.id === cleanId || (bookingUuid && e.booking_id === bookingUuid) || e.booking_id === cleanId
+    );
+    let entryId = queueEntry?.id || matchedBooking?.queueEntryId;
+
+    // 2. Query summary if not in memory
+    if (!entryId) {
+      const centreId = operator?.centreId || selectedCentre?.id || centres[0]?.id;
+      if (centreId) {
+        try {
+          const freshSummary = await api.queue.getSummary(centreId);
+          if (freshSummary?.waiting) {
+            const freshMatch = freshSummary.waiting.find(
+              (e) => e.id === cleanId || (bookingUuid && e.booking_id === bookingUuid) || e.booking_id === cleanId
+            );
+            if (freshMatch) {
+              entryId = freshMatch.id;
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    // 3. Complete processing on backend if valid queue entry ID found
+    if (entryId && isUuidRegex.test(entryId)) {
+      try {
+        await api.queue.completeProcessing(entryId);
+      } catch (completeErr: any) {
+        // If 404, the queue entry was already completed/removed by backend during procurement
+        if (completeErr.status === 404 || completeErr.message?.includes('not found') || completeErr.message?.includes('404')) {
+          console.warn('[Queue] Queue entry was already completed or removed on backend:', completeErr.message);
+        } else {
+          throw completeErr;
+        }
+      }
+    } else {
+      console.log('[Queue] No active queue entry found for', cleanId, 'reconciling to completed state.');
+    }
+
+    // 4. Update authoritative UI & cache state
+    setBookings((prev) => {
+      const next = prev.map((b) =>
+        b.id === cleanId || b.uuid === cleanId || (bookingUuid && b.uuid === bookingUuid) || (entryId && b.queueEntryId === entryId)
+          ? { ...b, status: 'COMPLETED' as const, queuePosition: undefined, farmersAhead: undefined }
+          : b
+      );
+      offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+      return next;
+    });
+
+    setOperatorQueueEntries((prev) =>
+      prev.filter((e) => e.id !== entryId && e.id !== cleanId && e.booking_id !== bookingUuid && e.booking_id !== cleanId)
+    );
+
+    await logSyncOp('COMPLETE_PROCESSING', cleanId, `Queue processing completed for ${cleanId}`);
+    await refreshOperatorData();
   };
 
   const operatorMarkNoShow = async (bookingIdOrQueueEntryId: string): Promise<void> => {
     const cleanId = bookingIdOrQueueEntryId.trim();
-    const queueEntry = operatorQueueEntries.find((e) => e.id === cleanId || e.booking_id === cleanId);
-    const matchedBooking = bookings.find((b) => b.id === cleanId || b.uuid === cleanId);
-    const entryId = queueEntry?.id || matchedBooking?.queueEntryId || cleanId;
+    const isUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const matchedBooking = bookings.find((b) => b.id === cleanId || b.uuid === cleanId || b.queueEntryId === cleanId);
+    const bookingUuid = matchedBooking?.uuid || (isUuidRegex.test(cleanId) ? cleanId : null);
 
     if (isOffline) {
-      setBookings((prev) =>
-        prev.map((b) => (b.id === cleanId || b.uuid === cleanId ? { ...b, status: 'NO_SHOW' as const } : b))
-      );
+      setBookings((prev) => {
+        const next = prev.map((b) => (b.id === cleanId || b.uuid === cleanId || (bookingUuid && b.uuid === bookingUuid) ? { ...b, status: 'NO_SHOW' as const } : b));
+        offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+        return next;
+      });
       await logSyncOp('MARK_NO_SHOW', cleanId, `Marked farmer as NO-SHOW offline for slot ${cleanId}`);
       return;
     }
 
-    try {
-      await api.queue.markNoShow(entryId);
-      await logSyncOp('MARK_NO_SHOW', cleanId, `Marked farmer as NO-SHOW for slot ${cleanId}`);
-      await refreshOperatorData();
-    } catch (err: any) {
-      console.warn('Operator mark no-show error, queuing offline:', err.message);
-      setBookings((prev) =>
-        prev.map((b) => (b.id === cleanId || b.uuid === cleanId ? { ...b, status: 'NO_SHOW' as const } : b))
-      );
-      await logSyncOp('MARK_NO_SHOW', cleanId, `Marked farmer as NO-SHOW buffered offline for ${cleanId}`);
+    let queueEntry = operatorQueueEntries.find(
+      (e) => e.id === cleanId || (bookingUuid && e.booking_id === bookingUuid) || e.booking_id === cleanId
+    );
+    let entryId = queueEntry?.id || matchedBooking?.queueEntryId;
+
+    if (!entryId) {
+      const centreId = operator?.centreId || selectedCentre?.id || centres[0]?.id;
+      if (centreId) {
+        try {
+          const freshSummary = await api.queue.getSummary(centreId);
+          if (freshSummary?.waiting) {
+            const freshMatch = freshSummary.waiting.find(
+              (e) => e.id === cleanId || (bookingUuid && e.booking_id === bookingUuid) || e.booking_id === cleanId
+            );
+            if (freshMatch) {
+              entryId = freshMatch.id;
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
     }
+
+    if (entryId && isUuidRegex.test(entryId)) {
+      await api.queue.markNoShow(entryId);
+    }
+
+    setBookings((prev) => {
+      const next = prev.map((b) =>
+        b.id === cleanId || b.uuid === cleanId || (bookingUuid && b.uuid === bookingUuid)
+          ? { ...b, status: 'NO_SHOW' as const, queuePosition: undefined, farmersAhead: undefined }
+          : b
+      );
+      offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+      return next;
+    });
+
+    setOperatorQueueEntries((prev) =>
+      prev.filter((e) => e.id !== entryId && e.id !== cleanId && e.booking_id !== bookingUuid && e.booking_id !== cleanId)
+    );
+
+    await logSyncOp('MARK_NO_SHOW', cleanId, `Marked farmer as NO-SHOW for slot ${cleanId}`);
+    await refreshOperatorData();
   };
 
   const operatorCompleteProcurement = async (data: {
@@ -1434,7 +1823,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const msp = matchedCrop?.mspPerQuintal || 2275;
     const grossAmt = Math.round(data.netWeight * msp);
     const netAmt = Math.max(0, Math.round(grossAmt - (data.deductions || 0)));
-    const bookingUuid = booking?.uuid || booking?.id || data.bookingId;
+    const bookingUuid = booking?.uuid || data.bookingId;
 
     const qualityNotesParts: string[] = [];
     if (data.deductionReason) qualityNotesParts.push(data.deductionReason);
@@ -1490,19 +1879,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     let backendProc: any = null;
     if (api.getOperatorToken() || api.getToken()) {
-      try {
-        backendProc = await api.procurements.record({
-          booking_id: bookingUuid,
-          accepted_quantity: data.netWeight,
-          unit_price: msp,
-          quality_grade: data.qualityGrade,
-          unit: 'quintal',
-          quality_notes: qualityNotes,
-        });
-      } catch (err: any) {
-        console.warn('Operator record procurement error, queuing offline:', err.message);
-        return operatorCompleteProcurement(data);
-      }
+      backendProc = await api.procurements.record({
+        booking_id: bookingUuid,
+        accepted_quantity: data.netWeight,
+        unit_price: msp,
+        quality_grade: data.qualityGrade,
+        unit: 'quintal',
+        quality_notes: qualityNotes,
+      });
     }
 
     // Automatically initiate DBT payment for this procurement on backend
@@ -1526,6 +1910,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
+    if (queueEntry?.id) {
+      setOperatorQueueEntries((prev) =>
+        prev.filter((e) => e.id !== queueEntry.id && e.booking_id !== bookingUuid && e.booking_id !== data.bookingId)
+      );
+    }
+
     const newRecord: ProcurementRecord = {
       id: backendProc?.procurement_id || `PRC-${data.bookingId}`,
       uuid: backendProc?.id,
@@ -1534,18 +1924,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       farmerName: booking?.farmerName,
       farmerMobile: booking?.farmerMobile,
       cropName: booking?.cropName || 'Grain',
-      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      date: new Date(backendProc?.created_at || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
       centreName: operator?.centreName || 'Procurement Mandi',
       bookedQuantity: booking?.quantityQuintals || 0,
-      acceptedQuantity: data.netWeight,
+      acceptedQuantity: backendProc?.accepted_quantity ?? data.netWeight,
       grossWeight: data.grossWeight,
       tareWeight: data.tareWeight,
-      netWeight: data.netWeight,
-      mspRate: msp,
+      netWeight: backendProc?.accepted_quantity ?? data.netWeight,
+      mspRate: backendProc?.unit_price ?? msp,
       grossAmount: grossAmt,
       deductions: data.deductions || 0,
       deductionReason: data.deductionReason || 'Standard grain verified',
-      qualityGrade: data.qualityGrade,
+      qualityGrade: (backendProc?.quality_grade as any) || data.qualityGrade,
       procurementStatus: 'Accepted',
       paymentStatus: (backendPay?.status as any) || 'initiated',
       paymentAmount: backendPay?.amount || netAmt,
@@ -1553,9 +1943,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setProcurements((prev) => [newRecord, ...prev.filter((p) => p.bookingId !== data.bookingId)]);
-    setBookings((prev) =>
-      prev.map((b) => (b.id === data.bookingId || b.uuid === bookingUuid ? { ...b, status: 'COMPLETED' as const } : b))
-    );
+
+    // Save to IndexedDB cache
+    try {
+      const cached = (await offlineDb.getOperationalData<ProcurementRecord[]>('procurements')) || [];
+      await offlineDb.setOperationalData('procurements', [newRecord, ...cached.filter((p) => p.bookingId !== data.bookingId)]);
+    } catch {}
+
+    setBookings((prev) => {
+      const next = prev.map((b) =>
+        b.id === data.bookingId || b.uuid === bookingUuid
+          ? { ...b, status: 'COMPLETED' as const, queuePosition: undefined, farmersAhead: undefined }
+          : b
+      );
+      offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+      return next;
+    });
 
     if (backendPay) {
       const newPaymentRecord: PaymentRecord = {
@@ -1630,25 +2033,93 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const operatorCancelBooking = (bookingId: string, reason: string) => {
+  const operatorCancelBooking = async (bookingId: string, reason: string): Promise<void> => {
+    const cleanId = bookingId.trim();
+    const isUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    let matched = bookings.find((b) => b.uuid === cleanId || b.id === cleanId);
+    let targetUuid = matched?.uuid || (isUuidRegex.test(cleanId) ? cleanId : null);
+    const displayRef = matched?.id || cleanId;
+
+    if (!targetUuid) {
+      try {
+        const freshBookings = await api.operator.getBookings();
+        if (freshBookings && freshBookings.length > 0) {
+          setBookings(freshBookings);
+          matched = freshBookings.find((b) => b.uuid === cleanId || b.id === cleanId);
+          targetUuid = matched?.uuid || null;
+        }
+      } catch (fetchErr) {
+        console.warn('Failed to refresh operator bookings to locate UUID:', fetchErr);
+      }
+    }
+
+    if (!targetUuid || !isUuidRegex.test(targetUuid)) {
+      throw new Error('Unable to identify booking UUID for cancellation. Please refresh your bookings and try again.');
+    }
+
     if (isOffline) {
-      setBookings((prev) => (prev.map((b) => (b.id === bookingId ? { ...b, status: 'CANCELLED' as const } : b))));
-      logSyncOp('CANCEL_BOOKING', bookingId, `Cancelled booking ${bookingId} offline. Reason: ${reason}`);
+      setBookings((prev) => {
+        const next = prev.map((b) =>
+          b.id === cleanId || b.uuid === targetUuid ? { ...b, status: 'CANCELLED' as const } : b
+        );
+        offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+        return next;
+      });
+      await logSyncOp('CANCEL_BOOKING', targetUuid, `Cancelled booking ${displayRef} offline. Reason: ${reason}`, {
+        bookingUuid: targetUuid,
+        displayId: displayRef,
+        reason,
+      });
       return;
     }
 
-    if (api.getOperatorToken() || api.getToken()) {
-      api.bookings.cancel(bookingId).catch((err) => console.warn('Backend cancel notice:', err));
-    }
-    setBookings((prev) => (prev.map((b) => (b.id === bookingId ? { ...b, status: 'CANCELLED' as const } : b))));
-    logSyncOp('CANCEL_BOOKING', bookingId, `Cancelled booking ${bookingId}. Reason: ${reason}`);
+    // Call backend cancellation endpoint with operator authorization
+    const updated = await api.bookings.cancel(targetUuid, true);
+
+    // Backend success controls the state change
+    setBookings((prev) => {
+      const next = prev.map((b) => {
+        if (b.uuid === targetUuid || b.id === cleanId || (updated.uuid && b.uuid === updated.uuid)) {
+          return {
+            ...b,
+            ...updated,
+            id: b.id || updated.id,
+            uuid: targetUuid,
+            status: 'CANCELLED' as const,
+            queuePosition: undefined,
+            farmersAhead: undefined,
+            estimatedWaitMinutes: undefined,
+          };
+        }
+        return b;
+      });
+      offlineDb.setOperationalData('farmer_bookings', next).catch(() => {});
+      return next;
+    });
+
+    // Remove from active queue entries if present
+    setOperatorQueueEntries((prev) => prev.filter((e) => e.booking_id !== targetUuid && e.booking_id !== cleanId));
+
+    await logSyncOp('CANCEL_BOOKING', targetUuid, `Cancelled booking ${displayRef}. Reason: ${reason}`, {
+      bookingUuid: targetUuid,
+      displayId: displayRef,
+      reason,
+    });
+
+    await refreshOperatorData();
   };
 
   const operatorRescheduleBooking = (bookingId: string, newDate: string, newSlot: SlotTimeWindow) => {
+    const cleanId = bookingId.trim();
+    const isUuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const matched = bookings.find((b) => b.uuid === cleanId || b.id === cleanId);
+    const targetUuid = matched?.uuid || (isUuidRegex.test(cleanId) ? cleanId : null);
+    const displayRef = matched?.id || cleanId;
+
     if (isOffline) {
       setBookings((prev) =>
         prev.map((b) => {
-          if (b.id === bookingId) {
+          if (b.id === cleanId || (targetUuid && b.uuid === targetUuid)) {
             return {
               ...b,
               expectedDate: newDate,
@@ -1661,21 +2132,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return b;
         })
       );
-      logSyncOp('RESCHEDULE', bookingId, `Rescheduled booking ${bookingId} offline to ${newDate} (${newSlot})`, {
+      logSyncOp('RESCHEDULE', targetUuid || cleanId, `Rescheduled booking ${displayRef} offline to ${newDate} (${newSlot})`, {
+        bookingUuid: targetUuid,
         expectedDate: newDate,
         slotWindow: newSlot,
       });
       return;
     }
 
-    if (api.getOperatorToken() || api.getToken()) {
-      api.bookings.reschedule(bookingId, { expectedDate: newDate, slotWindow: newSlot }).catch((err) =>
+    if (targetUuid && (api.getOperatorToken() || api.getToken())) {
+      api.bookings.reschedule(targetUuid, { expectedDate: newDate, slotWindow: newSlot }).then(async () => {
+        await refreshOperatorData();
+      }).catch((err) =>
         console.warn('Backend reschedule notice:', err)
       );
     }
     setBookings((prev) =>
       prev.map((b) => {
-        if (b.id === bookingId) {
+        if (b.id === cleanId || (targetUuid && b.uuid === targetUuid)) {
           return {
             ...b,
             expectedDate: newDate,
@@ -1688,7 +2162,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return b;
       })
     );
-    logSyncOp('RESCHEDULE', bookingId, `Rescheduled booking ${bookingId} to ${newDate} (${newSlot})`, {
+    logSyncOp('RESCHEDULE', targetUuid || cleanId, `Rescheduled booking ${displayRef} to ${newDate} (${newSlot})`, {
+      bookingUuid: targetUuid,
       expectedDate: newDate,
       slotWindow: newSlot,
     });

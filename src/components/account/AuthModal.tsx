@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { ShieldCheck, User, CheckCircle2, ArrowRight, X, Phone, KeyRound } from 'lucide-react';
+import { INDIAN_STATES } from '../../data/states';
+import { getDistrictsForState } from '../../data/districts';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -81,8 +83,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     setRegError('');
 
-    if (!regData.fullName || !regData.mobileNumber || !regData.village) {
-      setRegError('Please fill required fields (Name, Mobile, Village)');
+    if (!regData.fullName.trim() || !regData.mobileNumber.trim() || !regData.state.trim() || !regData.district.trim() || !regData.pincode.trim() || !regData.village.trim()) {
+      setRegError('Please fill all required fields (Name, Mobile, State, District, Pincode, Village)');
+      return;
+    }
+
+    const validDistricts = getDistrictsForState(regData.state);
+    if (validDistricts.length > 0 && !validDistricts.includes(regData.district)) {
+      setRegError(`Selected district "${regData.district}" does not belong to ${regData.state}. Please select a valid district.`);
+      return;
+    }
+
+    const cleanMobile = regData.mobileNumber.replace(/[^\d]/g, '');
+    if (cleanMobile.length < 10) {
+      setRegError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+
+    const cleanPin = regData.pincode.replace(/[^\d]/g, '');
+    if (cleanPin.length !== 6) {
+      setRegError('Please enter a valid 6-digit Indian PIN code');
       return;
     }
 
@@ -295,46 +315,63 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
+                  <label className="block text-[9px] uppercase tracking-[0.45px] text-[#2e5a40] font-bold mb-1">{t('state')} *</label>
+                  <select
+                    required
+                    value={regData.state}
+                    onChange={(e) => setRegData({ ...regData, state: e.target.value, district: '' })}
+                    className="w-full px-3 py-2.5 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs text-[#0d2618] focus:border-[#166534] outline-none font-semibold cursor-pointer"
+                  >
+                    <option value="">Select State</option>
+                    {INDIAN_STATES.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[9px] uppercase tracking-[0.45px] text-[#2e5a40] font-bold mb-1">{t('district')} *</label>
+                  <select
+                    required
+                    disabled={!regData.state}
+                    value={regData.district}
+                    onChange={(e) => setRegData({ ...regData, district: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs text-[#0d2618] focus:border-[#166534] outline-none font-semibold cursor-pointer disabled:bg-[#eef8ee] disabled:cursor-not-allowed"
+                  >
+                    <option value="">
+                      {regData.state ? 'Select District' : 'Select State First'}
+                    </option>
+                    {regData.state && getDistrictsForState(regData.state).map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[9px] uppercase tracking-[0.45px] text-[#2e5a40] font-bold mb-1">{t('pincode')} *</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={regData.pincode}
+                    onChange={(e) => setRegData({ ...regData, pincode: e.target.value.replace(/\D/g, '') })}
+                    placeholder="6-digit pincode"
+                    className="w-full px-4 py-2.5 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs text-[#0d2618] focus:border-[#166534] outline-none font-semibold"
+                  />
+                </div>
+                <div>
                   <label className="block text-[9px] uppercase tracking-[0.45px] text-[#2e5a40] font-bold mb-1">{t('village')} *</label>
                   <input
                     type="text"
                     required
                     value={regData.village}
                     onChange={(e) => setRegData({ ...regData, village: e.target.value })}
-                    placeholder="e.g. Rampur"
-                    className="w-full px-4 py-2.5 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs text-[#0d2618] focus:border-[#166534] outline-none font-semibold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[9px] uppercase tracking-[0.45px] text-[#2e5a40] font-bold mb-1">{t('tehsil')}</label>
-                  <input
-                    type="text"
-                    value={regData.tehsil}
-                    onChange={(e) => setRegData({ ...regData, tehsil: e.target.value })}
-                    placeholder="e.g. Samrala"
-                    className="w-full px-4 py-2.5 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs text-[#0d2618] focus:border-[#166534] outline-none font-semibold"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[9px] uppercase tracking-[0.45px] text-[#2e5a40] font-bold mb-1">{t('district')}</label>
-                  <input
-                    type="text"
-                    value={regData.district}
-                    onChange={(e) => setRegData({ ...regData, district: e.target.value })}
-                    placeholder="e.g. Ludhiana"
-                    className="w-full px-4 py-2.5 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs text-[#0d2618] focus:border-[#166534] outline-none font-semibold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[9px] uppercase tracking-[0.45px] text-[#2e5a40] font-bold mb-1">{t('pincode')}</label>
-                  <input
-                    type="text"
-                    value={regData.pincode}
-                    onChange={(e) => setRegData({ ...regData, pincode: e.target.value })}
-                    placeholder="e.g. 141114"
+                    placeholder="Village name"
                     className="w-full px-4 py-2.5 bg-[#f4fbf5] border border-[#cdeac6] rounded-[56px] text-xs text-[#0d2618] focus:border-[#166534] outline-none font-semibold"
                   />
                 </div>

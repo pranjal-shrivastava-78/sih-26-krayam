@@ -14,17 +14,17 @@ export const HistoryView: React.FC = () => {
 
   // Reschedule and Cancel states
   const [rescheduleBookingTarget, setRescheduleBookingTarget] = useState<Booking | null>(null);
-  const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
+  const [cancelTargetBooking, setCancelTargetBooking] = useState<Booking | null>(null);
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
   const handleConfirmCancel = async () => {
-    if (!cancelTargetId) return;
+    if (!cancelTargetBooking) return;
     setIsCancelling(true);
     setCancelError(null);
     try {
-      await cancelBooking(cancelTargetId);
-      setCancelTargetId(null);
+      await cancelBooking(cancelTargetBooking.uuid || cancelTargetBooking.id);
+      setCancelTargetBooking(null);
     } catch (err: any) {
       setCancelError(err.message || 'Failed to cancel booking.');
     } finally {
@@ -262,7 +262,7 @@ export const HistoryView: React.FC = () => {
                                 <span>Reschedule</span>
                               </button>
                               <button
-                                onClick={() => setCancelTargetId(b.id)}
+                                onClick={() => setCancelTargetBooking(b)}
                                 className="h-8 px-2.5 rounded-[4px] border border-[#F0C2C2] bg-[#FFF5F5] hover:bg-[#FEE2E2] text-xs font-semibold text-[#B42318] inline-flex items-center gap-1"
                                 title="Cancel Booking"
                               >
@@ -366,7 +366,7 @@ export const HistoryView: React.FC = () => {
       )}
 
       {/* Cancel Confirmation Dialog */}
-      {cancelTargetId && (
+      {cancelTargetBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#063B2A]/60">
           <div className="bg-[#FFFFFF] rounded-[8px] border border-[#CBD8D1] w-full max-w-sm overflow-hidden text-[#17231F] shadow-gov-dropdown p-5 space-y-4">
             <div className="flex items-center gap-3">
@@ -375,7 +375,7 @@ export const HistoryView: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-[#17231F]">Cancel Booking?</h3>
-                <p className="text-xs text-[#66736D]">Token: {cancelTargetId}</p>
+                <p className="text-xs text-[#66736D]">Token: {cancelTargetBooking.id}</p>
               </div>
             </div>
 
@@ -385,7 +385,7 @@ export const HistoryView: React.FC = () => {
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#EDF3EF]">
               <button
-                onClick={() => setCancelTargetId(null)}
+                onClick={() => setCancelTargetBooking(null)}
                 disabled={isCancelling}
                 className="h-9 px-4 rounded-[6px] border border-[#CBD8D1] hover:bg-[#F3F9F5] text-xs font-semibold text-[#17231F]"
               >

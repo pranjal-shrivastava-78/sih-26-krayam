@@ -35,6 +35,8 @@ export const OperatorBookingsTab: React.FC = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [cancelModalBooking, setCancelModalBooking] = useState<Booking | null>(null);
   const [cancelReason, setCancelReason] = useState('Farmer requested due to transport delay');
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const [rescheduleModalBooking, setRescheduleModalBooking] = useState<Booking | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState('2026-09-15');
   const [rescheduleSlot, setRescheduleSlot] = useState<SlotTimeWindow>('Morning (08:00 AM - 11:30 AM)');
@@ -56,15 +58,24 @@ export const OperatorBookingsTab: React.FC = () => {
     return matchesSearch && matchesCrop && matchesStatus && matchesSlot;
   });
 
-  const handleConfirmCancel = () => {
+  const handleConfirmCancel = async () => {
     if (!cancelModalBooking) return;
-    operatorCancelBooking(cancelModalBooking.id, cancelReason);
-    setCancelModalBooking(null);
+    setIsCancelling(true);
+    setCancelError(null);
+    try {
+      await operatorCancelBooking(cancelModalBooking.uuid || cancelModalBooking.id, cancelReason);
+      setCancelModalBooking(null);
+      setCancelReason('Farmer requested due to transport delay');
+    } catch (err: any) {
+      setCancelError(err.message || 'Failed to cancel booking on backend.');
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   const handleConfirmReschedule = () => {
     if (!rescheduleModalBooking) return;
-    operatorRescheduleBooking(rescheduleModalBooking.id, rescheduleDate, rescheduleSlot);
+    operatorRescheduleBooking(rescheduleModalBooking.uuid || rescheduleModalBooking.id, rescheduleDate, rescheduleSlot);
     setRescheduleModalBooking(null);
   };
 
@@ -336,29 +347,40 @@ export const OperatorBookingsTab: React.FC = () => {
             <p className="text-xs text-[#66736D]">
               Are you sure you want to cancel appointment for <strong>{cancelModalBooking.farmerName}</strong> ({cancelModalBooking.cropName})?
             </p>
+            {cancelError && (
+              <div className="bg-[#FFF5F5] text-[#B42318] border border-[#F0C2C2] px-3 py-2 rounded-[6px] text-xs font-semibold">
+                ⚠️ {cancelError}
+              </div>
+            )}
             <div className="text-xs">
               <label className="block font-bold text-[#17231F] mb-1">{ot.cancelReasonPrompt}</label>
               <textarea
                 rows={2}
+                disabled={isCancelling}
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
-                className="w-full bg-white border border-[#CBD8D1] rounded-[6px] p-2 text-xs focus:outline-none"
+                className="w-full bg-white border border-[#CBD8D1] rounded-[6px] p-2 text-xs focus:outline-none disabled:opacity-50"
               />
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t border-[#CBD8D1]">
               <button
                 type="button"
-                onClick={() => setCancelModalBooking(null)}
-                className="px-3 py-1.5 rounded-[6px] border border-[#CBD8D1] text-xs font-bold"
+                disabled={isCancelling}
+                onClick={() => {
+                  setCancelModalBooking(null);
+                  setCancelError(null);
+                }}
+                className="px-3 py-1.5 rounded-[6px] border border-[#CBD8D1] text-xs font-bold disabled:opacity-50"
               >
                 Go Back
               </button>
               <button
                 type="button"
+                disabled={isCancelling}
                 onClick={handleConfirmCancel}
-                className="bg-[#B42318] text-white px-4 py-1.5 rounded-[6px] text-xs font-bold"
+                className="bg-[#B42318] hover:bg-[#911b11] text-white px-4 py-1.5 rounded-[6px] text-xs font-bold disabled:opacity-50"
               >
-                {ot.confirmCancelBtn}
+                {isCancelling ? 'Cancelling...' : ot.confirmCancelBtn}
               </button>
             </div>
           </div>
