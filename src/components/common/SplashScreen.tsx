@@ -41,15 +41,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-md animate-fade-in">
         {/* User's Sprout Logo with subtle breathing animation */}
         <div className="relative mb-6">
-          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-[28px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.35)] border-2 border-[#16845F]/40 bg-[#075E43] flex items-center justify-center transform hover:scale-105 transition-transform duration-300">
+          <div className="w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center transform hover:scale-105 transition-transform duration-300">
             <img 
               src="/logo.png" 
-              alt="KRAYAM Seedling Logo" 
-              className="w-full h-full object-cover"
+              alt="KRAYAM Logo" 
+              className="w-full h-full object-contain drop-shadow-2xl select-none"
             />
           </div>
           {/* Subtle pulse ring */}
-          <span className="absolute -inset-1.5 rounded-[32px] border border-[#16845F]/50 animate-ping opacity-25" />
+          <span className="absolute -inset-1.5 rounded-[32px] border border-[#16845F]/40 animate-ping opacity-25" />
         </div>
 
         {/* National Identity */}

@@ -58,11 +58,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToAuth }) => {
             className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group select-none shrink-0" 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            {/* Green rounded square logo icon */}
-            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-[#084D35] flex items-center justify-center p-1.5 shadow-xs border border-[#106A4B] shrink-0 transition-transform group-hover:scale-105">
-              <svg className="w-full h-full text-[#77DF9E]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12c0 2.85 1.2 5.42 3.12 7.24L12 22l6.88-2.76C20.8 17.42 22 14.85 22 12c0-5.52-4.48-10-10-10zm-1 14.5v-5c-2.5 0-4.5 2-4.5 4.5 0 .17.02.33.04.5C8.04 15.65 9.44 15 11 15v1.5zm6.46-1c.02-.17.04-.33.04-.5 0-2.5-2-4.5-4.5-4.5v5c1.56 0 2.96.65 4.46 1.5z"/>
-              </svg>
+            {/* Actual KRAYAM Logo */}
+            <div className="w-7 h-7 sm:w-9 sm:h-9 shrink-0 transition-transform group-hover:scale-105">
+              <img
+                src="/logo.png"
+                alt="KRAYAM Logo"
+                className="w-full h-full object-contain select-none"
+              />
             </div>
 
             <div className="min-w-0">

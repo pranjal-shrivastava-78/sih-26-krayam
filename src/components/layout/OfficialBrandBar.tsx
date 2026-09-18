@@ -18,11 +18,11 @@ export const OfficialBrandBar: React.FC<OfficialBrandBarProps> = ({
       className={`flex items-center gap-2 sm:gap-3.5 md:gap-4 cursor-pointer group min-w-0 flex-1 ${className}`}
     >
       {/* 1. KRAYAM Sprout Logo */}
-      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[8px] sm:rounded-[10px] overflow-hidden border border-[#CBD8D1] shadow-xs flex-shrink-0 bg-[#075E43]">
+      <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
         <img 
           src="/logo.png" 
           alt="KRAYAM Logo" 
-          className="w-full h-full object-cover" 
+          className="w-full h-full object-contain select-none" 
         />
       </div>
 
