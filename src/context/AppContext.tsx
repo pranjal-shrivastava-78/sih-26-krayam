@@ -222,7 +222,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [lastSyncTime, setLastSyncTime] = useState<string>('Live Sync Active');
 
   // Navigation & Modals
-  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
+  const [activeView, setActiveViewState] = useState<ActiveView>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      if (path === '/login' || path === '/auth') {
+        return 'auth';
+      }
+      if (path === '/' || path === '' || path === '/home') {
+        return 'home';
+      }
+    }
+    return 'home';
+  });
+
+  const setActiveView = useCallback((view: ActiveView) => {
+    setActiveViewState(view);
+    if (typeof window !== 'undefined') {
+      if (view === 'home' && window.location.pathname !== '/') {
+        window.history.pushState({ view: 'home' }, '', '/');
+      } else if (view === 'auth' && window.location.pathname !== '/login') {
+        window.history.pushState({ view: 'auth' }, '', '/login');
+      }
+    }
+  }, []);
+
+  // Listen to browser Back/Forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname.toLowerCase();
+        if (path === '/login' || path === '/auth') {
+          setActiveViewState('auth');
+        } else if (path === '/' || path === '' || path === '/home') {
+          setActiveViewState('home');
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const [isHelpModalOpen, setIsHelpModalOpen] = useState<boolean>(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
   const [isSmsModalOpen, setIsSmsModalOpen] = useState<boolean>(false);
@@ -1125,7 +1164,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProcurements([]);
     setPayments([]);
     setNotifications([]);
-    setActiveView('dashboard');
+    setActiveView('home');
   };
 
   const updateProfile = async (data: Partial<FarmerProfile>): Promise<FarmerProfile> => {

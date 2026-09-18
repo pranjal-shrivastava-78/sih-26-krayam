@@ -84,10 +84,12 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
         <span className="tracking-wide">
           {currentLang.name}
         </span>
-        <span className="text-[9px] opacity-75 font-normal hidden sm:inline">
-          ({currentLang.englishName})
-        </span>
-        <ChevronDown className={`w-3 h-3 text-[#CBD8D1] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        {currentLang.name !== currentLang.englishName && (
+          <span className="text-[9px] opacity-75 font-normal hidden md:inline">
+            ({currentLang.englishName})
+          </span>
+        )}
+        <ChevronDown className={`w-3 h-3 text-[#CBD8D1] transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown Modal List */}

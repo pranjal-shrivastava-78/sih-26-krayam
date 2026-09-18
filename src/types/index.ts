@@ -12,6 +12,7 @@ export type Language =
   | 'pa'; // ਪੰਜਾਬੀ (Punjabi) - ~2.7%
 
 export type ActiveView = 
+  | 'home'
   | 'dashboard' 
   | 'tracking' 
   | 'booking' 

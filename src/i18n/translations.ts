@@ -3407,3 +3407,5 @@ export const translations: Record<Language, TranslationStrings> = {
     govOfIndia: 'ਭਾਰਤ ਸਰਕਾਰ',
   }
 };
+
+export * from './homeTranslations';

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { SplashScreen } from './components/common/SplashScreen';
 import { AuthPage } from './components/auth/AuthPage';
+import { HomePage } from './components/home/HomePage';
 import { AnnouncementBanner } from './components/layout/AnnouncementBanner';
 import { GovernmentHeader } from './components/layout/GovernmentHeader';
 import { Breadcrumb } from './components/layout/Breadcrumb';
@@ -28,7 +29,7 @@ import { SmsInterfaceModal } from './components/sms/SmsInterfaceModal';
 import api from './services/api';
 
 const MainAppContent: React.FC = () => {
-  const { activeView, isLoggedIn, authStatus, userRole } = useApp();
+  const { activeView, setActiveView, isLoggedIn, authStatus, userRole } = useApp();
   const [showSplash, setShowSplash] = useState(true);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -40,9 +41,12 @@ const MainAppContent: React.FC = () => {
 
   let content: React.ReactNode;
 
-  // Strict protected route enforcement: unauthenticated users always get AuthPage
-  if (!isLoggedIn || authStatus !== 'authenticated' || activeView === 'auth') {
-    content = <AuthPage onSuccess={() => { }} />;
+  // 1. Home Page Landing Route
+  if (activeView === 'home') {
+    content = <HomePage onNavigateToAuth={() => setActiveView('auth')} />;
+  } else if (!isLoggedIn || authStatus !== 'authenticated' || activeView === 'auth') {
+    // 2. Strict protected route enforcement: unauthenticated users get AuthPage
+    content = <AuthPage onSuccess={() => setActiveView('dashboard')} />;
   } else if (userRole === 'operator') {
     // Centre Operator Web App: Dedicated operator interface based on user's role
     content = <OperatorPortal />;
