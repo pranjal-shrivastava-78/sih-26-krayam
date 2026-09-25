@@ -1,18 +1,23 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { HomeFooterLandscape } from './HomeFooterLandscape';
 import { LanguageDropdown } from '../common/LanguageDropdown';
 import { getHomeText } from '../../i18n/homeTranslations';
-import { 
-  User, 
-  ChevronRight, 
-  Calendar, 
-  QrCode, 
-  Scale, 
-  IndianRupee, 
-  Bell, 
-  FileText, 
-  Sprout 
+import {
+  User,
+  Sprout,
+  Clock,
+  ShieldCheck,
+  IndianRupee,
+  Users,
+  Building2,
+  Truck,
+  TrendingUp,
+  Calendar,
+  Scale,
+  Warehouse,
+  Sparkles,
+  Bell,
+  Layers,
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -20,7 +25,7 @@ interface HomePageProps {
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigateToAuth }) => {
-  const { language, isLoggedIn, userRole, setActiveView } = useApp();
+  const { language, isLoggedIn, setActiveView } = useApp();
   const ht = getHomeText(language);
 
   const handleAuthClick = () => {
@@ -31,35 +36,105 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToAuth }) => {
     }
   };
 
-  const newsImages = [
-    '/assets/home/news-1.png',
-    '/assets/home/news-2.png',
-    '/assets/home/news-3.png',
-    '/assets/home/news-4.png',
+  const stats = [
+    {
+      icon: Users,
+      value: ht.stat1Value,
+      label: ht.stat1Label,
+    },
+    {
+      icon: Building2,
+      value: ht.stat2Value,
+      label: ht.stat2Label,
+    },
+    {
+      icon: Sprout,
+      value: ht.stat3Value,
+      label: ht.stat3Label,
+    },
+    {
+      icon: Truck,
+      value: ht.stat4Value,
+      label: ht.stat4Label,
+    },
+    {
+      icon: IndianRupee,
+      value: ht.stat5Value,
+      label: ht.stat5Label,
+    },
+    {
+      icon: TrendingUp,
+      value: ht.stat6Value,
+      label: ht.stat6Label,
+    },
   ];
 
-  const solutionIcons = [
-    Calendar,
-    QrCode,
-    Scale,
-    IndianRupee,
-    Bell,
+  const features = [
+    {
+      icon: Calendar,
+      iconBg: 'bg-[#10B981]',
+      title: ht.feature1Title,
+      desc: ht.feature1Desc,
+    },
+    {
+      icon: Users,
+      iconBg: 'bg-[#F97316]',
+      title: ht.feature2Title,
+      desc: ht.feature2Desc,
+    },
+    {
+      icon: Scale,
+      iconBg: 'bg-[#8B5CF6]',
+      title: ht.feature3Title,
+      desc: ht.feature3Desc,
+    },
+    {
+      icon: IndianRupee,
+      iconBg: 'bg-[#F59E0B]',
+      title: ht.feature4Title,
+      desc: ht.feature4Desc,
+    },
+    {
+      icon: Warehouse,
+      iconBg: 'bg-[#3B82F6]',
+      title: ht.feature5Title,
+      desc: ht.feature5Desc,
+    },
+    {
+      icon: Sparkles,
+      iconBg: 'bg-[#EC4899]',
+      title: ht.feature6Title,
+      desc: ht.feature6Desc,
+    },
+    {
+      icon: Bell,
+      iconBg: 'bg-[#06B6D4]',
+      title: ht.feature7Title,
+      desc: ht.feature7Desc,
+    },
+    {
+      icon: Layers,
+      iconBg: 'bg-[#16A34A]',
+      title: ht.feature8Title,
+      desc: ht.feature8Desc,
+    },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-white text-[#17231F] font-['Inter',sans-serif] selection:bg-[#075E43] selection:text-white overflow-x-hidden w-full">
+    <div className="min-h-screen flex flex-col bg-[#F3F8F5] text-[#122A1E] font-['Inter',sans-serif] selection:bg-[#075E43] selection:text-white overflow-x-hidden w-full">
       
-      {/* 1. TOP HEADER & BRANDING */}
-      <header className="w-full bg-white border-b border-[#EDF3EF] sticky top-0 z-30 shadow-xs shrink-0">
-        <div className="max-w-[1440px] mx-auto px-2.5 sm:px-6 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4">
+      {/* ============================================================ */}
+      {/* 1. HEADER (No Home text link, real logo, lang selector, auth) */}
+      {/* ============================================================ */}
+      <header className="w-full bg-white border-b border-[#E3ECE6] sticky top-0 z-40 shadow-xs shrink-0">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-4">
           
-          {/* Top Left: KRAYAM Sprout Logo & Portal Identity */}
+          {/* Left: Real KRAYAM Logo & Identity */}
           <div 
-            className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group select-none shrink-0" 
+            className="flex items-center gap-3 cursor-pointer group select-none shrink-0"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            {/* Actual KRAYAM Logo */}
-            <div className="w-7 h-7 sm:w-9 sm:h-9 shrink-0 transition-transform group-hover:scale-105">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 transition-transform group-hover:scale-105">
               <img
                 src="/logo.png"
                 alt="KRAYAM Logo"
@@ -71,25 +146,23 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToAuth }) => {
               <div className="text-base sm:text-xl font-black text-[#0B402E] tracking-tight leading-none">
                 {ht.appTitle}
               </div>
-              <div className="hidden xs:block sm:block text-[9px] sm:text-[11px] font-semibold text-[#1B6F4F] tracking-tight leading-none mt-0.5 truncate">
+              <div className="text-[10px] sm:text-xs font-semibold text-[#1C7351] tracking-tight leading-none mt-1 truncate">
                 {ht.appSubtitle}
               </div>
             </div>
           </div>
 
-          {/* Top Right: Language Dropdown + Green Register/Log In button */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            {/* Language Selector */}
+          {/* Right: Language Dropdown + Register / Log In Button */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <LanguageDropdown variant="modal" align="right" className="shrink-0" />
 
-            {/* Green Pill Action Button - Guaranteed to fit inside mobile viewport */}
             <button
               type="button"
               id="krayam-home-login-btn"
               onClick={handleAuthClick}
-              className="inline-flex items-center justify-center gap-1 sm:gap-1.5 bg-[#063B2A] hover:bg-[#09573E] active:bg-[#04261B] text-white px-2.5 sm:px-4 lg:px-5 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-semibold tracking-wide transition-all shadow-sm hover:shadow-md cursor-pointer shrink-0 whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[#0B402B] hover:bg-[#0D5238] active:bg-[#083020] text-white px-3.5 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold tracking-wide transition-all shadow-xs hover:shadow-md cursor-pointer shrink-0 whitespace-nowrap"
             >
-              <User className="w-3.5 h-3.5 text-white shrink-0" />
+              <User className="w-4 h-4 text-white shrink-0" />
               <span>{isLoggedIn ? ht.goToDashboard : ht.registerLogin}</span>
             </button>
           </div>
@@ -97,178 +170,231 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToAuth }) => {
         </div>
       </header>
 
-      {/* 2. HERO SECTION - Compact for 1-screen desktop fit */}
-      <section className="relative w-full overflow-hidden bg-white border-b border-[#EAF2ED] shrink-0">
-        <div className="max-w-[1440px] mx-auto h-auto lg:h-[205px] xl:h-[220px] relative flex flex-col lg:flex-row items-center justify-between">
-          
-          {/* Left Text Content Area */}
-          <div className="w-full lg:w-1/2 px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-3 z-10 flex flex-col justify-center">
-            
-            {/* Main Headline */}
-            <h1 className="text-xl sm:text-2xl lg:text-[25px] xl:text-[27px] font-black text-[#0D382B] leading-[1.14] tracking-tight">
-              {ht.heroTitleLine1}<br />
-              {ht.heroTitleLine2}<br />
-              {ht.heroTitleLine3}
-            </h1>
+      {/* ============================================================ */}
+      {/* 2. HERO SECTION */}
+      {/* ============================================================ */}
+      <section className="relative w-full overflow-hidden bg-cover bg-right lg:bg-center border-b border-[#DFECE4] shrink-0"
+        style={{
+          backgroundImage: "url('/assets/home/hero-bg-perfect.png')",
+          backgroundColor: '#E7F2EB'
+        }}
+      >
+        {/* Soft atmospheric gradient wash on mobile / tablet to guarantee 100% legibility */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/85 to-transparent lg:via-transparent lg:from-transparent pointer-events-none" />
 
-            {/* Supporting Text */}
-            <div className="mt-2 sm:mt-2.5 space-y-0.5 max-w-lg text-[#324C41]">
-              <p className="text-xs sm:text-[13px] font-bold text-[#143B2E] tracking-tight">
-                {ht.heroSubtitleTag}
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-6 min-h-[380px] lg:min-h-[420px]">
+            
+            {/* Left Hero Typography */}
+            <div className="w-full lg:w-[50%] xl:w-[48%] flex flex-col justify-center">
+              
+              {/* Hero Badge */}
+              <div className="inline-flex items-center gap-2 bg-[#E6F4ED]/90 backdrop-blur-xs border border-[#BFDFCD] text-[#0C5438] px-3.5 py-1 rounded-full text-xs font-semibold shadow-2xs w-fit mb-4">
+                <Sprout className="w-3.5 h-3.5 text-[#0E7A50] shrink-0" />
+                <span className="truncate">{ht.heroBadge}</span>
+              </div>
+
+              {/* Main Heading */}
+              <h1 className="text-2xl sm:text-3xl lg:text-[34px] xl:text-[38px] font-black text-[#0A2E20] leading-[1.16] tracking-tight">
+                {ht.heroTitleLine1}<br />
+                {ht.heroTitleLine2}<br />
+                {ht.heroTitleLine3}
+              </h1>
+
+              {/* Supporting Text */}
+              <p className="mt-4 text-xs sm:text-sm lg:text-[14px] leading-relaxed text-[#2C4E40] max-w-xl font-medium">
+                {ht.heroDescription}
               </p>
-              <p className="text-[11px] sm:text-xs leading-snug text-[#4A6458]">
-                {ht.heroSubtitleDesc}
-              </p>
+
+              {/* Mobile Farmer Visual Highlight (visible on small mobile where bg crops) */}
+              <div className="mt-6 flex lg:hidden items-center justify-center">
+                <div className="relative rounded-2xl overflow-hidden shadow-md border border-white/60 max-w-xs">
+                  <img
+                    src="/assets/home/farmer-hero.png"
+                    alt="Farmer"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Direct CTA on Mobile */}
-            <div className="mt-3.5 flex sm:hidden">
-              <button
-                type="button"
-                onClick={handleAuthClick}
-                className="w-full inline-flex items-center justify-center gap-1.5 bg-[#063B2A] text-white py-2 px-3 rounded-lg font-semibold text-xs shadow-xs"
-              >
-                <User className="w-3.5 h-3.5" />
-                <span>{isLoggedIn ? ht.goToDashboard : ht.registerLogin}</span>
-              </button>
+            {/* Spacer for center farmer visual in background on desktop */}
+            <div className="hidden lg:block lg:flex-1" />
+
+            {/* Right Hero: Floating Benefits Card */}
+            <div className="w-full lg:w-auto shrink-0 flex justify-center lg:justify-end">
+              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-[0_10px_35px_rgba(0,0,0,0.08)] border border-white/80 w-full sm:w-[300px] lg:w-[290px] xl:w-[310px] space-y-4">
+                
+                {/* Benefit 1 */}
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#E5F5EC] flex items-center justify-center text-[#0D6242] shrink-0">
+                    <Sprout className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold text-[#0B3323] leading-snug">
+                      {ht.benefit1Title}
+                    </div>
+                    <div className="text-[11px] text-[#4E6B5D] leading-tight mt-0.5">
+                      {ht.benefit1Desc}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Benefit 2 */}
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#E5F5EC] flex items-center justify-center text-[#0D6242] shrink-0">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold text-[#0B3323] leading-snug">
+                      {ht.benefit2Title}
+                    </div>
+                    <div className="text-[11px] text-[#4E6B5D] leading-tight mt-0.5">
+                      {ht.benefit2Desc}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Benefit 3 */}
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#E5F5EC] flex items-center justify-center text-[#0D6242] shrink-0">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold text-[#0B3323] leading-snug">
+                      {ht.benefit3Title}
+                    </div>
+                    <div className="text-[11px] text-[#4E6B5D] leading-tight mt-0.5">
+                      {ht.benefit3Desc}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Benefit 4 */}
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#E5F5EC] flex items-center justify-center text-[#0D6242] shrink-0">
+                    <IndianRupee className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold text-[#0B3323] leading-snug">
+                      {ht.benefit4Title}
+                    </div>
+                    <div className="text-[11px] text-[#4E6B5D] leading-tight mt-0.5">
+                      {ht.benefit4Desc}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
-          </div>
 
-          {/* Right Hero Image Area (Indian Farmer in field holding smartphone with QR code) */}
-          <div className="w-full lg:w-1/2 relative h-[200px] sm:h-[240px] lg:h-full flex items-center justify-end overflow-hidden">
-            
-            {/* Gradient overlay for soft seamless fade from left white background into the photo */}
-            <div className="absolute inset-0 z-1 pointer-events-none bg-gradient-to-r from-white via-white/40 to-transparent lg:via-white/10 hidden sm:block w-24" />
-            
-            {/* Hero Image (contains the original Digital Today, Better Tomorrow text) */}
-            <img
-              src="/assets/home/hero-farmer.png"
-              alt="Farmer using KRAYAM Digital Procurement Platform"
-              className="w-full h-full object-cover object-center lg:object-right select-none"
-            />
           </div>
-
         </div>
       </section>
 
-      {/* 3. MAIN LOWER CONTENT: TWO EQUAL COLUMNS - Compact padding & heights for 1-screen fit */}
-      <main className="flex-1 w-full bg-[#F5F9F6] py-2.5 sm:py-3 lg:py-3 px-3 sm:px-5 lg:px-8 flex flex-col justify-center">
-        <div className="max-w-[1440px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-5 items-stretch">
-          
-          {/* ================= COLUMN 1: LATEST NEWS & UPDATES ================= */}
-          <div className="bg-white rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-[0_1px_6px_rgba(0,0,0,0.03)] border border-[#E3ECE6] flex flex-col justify-between">
-            
-            {/* Section Header */}
-            <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-[#EDF3EF]">
-              <div className="w-6 h-6 rounded-md bg-[#EAF5EE] flex items-center justify-center text-[#075E43] shrink-0">
-                <FileText className="w-3.5 h-3.5 stroke-[2.2]" />
-              </div>
-              <h2 className="text-xs sm:text-sm font-extrabold text-[#0E3527] tracking-tight">
-                {ht.newsSectionTitle}
-              </h2>
-            </div>
-
-            {/* News Updates List - ARROWS REMOVED */}
-            <div className="divide-y divide-[#EDF3EF] flex-1 flex flex-col justify-around">
-              {ht.newsItems.map((item, idx) => (
-                <div 
-                  key={idx}
-                  className="py-1.5 sm:py-2 first:pt-0 last:pb-0 flex items-center gap-2.5 sm:gap-3 group cursor-pointer hover:bg-[#F9FCFA] -mx-1 px-1 rounded-lg transition-colors"
-                >
-                  {/* News Thumbnail Image */}
-                  <div className="w-14 h-10 sm:w-16 sm:h-11 rounded-md overflow-hidden shrink-0 border border-[#CBD8D1]/60 shadow-xs bg-[#EDF3EF]">
-                    <img 
-                      src={newsImages[idx] || newsImages[0]} 
-                      alt={item.state} 
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
-                    />
+      {/* ============================================================ */}
+      {/* 3. STATISTICS STRIP */}
+      {/* ============================================================ */}
+      <section className="w-full bg-white border-b border-[#E1ECE5] py-4 sm:py-5 px-4 sm:px-6 lg:px-8 shrink-0 shadow-2xs">
+        <div className="max-w-[1440px] mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 divide-y sm:divide-y-0 lg:divide-x divide-[#EDF3EF]">
+          {stats.map((stat, idx) => {
+            const Icon = stat.icon;
+            return (
+              <div 
+                key={idx} 
+                className={`flex items-center gap-3 pt-3 sm:pt-0 ${idx > 0 ? 'lg:pl-6' : ''}`}
+              >
+                <div className="w-10 h-10 rounded-full bg-[#EAF6EF] flex items-center justify-center text-[#0A573A] shrink-0 shadow-2xs">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm sm:text-base font-extrabold text-[#0B3827] leading-tight">
+                    {stat.value}
                   </div>
-
-                  {/* News Meta & Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[9px] sm:text-[10px] font-semibold text-[#66736D] tracking-wide mb-0.5">
-                      <span>{item.date}</span>
-                      <span className="mx-1 text-[#CBD8D1]">|</span>
-                      <span className="text-[#075E43]">{item.state}</span>
-                    </div>
-                    <p className="text-[11px] sm:text-xs font-semibold text-[#17231F] leading-snug group-hover:text-[#075E43] transition-colors line-clamp-2">
-                      {item.title}
-                    </p>
+                  <div className="text-[11px] sm:text-xs text-[#527063] font-medium leading-tight mt-0.5 truncate">
+                    {stat.label}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
+      {/* ============================================================ */}
+      {/* 4. FEATURES SECTION + PRODUCE IMAGE CARD */}
+      {/* ============================================================ */}
+      <section className="w-full bg-[#F2F8F4] py-8 sm:py-10 lg:py-12 px-4 sm:px-6 lg:px-8 flex-1">
+        <div className="max-w-[1440px] mx-auto">
+          
+          {/* Section Header */}
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl lg:text-[26px] font-black text-[#0B3626] tracking-tight">
+              {ht.featuresTitle}
+            </h2>
+            <p className="text-xs sm:text-sm text-[#466557] font-medium mt-1 max-w-2xl">
+              {ht.featuresSubtitle}
+            </p>
           </div>
 
-          {/* ================= COLUMN 2: HOW KRAYAM SOLVES THESE PROBLEMS ================= */}
-          <div className="bg-[#EBF5EF] rounded-xl p-3 sm:p-3.5 lg:p-4 shadow-[0_1px_6px_rgba(0,0,0,0.03)] border border-[#D9EBDF] flex flex-col justify-between">
+          {/* Grid Layout: 8 Feature Cards + Large Produce Image Card */}
+          <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 items-stretch">
             
-            {/* Section Header */}
-            <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-[#D8E8DD]">
-              <div className="w-6 h-6 rounded-md bg-[#075E43] flex items-center justify-center text-white shrink-0">
-                <Sprout className="w-3.5 h-3.5 stroke-[2.2]" />
-              </div>
-              <h2 className="text-xs sm:text-sm font-extrabold text-[#0E3527] tracking-tight">
-                {ht.solutionsSectionTitle}
-              </h2>
-            </div>
-
-            {/* 5 Solution Cards */}
-            <div className="space-y-1 sm:space-y-1.5 flex-1 flex flex-col justify-around">
-              {ht.solutions.map((feat, idx) => {
-                const IconComponent = solutionIcons[idx] || solutionIcons[0];
+            {/* Left/Center: 8 Feature Cards organized as 4x2 grid */}
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+              {features.map((item, idx) => {
+                const Icon = item.icon;
                 return (
                   <div
                     key={idx}
-                    className="bg-white rounded-lg p-1.5 sm:p-2 flex items-center gap-2 sm:gap-2.5 shadow-none border border-[#E2EBE5] hover:border-[#075E43]/40 transition-all"
+                    className="bg-white rounded-2xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-[#E3ECE6] hover:shadow-md hover:border-[#BFDFCD] transition-all flex flex-col justify-start"
                   >
-                    {/* Dark Green Circular Icon Badge */}
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#075E43] text-white flex items-center justify-center shrink-0 shadow-xs">
-                      <IconComponent className="w-3.5 h-3.5 stroke-[2]" />
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <div className={`w-8 h-8 rounded-xl ${item.iconBg} flex items-center justify-center text-white shrink-0 shadow-xs`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="text-xs sm:text-sm font-bold text-[#0D3828] leading-snug">
+                        {item.title}
+                      </div>
                     </div>
-
-                    {/* Solution Title & Description */}
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-[11px] sm:text-xs font-bold text-[#0D382B] leading-none">
-                        {feat.title}
-                      </h3>
-                      <p className="text-[9px] sm:text-[10px] text-[#52635B] leading-tight mt-0.5">
-                        {feat.desc}
-                      </p>
+                    <div className="text-[11px] sm:text-xs text-[#557365] leading-relaxed">
+                      {item.desc}
                     </div>
                   </div>
                 );
               })}
+            </div>
 
-              {/* 6th Highlight Card at bottom: "With KRAYAM, procurement becomes simpler, faster and fairer..." (ARROW PRESERVED) */}
-              <div 
-                onClick={handleAuthClick}
-                className="bg-[#D3EBD9] hover:bg-[#C8E5CF] transition-colors rounded-lg p-1.5 sm:p-2 flex items-center justify-between gap-2 cursor-pointer border border-[#BBDDC3] shadow-none mt-1 group"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-6 h-6 rounded-full bg-[#E8F6ED] flex items-center justify-center shrink-0 border border-[#99D2AA] text-[#075E43]">
-                    <Sprout className="w-3.5 h-3.5" />
+            {/* Right: Rounded Produce Image Card */}
+            <div className="w-full lg:w-[320px] xl:w-[360px] shrink-0 flex flex-col">
+              <div className="h-full min-h-[220px] sm:min-h-[260px] rounded-3xl overflow-hidden shadow-md border-2 border-white relative bg-[#E6F0E9] group">
+                
+                {/* Background image: produce-card for English, produce-clean for other languages */}
+                <img
+                  src={language === 'en' ? '/assets/home/produce-card.png' : '/assets/home/produce-clean.png'}
+                  alt="KRAYAM Agricultural Produce"
+                  className="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-500"
+                />
+
+                {/* Localized text overlay (prominent when non-English) */}
+                {language !== 'en' && (
+                  <div className="absolute top-4 left-4 right-4 text-center z-10 bg-white/70 backdrop-blur-xs rounded-xl py-2 px-3 border border-white/60 shadow-2xs">
+                    <div className="text-[#0E5238] font-bold text-xs sm:text-sm tracking-tight leading-snug">
+                      {ht.produceCardTitle}
+                    </div>
+                    <div className="text-[#136846] font-semibold text-[11px] sm:text-xs tracking-tight leading-snug mt-0.5">
+                      {ht.produceCardSubtitle}
+                    </div>
                   </div>
-                  <p className="text-[10px] sm:text-[11px] font-bold text-[#0E3E2B] leading-tight">
-                    {ht.closingCallout}
-                  </p>
-                </div>
+                )}
 
-                <div className="shrink-0 text-[#0E3E2B] group-hover:translate-x-0.5 transition-transform">
-                  <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                </div>
               </div>
             </div>
 
           </div>
 
         </div>
-      </main>
-
-      {/* 4. SCENIC AGRICULTURAL FOOTER */}
-      <HomeFooterLandscape onNavigateToAuth={handleAuthClick} />
+      </section>
 
     </div>
   );

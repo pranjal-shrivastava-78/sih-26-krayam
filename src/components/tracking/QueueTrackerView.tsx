@@ -10,9 +10,13 @@ import {
   CalendarPlus,
   ArrowRight,
   Scale,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  Activity
 } from 'lucide-react';
 import { RescheduleModal } from '../booking/RescheduleModal';
+import { KaiQueuePrediction } from '../../types';
+import kaiService from '../../services/kaiService';
 
 export const QueueTrackerView: React.FC = () => {
   const { 
@@ -31,6 +35,17 @@ export const QueueTrackerView: React.FC = () => {
 
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [kaiPrediction, setKaiPrediction] = useState<KaiQueuePrediction | null>(null);
+
+  React.useEffect(() => {
+    if (activeBooking) {
+      kaiService.getQueuePrediction(
+        activeBooking.centreId || '',
+        activeBooking.farmersAhead || 0,
+        activeBooking.queuePosition
+      ).then(res => setKaiPrediction(res)).catch(() => {});
+    }
+  }, [activeBooking]);
 
   if (!activeBooking) {
     return (
@@ -318,6 +333,75 @@ export const QueueTrackerView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* KAI Queue & Congestion Intelligence Card */}
+      {kaiPrediction && (
+        <div className="bg-[#063B2A] text-white border border-[#0B6B4F] rounded-[8px] p-5 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#0B6B4F] pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md bg-[#075E43] flex items-center justify-center text-[#85E1A9]">
+                <Sparkles className="w-4 h-4 text-[#85E1A9]" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[#FFFFFF] flex items-center gap-2">
+                  <span>KAI QUEUE & CONGESTION INTELLIGENCE</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#04261B] text-[#85E1A9] border border-[#0B4734]">
+                    {kaiPrediction.source}
+                  </span>
+                </div>
+                <div className="text-[11px] text-[#CBD8D1]">
+                  Predictive yard intake throughput and scale clearance modeling
+                </div>
+              </div>
+            </div>
+
+            <div className="text-xs text-[#85E1A9] font-mono">
+              Model Sync: {kaiPrediction.updatedAt}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div className="bg-[#04261B] p-3 rounded-[6px] border border-[#0B4734]">
+              <span className="text-[#CBD8D1] block text-[11px]">Predicted Turn Wait:</span>
+              <span className="text-lg font-bold font-mono text-[#FFFFFF] mt-0.5 block">
+                ~{kaiPrediction.predictedWaitMinutes} Minutes
+              </span>
+              <span className="text-[10px] text-[#85E1A9]">
+                Delay Risk: {kaiPrediction.delayProbabilityPercent}%
+              </span>
+            </div>
+
+            <div className="bg-[#04261B] p-3 rounded-[6px] border border-[#0B4734]">
+              <span className="text-[#CBD8D1] block text-[11px]">Predicted Peak Window:</span>
+              <span className="text-sm font-bold font-mono text-[#E7F3EC] mt-1 block">
+                {kaiPrediction.predictedPeakPeriod}
+              </span>
+              <span className="text-[10px] text-[#CBD8D1]">High arrival density</span>
+            </div>
+
+            <div className="bg-[#04261B] p-3 rounded-[6px] border border-[#0B4734]">
+              <span className="text-[#CBD8D1] block text-[11px]">Yard Congestion Status:</span>
+              <span className={`text-base font-bold mt-0.5 block ${
+                kaiPrediction.queueRiskLevel === 'High' ? 'text-[#FCA5A5]' :
+                kaiPrediction.queueRiskLevel === 'Medium' ? 'text-[#FCD34D]' : 'text-[#85E1A9]'
+              }`}>
+                {kaiPrediction.queueStatus} ({kaiPrediction.queueRiskLevel} Risk)
+              </span>
+              <span className="text-[10px] text-[#CBD8D1]">Based on live check-in queue</span>
+            </div>
+
+            <div className="bg-[#04261B] p-3 rounded-[6px] border border-[#0B4734]">
+              <span className="text-[#CBD8D1] block text-[11px]">Weighbridge Pace:</span>
+              <span className="text-sm font-bold font-mono text-[#FFFFFF] mt-1 block">
+                ~{kaiPrediction.processingRatePerHour} Vehicles / hr
+              </span>
+              <span className="text-[10px] text-[#85E1A9]">
+                {kaiPrediction.activeWeighbridgeGates} Electronic Scales Active
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2-Column Operational Layout: Section 12 Queue Progress & Section 13 Booking Details */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

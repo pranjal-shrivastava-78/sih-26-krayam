@@ -13,6 +13,7 @@ export interface OperatorTranslations {
   tabQueue: string;
   tabBookings: string;
   tabProcurement: string;
+  tabProduce: string;
   tabPayments: string;
   tabAnalytics: string;
   tabAiInsights: string;
@@ -183,6 +184,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "Live Queue",
     "tabBookings": "Bookings",
     "tabProcurement": "Procurement",
+    "tabProduce": "Produce Management",
     "tabPayments": "DBT Payments",
     "tabAnalytics": "Analytics",
     "tabAiInsights": "AI Insights",
@@ -321,6 +323,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "लाइव कतार",
     "tabBookings": "बुकिंग्स",
     "tabProcurement": "खरीद एवं तौल",
+    "tabProduce": "उपज प्रबंधन",
     "tabPayments": "DBT भुगतान",
     "tabAnalytics": "एनालिटिक्स",
     "tabAiInsights": "AI अंतर्दृष्टि",
@@ -459,6 +462,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "ਲਾਈਵ ਕਤਾਰ",
     "tabBookings": "ਬੁਕਿੰਗਾਂ",
     "tabProcurement": "ਖਰੀਦ ਤੇ ਤੋਲ",
+    "tabProduce": "ਉਪਜ ਪ੍ਰਬੰਧਨ",
     "tabPayments": "DBT ਭੁਗਤਾਨ",
     "tabAnalytics": "ਐਨਾਲਿਟਿਕਸ",
     "tabAiInsights": "AI ਸੂਝ",
@@ -597,6 +601,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "লাইভ সারি",
     "tabBookings": "বুকিং তালিকা",
     "tabProcurement": "ক্রয় ও ওজন",
+    "tabProduce": "ফসল ব্যবস্থাপনা",
     "tabPayments": "DBT অর্থপ্রদান",
     "tabAnalytics": "বিশ্লেষণ",
     "tabAiInsights": "AI অন্তর্দৃষ্টি",
@@ -735,6 +740,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "थेट रांग",
     "tabBookings": "बुकिंग्स",
     "tabProcurement": "खरेदी व वजन",
+    "tabProduce": "उत्पादन व्यवस्थापन",
     "tabPayments": "DBT देयके",
     "tabAnalytics": "अॅनालिटिक्स",
     "tabAiInsights": "AI अंतर्दृष्टी",
@@ -873,6 +879,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "లైవ్ క్యూ",
     "tabBookings": "బుకింగ్‌లు",
     "tabProcurement": "సేకరణ & తూకం",
+    "tabProduce": "ఉత్పత్తి నిర్వహణ",
     "tabPayments": "DBT చెల్లింపులు",
     "tabAnalytics": "విశ్లేషణలు",
     "tabAiInsights": "AI అంతర్దృష్టులు",
@@ -1011,6 +1018,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "நேரலை வரிசை",
     "tabBookings": "முன்பதிவுகள்",
     "tabProcurement": "கொள்முதல் & எடை",
+    "tabProduce": "விளைபொருள் மேலாண்மை",
     "tabPayments": "DBT பணப்பரிவர்த்தனை",
     "tabAnalytics": "பகுப்பாய்வு",
     "tabAiInsights": "AI நுண்ணறிவு",
@@ -1149,6 +1157,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "લાઈવ લાઈન",
     "tabBookings": "બુકિંગ્સ",
     "tabProcurement": "ખરીદી અને વજન",
+    "tabProduce": "ઉત્પાદન સંચાલન",
     "tabPayments": "DBT ચૂકવણી",
     "tabAnalytics": "એનાલિટિક્સ",
     "tabAiInsights": "AI ઇનસાઇટ્સ",
@@ -1287,6 +1296,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "لائیو قطار",
     "tabBookings": "بکنگز",
     "tabProcurement": "خریداری و وزن",
+    "tabProduce": "پیداوار کا انتظام",
     "tabPayments": "ڈی بی ٹی ادائیگیاں",
     "tabAnalytics": "تجزیات",
     "tabAiInsights": "اے آئی بصیرت",
@@ -1425,6 +1435,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "ಲೈವ್ ಸರದಿ",
     "tabBookings": "ಬುಕಿಂಗ್‌ಗಳು",
     "tabProcurement": "ಖರೀದಿ ಮತ್ತು ತೂಕ",
+    "tabProduce": "ಉತ್ಪನ್ನ ನಿರ್ವಹಣೆ",
     "tabPayments": "DBT ಪಾವತಿಗಳು",
     "tabAnalytics": "ವಿಶ್ಲೇಷಣೆ",
     "tabAiInsights": "AI ಒಳನೋಟಗಳು",
@@ -1563,6 +1574,7 @@ export const operatorTranslations: Record<Language, OperatorTranslations> = {
     "tabQueue": "ଲାଇଭ୍ ଧାଡ଼ି",
     "tabBookings": "ବୁକିଂ ତାଲିକା",
     "tabProcurement": "କ୍ରୟ ଓ ଓଜନ",
+    "tabProduce": "ଉତ୍ପାଦନ ପରିଚାଳନା",
     "tabPayments": "DBT ଦେୟ",
     "tabAnalytics": "ବିଶ୍ଳେଷଣ",
     "tabAiInsights": "AI ଅନ୍ତର୍ଦୃଷ୍ଟି",

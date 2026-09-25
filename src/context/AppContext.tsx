@@ -14,7 +14,11 @@ import {
   UserRole,
   OperatorProfile,
   OperatorView,
-  SyncOperation
+  SyncOperation,
+  ProduceLot,
+  StorageStatus,
+  DispatchStatus,
+  ProduceFlowStage
 } from '../types';
 import { translations, TranslationStrings } from '../i18n/translations';
 import { isRtlLanguage, translateCrop, translateStatus, translateUnit, formatLocalizedDate } from '../i18n/helpers';
@@ -137,6 +141,22 @@ interface AppContextType {
   operatorCancelBooking: (bookingId: string, reason: string) => Promise<void>;
   operatorRescheduleBooking: (bookingId: string, newDate: string, newSlot: SlotTimeWindow) => void;
 
+  // Produce Management (Phase 9 & 10)
+  produceLots: ProduceLot[];
+  updateProduceLotStorage: (
+    lotId: string,
+    storageStatus: StorageStatus,
+    locationBay?: string,
+    notes?: string
+  ) => Promise<ProduceLot>;
+  updateProduceLotDispatch: (
+    lotId: string,
+    dispatchStatus: DispatchStatus,
+    destination?: string,
+    vehicleNo?: string,
+    quantityQtl?: number
+  ) => Promise<ProduceLot>;
+
   // Offline Synchronization Mode
   isOffline: boolean;
   setIsOffline: (offline: boolean) => void;
@@ -175,6 +195,104 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// Initial Seed Produce Lots
+const initialProduceLots: ProduceLot[] = [
+  {
+    lotId: 'KRM-WHT-2026-00125',
+    procurementId: 'PRC-BK-2026-7842',
+    bookingId: 'BK-2026-7842',
+    farmerId: 'MP-2024-7842',
+    farmerName: 'Sardar Gurpreet Singh',
+    farmerMobile: '+91 98765 43210',
+    crop: 'Wheat (गेहूं)',
+    procurementCentreId: 'centre-samrala',
+    procurementCentreName: 'Samrala Main Grain Mandi',
+    procurementDate: new Date().toISOString().split('T')[0],
+    grossQuantityQuintals: 125,
+    acceptedQuantityQuintals: 120,
+    qualityGrade: 'Grade A',
+    qualityStatus: 'Verified',
+    qualityNotes: 'Moisture 11.2%, Standard grain purity verified',
+    moisturePercent: 11.2,
+    verifiedAt: new Date(Date.now() - 3600000 * 3).toISOString(),
+    operatorName: 'Harpreet Singh (Mandi Inspector)',
+    storageStatus: 'Stored',
+    storageLocationBay: 'Warehouse Bay 04 (Covered Silo)',
+    storedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+    storageNotes: 'Stored in aerated covered bay',
+    dispatchStatus: 'Awaiting Dispatch',
+    dispatchDestination: 'FCI Central Silo Panipat',
+    scheduledDispatchDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    currentFlowStatus: 'AWAITING_DISPATCH',
+    syncStatus: 'SYNCED',
+    dataSource: 'LIVE / BACKEND',
+    createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 1).toISOString(),
+  },
+  {
+    lotId: 'KRM-PDY-2026-00126',
+    procurementId: 'PRC-BK-2026-8921',
+    bookingId: 'BK-2026-8921',
+    farmerId: 'FID-2026-4821',
+    farmerName: 'Manpreet Kaur',
+    farmerMobile: '+91 98140 55678',
+    crop: 'Paddy / Rice (धान)',
+    procurementCentreId: 'centre-samrala',
+    procurementCentreName: 'Samrala Main Grain Mandi',
+    procurementDate: new Date().toISOString().split('T')[0],
+    grossQuantityQuintals: 85,
+    acceptedQuantityQuintals: 82.5,
+    qualityGrade: 'Grade A',
+    qualityStatus: 'Verified',
+    qualityNotes: 'Moisture 12.0%, Verified by e-Nam scale',
+    moisturePercent: 12.0,
+    verifiedAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+    operatorName: 'Harpreet Singh (Mandi Inspector)',
+    storageStatus: 'Awaiting Storage',
+    storageLocationBay: 'Yard Intake Bay 02',
+    dispatchStatus: 'Awaiting Dispatch',
+    currentFlowStatus: 'AWAITING_STORAGE',
+    syncStatus: 'SYNCED',
+    dataSource: 'LIVE / BACKEND',
+    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+  },
+  {
+    lotId: 'KRM-MST-2026-00127',
+    procurementId: 'PRC-BK-2026-9481',
+    bookingId: 'BK-2026-9481',
+    farmerId: 'FID-2026-9931',
+    farmerName: 'Jagjit Singh Sandhu',
+    farmerMobile: '+91 94172 66321',
+    crop: 'Mustard (सरसों)',
+    procurementCentreId: 'centre-samrala',
+    procurementCentreName: 'Samrala Main Grain Mandi',
+    procurementDate: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+    grossQuantityQuintals: 45,
+    acceptedQuantityQuintals: 45,
+    qualityGrade: 'Grade A',
+    qualityStatus: 'Verified',
+    qualityNotes: 'Oil content standard, foreign matter < 0.5%',
+    moisturePercent: 8.5,
+    verifiedAt: new Date(Date.now() - 86400000).toISOString(),
+    operatorName: 'Rajesh Verma (Quality Assessor)',
+    storageStatus: 'Stored',
+    storageLocationBay: 'Warehouse Bay 01',
+    storedAt: new Date(Date.now() - 80000000).toISOString(),
+    dispatchStatus: 'Dispatched',
+    dispatchDestination: 'Hafed Mustard Oil Mill Rewari',
+    scheduledDispatchDate: new Date(Date.now() - 40000000).toISOString().split('T')[0],
+    dispatchedAt: new Date(Date.now() - 36000000).toISOString(),
+    transportVehicleNumber: 'PB-10-CZ-4821',
+    dispatchQuantityQuintals: 45,
+    currentFlowStatus: 'DISPATCHED',
+    syncStatus: 'SYNCED',
+    dataSource: 'LIVE / BACKEND',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 36000000).toISOString(),
+  }
+];
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load UI preferences from localStorage (clean non-business state)
   const [language, setLanguageState] = useState<Language>(() => {
@@ -202,6 +320,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [centres, setCentres] = useState<ProcurementCentre[]>([]);
   const [crops, setCrops] = useState<CropInfo[]>([]);
   const [selectedCentre, setSelectedCentre] = useState<ProcurementCentre | null>(null);
+
+  // Produce Management State (Hydrated from local cache + initial seed lots)
+
+  const [produceLots, setProduceLots] = useState<ProduceLot[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('krayam_produce_lots');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return initialProduceLots;
+  });
+
+  const persistProduceLots = (lots: ProduceLot[]) => {
+    setProduceLots(lots);
+    try {
+      localStorage.setItem('krayam_produce_lots', JSON.stringify(lots));
+    } catch {}
+    offlineDb.setOperationalData('produce_lots', lots).catch(() => {});
+  };
+
+  useEffect(() => {
+    offlineDb.getOperationalData<ProduceLot[]>('produce_lots')
+      .then(saved => {
+        if (saved && saved.length > 0) {
+          setProduceLots(saved);
+        } else {
+          offlineDb.setOperationalData('produce_lots', initialProduceLots).catch(() => {});
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Realtime & Queue Telemetry state
   const [realtimeStatus, setRealtimeStatus] = useState<RealtimeStatus>('disconnected');
@@ -2092,6 +2245,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         prev.map((b) => (b.id === data.bookingId || b.uuid === bookingUuid ? { ...b, status: 'COMPLETED' as const } : b))
       );
 
+      // Create Produce Lot record for offline completed procurement
+      const lotSeq = (produceLots.length + 1).toString().padStart(5, '0');
+      const cropCode = (booking?.cropName || 'WHT').slice(0, 3).toUpperCase().replace(/[^A-Z]/g, 'WHT');
+      const offlineLot: ProduceLot = {
+        lotId: `KRM-${cropCode}-2026-${lotSeq}`,
+        procurementId: offlineRecord.id,
+        bookingId: data.bookingId,
+        farmerId: booking?.farmerId || '',
+        farmerName: booking?.farmerName || 'Farmer',
+        farmerMobile: booking?.farmerMobile,
+        crop: booking?.cropName || 'Grain',
+        procurementCentreId: operator?.centreId || 'centre-samrala',
+        procurementCentreName: operator?.centreName || 'Samrala Main Grain Mandi',
+        procurementDate: new Date().toISOString().split('T')[0],
+        grossQuantityQuintals: data.grossWeight || Number((data.netWeight * 1.05).toFixed(2)),
+        acceptedQuantityQuintals: data.netWeight,
+        qualityGrade: data.qualityGrade,
+        qualityStatus: 'Verified',
+        qualityNotes,
+        moisturePercent: data.moisturePercent,
+        verifiedAt: new Date().toISOString(),
+        operatorName: operator?.name || 'Mandi Intake Officer',
+        storageStatus: 'Awaiting Storage',
+        dispatchStatus: 'Awaiting Dispatch',
+        currentFlowStatus: 'LOT_CREATED',
+        syncStatus: 'PENDING_SYNC',
+        dataSource: 'LOCAL STORAGE',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      persistProduceLots([offlineLot, ...produceLots]);
+
       await logSyncOp(
         'COMPLETE_PROCUREMENT',
         data.bookingId,
@@ -2173,6 +2358,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setProcurements((prev) => [newRecord, ...prev.filter((p) => p.bookingId !== data.bookingId)]);
+
+    // Create linked Produce Lot record (Phase 9.1 & 9.3)
+    const lotSeq = (produceLots.length + 1).toString().padStart(5, '0');
+    const cropCode = (booking?.cropName || 'WHT').slice(0, 3).toUpperCase().replace(/[^A-Z]/g, 'WHT');
+    const newLotId = `KRM-${cropCode}-2026-${lotSeq}`;
+
+    const newProduceLot: ProduceLot = {
+      lotId: newLotId,
+      procurementId: newRecord.id,
+      bookingId: data.bookingId,
+      farmerId: booking?.farmerId || '',
+      farmerName: booking?.farmerName || 'Farmer',
+      farmerMobile: booking?.farmerMobile,
+      crop: booking?.cropName || 'Grain',
+      procurementCentreId: operator?.centreId || 'centre-samrala',
+      procurementCentreName: operator?.centreName || 'Samrala Main Grain Mandi',
+      procurementDate: new Date().toISOString().split('T')[0],
+      grossQuantityQuintals: data.grossWeight || Number((data.netWeight * 1.05).toFixed(2)),
+      acceptedQuantityQuintals: data.netWeight,
+      qualityGrade: data.qualityGrade,
+      qualityStatus: 'Verified',
+      qualityNotes,
+      moisturePercent: data.moisturePercent,
+      verifiedAt: new Date().toISOString(),
+      operatorName: operator?.name || 'Mandi Intake Officer',
+      storageStatus: 'Awaiting Storage',
+      dispatchStatus: 'Awaiting Dispatch',
+      currentFlowStatus: 'LOT_CREATED',
+      syncStatus: isOffline ? 'PENDING_SYNC' : 'SYNCED',
+      dataSource: isOffline ? 'LOCAL STORAGE' : 'LIVE / BACKEND',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    persistProduceLots([newProduceLot, ...produceLots]);
 
     // Save to IndexedDB cache
     try {
@@ -2399,6 +2619,101 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  // Produce Management Storage & Dispatch actions
+  const updateProduceLotStorage = async (
+    lotId: string,
+    storageStatus: StorageStatus,
+    locationBay?: string,
+    notes?: string
+  ): Promise<ProduceLot> => {
+    let updatedLot: ProduceLot | null = null;
+    const nextLots = produceLots.map(lot => {
+      if (lot.lotId === lotId) {
+        let flow: ProduceFlowStage = lot.currentFlowStatus;
+        if (storageStatus === 'Stored') {
+          flow = 'STORED';
+        } else if (storageStatus === 'Awaiting Storage') {
+          flow = 'AWAITING_STORAGE';
+        }
+        updatedLot = {
+          ...lot,
+          storageStatus,
+          storageLocationBay: locationBay || lot.storageLocationBay,
+          storageNotes: notes || lot.storageNotes,
+          storedAt: storageStatus === 'Stored' ? new Date().toISOString() : lot.storedAt,
+          currentFlowStatus: flow,
+          updatedAt: new Date().toISOString(),
+          syncStatus: isOffline ? 'PENDING_SYNC' : 'SYNCED',
+        };
+        return updatedLot;
+      }
+      return lot;
+    });
+
+    if (updatedLot) {
+      persistProduceLots(nextLots);
+      if (isOffline) {
+        await logSyncOp('PRODUCE_STORAGE', lotId, `Updated storage status to ${storageStatus} for Lot #${lotId}`, {
+          lotId,
+          storageStatus,
+          locationBay,
+          notes,
+        });
+      }
+      return updatedLot;
+    }
+    throw new Error(`Produce lot #${lotId} not found.`);
+  };
+
+  const updateProduceLotDispatch = async (
+    lotId: string,
+    dispatchStatus: DispatchStatus,
+    destination?: string,
+    vehicleNo?: string,
+    quantityQtl?: number
+  ): Promise<ProduceLot> => {
+    let updatedLot: ProduceLot | null = null;
+    const nextLots = produceLots.map(lot => {
+      if (lot.lotId === lotId) {
+        let flow: ProduceFlowStage = lot.currentFlowStatus;
+        if (dispatchStatus === 'Dispatched') {
+          flow = 'DISPATCHED';
+        } else if (dispatchStatus === 'Awaiting Dispatch' || dispatchStatus === 'Dispatch Scheduled') {
+          flow = 'AWAITING_DISPATCH';
+        }
+        updatedLot = {
+          ...lot,
+          dispatchStatus,
+          dispatchDestination: destination || lot.dispatchDestination,
+          transportVehicleNumber: vehicleNo || lot.transportVehicleNumber,
+          dispatchQuantityQuintals: quantityQtl || lot.dispatchQuantityQuintals || lot.acceptedQuantityQuintals,
+          dispatchedAt: dispatchStatus === 'Dispatched' ? new Date().toISOString() : lot.dispatchedAt,
+          scheduledDispatchDate: dispatchStatus === 'Dispatch Scheduled' ? new Date().toISOString().split('T')[0] : lot.scheduledDispatchDate,
+          currentFlowStatus: flow,
+          updatedAt: new Date().toISOString(),
+          syncStatus: isOffline ? 'PENDING_SYNC' : 'SYNCED',
+        };
+        return updatedLot;
+      }
+      return lot;
+    });
+
+    if (updatedLot) {
+      persistProduceLots(nextLots);
+      if (isOffline) {
+        await logSyncOp('PRODUCE_DISPATCH', lotId, `Updated dispatch status to ${dispatchStatus} for Lot #${lotId}`, {
+          lotId,
+          dispatchStatus,
+          destination,
+          vehicleNo,
+          quantityQtl,
+        });
+      }
+      return updatedLot;
+    }
+    throw new Error(`Produce lot #${lotId} not found.`);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -2462,6 +2777,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         refreshOperatorPayments,
         operatorCancelBooking,
         operatorRescheduleBooking,
+        produceLots,
+        updateProduceLotStorage,
+        updateProduceLotDispatch,
         isOffline,
         setIsOffline,
         toggleOfflineMode,

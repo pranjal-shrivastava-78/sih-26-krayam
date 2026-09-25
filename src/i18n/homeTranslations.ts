@@ -1,30 +1,72 @@
 import { Language } from '../types';
 
 export interface HomeTranslations {
+  // Header
   appTitle: string;
   appSubtitle: string;
   registerLogin: string;
   goToDashboard: string;
+
+  // Hero
+  heroBadge: string;
   heroTitleLine1: string;
   heroTitleLine2: string;
   heroTitleLine3: string;
-  heroSubtitleTag: string;
-  heroSubtitleDesc: string;
+  heroDescription: string;
   digitalTodayLine1: string;
   digitalTodayLine2: string;
-  digitalTodayLine3: string;
-  newsSectionTitle: string;
-  newsItems: Array<{
-    date: string;
-    state: string;
-    title: string;
-  }>;
-  solutionsSectionTitle: string;
-  solutions: Array<{
-    title: string;
-    desc: string;
-  }>;
-  closingCallout: string;
+
+  // Hero Benefits (Right floating card)
+  benefit1Title: string;
+  benefit1Desc: string;
+  benefit2Title: string;
+  benefit2Desc: string;
+  benefit3Title: string;
+  benefit3Desc: string;
+  benefit4Title: string;
+  benefit4Desc: string;
+
+  // Statistics Strip
+  stat1Value: string;
+  stat1Label: string;
+  stat2Value: string;
+  stat2Label: string;
+  stat3Value: string;
+  stat3Label: string;
+  stat4Value: string;
+  stat4Label: string;
+  stat5Value: string;
+  stat5Label: string;
+  stat6Value: string;
+  stat6Label: string;
+
+  // Features Section
+  featuresTitle: string;
+  featuresSubtitle: string;
+
+  // 8 Feature Cards
+  feature1Title: string;
+  feature1Desc: string;
+  feature2Title: string;
+  feature2Desc: string;
+  feature3Title: string;
+  feature3Desc: string;
+  feature4Title: string;
+  feature4Desc: string;
+  feature5Title: string;
+  feature5Desc: string;
+  feature6Title: string;
+  feature6Desc: string;
+  feature7Title: string;
+  feature7Desc: string;
+  feature8Title: string;
+  feature8Desc: string;
+
+  // Produce Image Card
+  produceCardTitle: string;
+  produceCardSubtitle: string;
+
+  // Footer / Legal Links
   footerAbout: string;
   footerPrivacy: string;
   footerTerms: string;
@@ -36,717 +78,695 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
     appSubtitle: 'Fair Procurement. Stronger Farmers.',
     registerLogin: 'Register / Log In',
     goToDashboard: 'Go to Dashboard',
-    heroTitleLine1: 'A Unified Digital',
-    heroTitleLine2: 'Procurement Platform',
-    heroTitleLine3: 'for Farmers',
-    heroSubtitleTag: 'Transparent. Efficient. Farmer-Centric.',
-    heroSubtitleDesc: 'KRAYAM connects farmers with procurement centres, ensuring fair prices, timely payments and a hassle-free experience.',
-    digitalTodayLine1: 'Digital',
-    digitalTodayLine2: 'Today,',
-    digitalTodayLine3: 'Better Tomorrow',
-    newsSectionTitle: 'Latest News & Updates',
-    newsItems: [
-      {
-        date: '16 Sept 2026',
-        state: 'Haryana',
-        title: 'Around 8,000 kg of paddy lay around due to lack of updates and inefficient management from procurement centres in Haryana.',
-      },
-      {
-        date: 'May 2026',
-        state: 'Madhya Pradesh',
-        title: 'Farmers waited 3 to 5 days due to lack of resources and poor queue management at procurement centres in MP.',
-      },
-      {
-        date: '05 Jul 2026',
-        state: 'Punjab',
-        title: 'Unseasonal rains damaged 1200+ quintals of procured wheat at the centre, causing heavy losses.',
-      },
-      {
-        date: '12 Aug 2026',
-        state: 'Uttar Pradesh',
-        title: 'Delays in payment to farmers caused financial stress and reduced trust in the procurement system.',
-      },
-    ],
-    solutionsSectionTitle: 'How KRAYAM Solves These Problems',
-    solutions: [
-      {
-        title: 'Pre-booking & Slot Management',
-        desc: 'Check centre-wise availability, book your slot in advance and avoid long queues.',
-      },
-      {
-        title: 'Digital Token & Live Queue Tracking',
-        desc: "Get a QR token, track your queue position in real time and know exactly when it's your turn.",
-      },
-      {
-        title: 'Transparent Weighing & Quality Check',
-        desc: 'Accurate weighing, quality verification and real-time updates on your produce.',
-      },
-      {
-        title: 'Direct DBT Payments',
-        desc: 'Faster, safer and hassle-free payments directly to your bank account.',
-      },
-      {
-        title: 'Real-Time Alerts & Updates',
-        desc: 'Get instant notifications about booking, queue status, weighing, payment and more.',
-      },
-    ],
-    closingCallout: 'With KRAYAM, procurement becomes simpler, faster and fairer — for every farmer.',
-    footerAbout: 'About',
+
+    heroBadge: 'Digital Agriculture  |  Transparent Markets  |  Stronger Farmers',
+    heroTitleLine1: 'A Unified Platform for',
+    heroTitleLine2: 'Agricultural Produce',
+    heroTitleLine3: 'Procurement & Management',
+    heroDescription: 'Connecting farmers, procurement centres and markets through digital technology — ensuring fair prices, transparent processes and a stronger agricultural ecosystem.',
+    digitalTodayLine1: 'Digital Today,',
+    digitalTodayLine2: 'Better Tomorrow',
+
+    benefit1Title: 'Fair Prices',
+    benefit1Desc: 'Transparent procurement',
+    benefit2Title: 'Less Waiting',
+    benefit2Desc: 'Smart queue management',
+    benefit3Title: 'Quality Assurance',
+    benefit3Desc: 'Accurate weighing & grading',
+    benefit4Title: 'Direct Payments',
+    benefit4Desc: 'Safe & secure transactions',
+
+    stat1Value: '50,000+',
+    stat1Label: 'Farmers Connected',
+    stat2Value: '250+',
+    stat2Label: 'Procurement Centres',
+    stat3Value: '20+',
+    stat3Label: 'Crops Supported',
+    stat4Value: '1.2M+ Tonnes',
+    stat4Label: 'Produce Procured',
+    stat5Value: '₹ 1,800+ Cr',
+    stat5Label: 'Payments Processed',
+    stat6Value: '98%',
+    stat6Label: 'Farmer Satisfaction',
+
+    featuresTitle: 'Everything You Need in One Platform',
+    featuresSubtitle: 'From booking to payment to produce management — KRAYAM simplifies the entire procurement journey.',
+
+    feature1Title: 'Easy Booking',
+    feature1Desc: 'Book your slot at nearby procurement centres',
+    feature2Title: 'Live Queue Tracking',
+    feature2Desc: 'Know your real-time queue position and waiting time',
+    feature3Title: 'Accurate Weighing',
+    feature3Desc: 'Transparent weighing and quality verification',
+    feature4Title: 'Direct Payments',
+    feature4Desc: 'Get paid directly to your bank account',
+    feature5Title: 'Produce Management',
+    feature5Desc: 'Track storage, dispatch and produce flow',
+    feature6Title: 'AI Insights (KAI)',
+    feature6Desc: 'Demand prediction, queue forecasting and smart recommendations',
+    feature7Title: 'Real-time Updates',
+    feature7Desc: 'Get instant notifications at every step',
+    feature8Title: 'Multi-Crop Support',
+    feature8Desc: 'Supports all major agricultural produce',
+
+    produceCardTitle: 'From Farm to Market',
+    produceCardSubtitle: 'A Stronger Tomorrow',
+    footerAbout: 'About KRAYAM',
     footerPrivacy: 'Privacy Policy',
     footerTerms: 'Terms of Service',
   },
 
   hi: {
-    appTitle: 'क्रयम (KRAYAM)',
-    appSubtitle: 'पारदर्शी खरीद। सशक्त किसान।',
-    registerLogin: 'पंजीकरण / लॉगिन',
+    appTitle: 'KRAYAM',
+    appSubtitle: 'उचित खरीद। सशक्त किसान।',
+    registerLogin: 'पंजीकरण / लॉग इन',
     goToDashboard: 'डैशबोर्ड पर जाएं',
-    heroTitleLine1: 'किसानों के लिए',
-    heroTitleLine2: 'एक एकीकृत डिजिटल',
-    heroTitleLine3: 'खरीद मंच',
-    heroSubtitleTag: 'पारदर्शी। कुशल। किसान-हितैषी।',
-    heroSubtitleDesc: 'क्रयम किसानों को खरीद केंद्रों से जोड़ता है, जिससे उचित मूल्य, समय पर भुगतान और परेशानी मुक्त अनुभव सुनिश्चित होता है।',
-    digitalTodayLine1: 'डिजिटल',
-    digitalTodayLine2: 'आज,',
-    digitalTodayLine3: 'बेहतर कल',
-    newsSectionTitle: 'ताज़ा समाचार और अपडेट',
-    newsItems: [
-      {
-        date: '16 सितंबर 2026',
-        state: 'हरियाणा',
-        title: 'हरियाणा के खरीद केंद्रों पर अपडेट की कमी और अप्रभावी प्रबंधन के कारण लगभग 8,000 किलो धान खुले में पड़ा रहा।',
-      },
-      {
-        date: 'मई 2026',
-        state: 'मध्य प्रदेश',
-        title: 'संसाधनों की कमी और कमजोर कतार प्रबंधन के कारण मध्य प्रदेश के केंद्रों पर किसानों को 3 से 5 दिन इंतजार करना पड़ा।',
-      },
-      {
-        date: '05 जुलाई 2026',
-        state: 'पंजाब',
-        title: 'केंद्र पर बेमौसम बारिश से 1200+ क्विंटल खरीदा गया गेहूं भीग गया, जिससे भारी नुकसान हुआ।',
-      },
-      {
-        date: '12 अगस्त 2026',
-        state: 'उत्तर प्रदेश',
-        title: 'किसानों को भुगतान में देरी से वित्तीय संकट पैदा हुआ और खरीद प्रणाली में विश्वास घटा।',
-      },
-    ],
-    solutionsSectionTitle: 'क्रयम इन समस्याओं का समाधान कैसे करता है',
-    solutions: [
-      {
-        title: 'अग्रिम स्लॉट बुकिंग प्रबंधन',
-        desc: 'केंद्र-वार उपलब्धता जांचें, पहले से स्लॉट बुक करें और लंबी कतारों से बचें।',
-      },
-      {
-        title: 'डिजिटल टोकन और लाइव कतार ट्रैकिंग',
-        desc: 'क्यूआर टोकन प्राप्त करें, वास्तविक समय में कतार स्थिति देखें और अपनी बारी का सटीक समय जानें।',
-      },
-      {
-        title: 'पारदर्शी तौल एवं गुणवत्ता जांच',
-        desc: 'सटीक इलेक्ट्रॉनिक तौल, गुणवत्ता सत्यापन और अपनी उपज का रीयल-टाइम अपडेट प्राप्त करें।',
-      },
-      {
-        title: 'प्रत्यक्ष डीबीटी बैंक भुगतान',
-        desc: 'सीधे आपके बैंक खाते में तेज, सुरक्षित और परेशानी मुक्त सरकारी भुगतान।',
-      },
-      {
-        title: 'रीयल-टाइम अलर्ट और सूचनाएं',
-        desc: 'बुकिंग, कतार स्थिति, तौल और भुगतान से जुड़े तत्काल एसएमएस और अलर्ट प्राप्त करें।',
-      },
-    ],
-    closingCallout: 'क्रयम के साथ खरीद बनती है आसान, तेज और पारदर्शी — हर किसान के लिए।',
-    footerAbout: 'हमारे बारे में',
+
+    heroBadge: 'डिजिटल कृषि  |  पारदर्शी मंडियां  |  सशक्त किसान',
+    heroTitleLine1: 'कृषि उपज की खरीद और',
+    heroTitleLine2: 'प्रबंधन के लिए',
+    heroTitleLine3: 'एक एकीकृत मंच',
+    heroDescription: 'डिजिटल तकनीक के माध्यम से किसानों, खरीद केंद्रों और मंडियों को जोड़ना — उचित मूल्य, पारदर्शी प्रक्रिया और एक मजबूत कृषि परिवेश सुनिश्चित करना।',
+    digitalTodayLine1: 'आज डिजिटल,',
+    digitalTodayLine2: 'कल बेहतर',
+
+    benefit1Title: 'उचित मूल्य',
+    benefit1Desc: 'पारदर्शी खरीद प्रक्रिया',
+    benefit2Title: 'कम प्रतीक्षा',
+    benefit2Desc: 'स्मार्ट कतार प्रबंधन',
+    benefit3Title: 'गुणवत्ता आश्वासन',
+    benefit3Desc: 'सटीक वजन एवं ग्रेडिंग',
+    benefit4Title: 'सीधा भुगतान',
+    benefit4Desc: 'सुरक्षित बैंक अंतरण',
+
+    stat1Value: '50,000+',
+    stat1Label: 'जुड़े हुए किसान',
+    stat2Value: '250+',
+    stat2Label: 'खरीद केंद्र',
+    stat3Value: '20+',
+    stat3Label: 'समर्थित फसलें',
+    stat4Value: '12 लाख+ टन',
+    stat4Label: 'कुल खरीद उपज',
+    stat5Value: '₹ 1,800+ करोड़',
+    stat5Label: 'भुगतान संप्रेषित',
+    stat6Value: '98%',
+    stat6Label: 'किसान संतुष्टि',
+
+    featuresTitle: 'एक ही मंच पर हर समाधान',
+    featuresSubtitle: 'बुकिंग से लेकर भुगतान और उपज प्रबंधन तक — KRAYAM संपूर्ण खरीद प्रक्रिया को सुगम बनाता है।',
+
+    feature1Title: 'आसान बुकिंग',
+    feature1Desc: 'निकटतम खरीद केंद्र पर अपना स्लॉट बुक करें',
+    feature2Title: 'लाइव कतार ट्रैकिंग',
+    feature2Desc: 'वास्तविक समय में अपनी कतार स्थिति और प्रतीक्षा समय जानें',
+    feature3Title: 'सटीक वजन',
+    feature3Desc: 'पारदर्शी वजन और गुणवत्ता सत्यापन',
+    feature4Title: 'सीधा भुगतान',
+    feature4Desc: 'सीधे अपने बैंक खाते में पारदर्शी भुगतान प्राप्त करें',
+    feature5Title: 'उपज प्रबंधन',
+    feature5Desc: 'भंडारण, प्रेषण और उपज प्रवाह को ट्रैक करें',
+    feature6Title: 'AI अंतर्दृष्टि (KAI)',
+    feature6Desc: 'मांग पूर्वानुमान, कतार अनुमान और स्मार्ट सिफारिशें',
+    feature7Title: 'रियल-टाइम अपडेट',
+    feature7Desc: 'प्रत्येक चरण पर तत्काल सूचनाएं प्राप्त करें',
+    feature8Title: 'बहु-फसल समर्थन',
+    feature8Desc: 'सभी प्रमुख कृषि उपजों के लिए पूर्ण समर्थन',
+
+    produceCardTitle: 'खेत से बाज़ार तक',
+    produceCardSubtitle: 'एक सशक्त कल',
+    footerAbout: 'KRAYAM के बारे में',
     footerPrivacy: 'गोपनीयता नीति',
-    footerTerms: 'नियम एवं शर्तें',
-  },
-
-  bn: {
-    appTitle: 'ক্রয়ম (KRAYAM)',
-    appSubtitle: 'স্বচ্ছ ক্রয়। সমৃদ্ধ কৃষক।',
-    registerLogin: 'নিবন্ধন / লগইন',
-    goToDashboard: 'ড্যাশবোর্ডে যান',
-    heroTitleLine1: 'কৃষকদের জন্য একটি',
-    heroTitleLine2: 'সমন্বিত ডিজিটাল',
-    heroTitleLine3: 'শস্য ক্রয় প্ল্যাটফর্ম',
-    heroSubtitleTag: 'স্বচ্ছ। দক্ষ। কৃষক-বান্ধব।',
-    heroSubtitleDesc: 'ক্রয়ম কৃষকদের ক্রয় কেন্দ্রের সাথে সংযুক্ত করে, ন্যায্য মূল্য, সময়মত অর্থপ্রদান এবং ঝামেলামুক্ত অভিজ্ঞতা নিশ্চিত করে।',
-    digitalTodayLine1: 'ডিজিটাল',
-    digitalTodayLine2: 'আজ,',
-    digitalTodayLine3: 'উন্নত আগামীকাল',
-    newsSectionTitle: 'সর্বশেষ খবর ও আপডেট',
-    newsItems: [
-      {
-        date: '১৬ সেপ্টেম্বর ২০২৬',
-        state: 'হরিয়ানা',
-        title: 'সঠিক আপডেট ও অব্যবস্থাপনার কারণে হরিয়ানায় ক্রয় কেন্দ্রে প্রায় ৮,০০০ কেজি ধান খোলা জায়গায় পড়ে রইল।',
-      },
-      {
-        date: 'মে ২০২৬',
-        state: 'মধ্যপ্রদেশ',
-        title: 'সম্পদের অভাব ও দুর্বল লাইনের কারণে মধ্যপ্রদেশের ক্রয় কেন্দ্রে কৃষকদের ৩ থেকে ৫ দিন অপেক্ষা করতে হয়।',
-      },
-      {
-        date: '০৫ জুলাই ২০২৬',
-        state: 'পাঞ্জাব',
-        title: 'অসময়ের বৃষ্টিতে কেন্দ্রে সংরক্ষিত ১২০০+ কুইন্টাল গম ক্ষতিগ্রস্ত হয়ে ব্যাপক ক্ষতি হয়।',
-      },
-      {
-        date: '১২ আগস্ট ২০২৬',
-        state: 'উত্তরপ্রদেশ',
-        title: 'কৃষকদের অর্থ পরিশোধে বিলম্ব আর্থিক চাপ সৃষ্টি করে এবং ব্যবস্থায় আস্থা হ্রাস করে।',
-      },
-    ],
-    solutionsSectionTitle: 'ক্রয়ম কীভাবে এই সমস্যার সমাধান করে',
-    solutions: [
-      {
-        title: 'অগ্রিম বুকিং ও স্লট পরিচালনা',
-        desc: 'কেন্দ্রভিত্তিক প্রাপ্যতা দেখুন, অগ্রিম স্লট বুক করুন এবং দীর্ঘ লাইন এড়িয়ে চলুন।',
-      },
-      {
-        title: 'ডিজিটাল টোকেন ও লাইভ লাইন ট্র্যাকিং',
-        desc: 'QR টোকেন পান, রিয়েল-টাইমে লাইনের অবস্থান ট্র্যাক করুন এবং আপনার পালা কখন তা জানুন।',
-      },
-      {
-        title: 'স্বচ্ছ ওজন ও গুণমান যাচাই',
-        desc: 'সঠিক ইলেকট্রনিক ওজন, গুণমান যাচাই এবং ফসলের রিয়েল-টাইম আপডেট পান।',
-      },
-      {
-        title: 'সরাসরি ডিবিটি (DBT) ব্যাংক পেমেন্ট',
-        desc: 'সরাসরি আপনার ব্যাংক অ্যাকাউন্টে দ্রুত, নিরাপদ ও ঝামেলামুক্ত অর্থ স্থানান্তর।',
-      },
-      {
-        title: 'রিয়েল-টাইম সতর্কতা ও বিজ্ঞপ্তি',
-        desc: 'বুকিং, সিরিয়াল স্ট্যাটাস, ওজন এবং পেমেন্ট সম্পর্কে তাত্ক্ষণিক বার্তা পান।',
-      },
-    ],
-    closingCallout: 'ক্রয়মের সাথে ফসল ক্রয় হয় সহজ, দ্রুত এবং ন্যায্য — প্রতিটি কৃষকের জন্য।',
-    footerAbout: 'পরিচিতি',
-    footerPrivacy: 'গোপনীয়তা নীতি',
-    footerTerms: 'শর্তাবলী',
-  },
-
-  mr: {
-    appTitle: 'क्रयम (KRAYAM)',
-    appSubtitle: 'पारदर्शक खरेदी. समृद्ध शेतकरी.',
-    registerLogin: 'नोंदणी / लॉगिन',
-    goToDashboard: 'डॅशबोर्डवर जा',
-    heroTitleLine1: 'शेतकऱ्यांसाठी एक',
-    heroTitleLine2: 'एकीकृत डिजिटल',
-    heroTitleLine3: 'खरेदी व्यासपीठ',
-    heroSubtitleTag: 'पारदर्शक. कार्यक्षम. शेतकरी-केंद्रित.',
-    heroSubtitleDesc: 'क्रयम शेतकऱ्यांना खरेदी केंद्रांशी जोडते, ज्यामुळे योग्य भाव, वेळेवर पैसे आणि त्रासमुक्त अनुभव मिळतो.',
-    digitalTodayLine1: 'डिजिटल',
-    digitalTodayLine2: 'आज,',
-    digitalTodayLine3: 'उद्या अधिक चांगले',
-    newsSectionTitle: 'ताजी बातमी आणि अपडेट्स',
-    newsItems: [
-      {
-        date: '१६ सप्टेंबर २०२६',
-        state: 'हरियाणा',
-        title: 'हरियाणातील खरेदी केंद्रांवर अपुऱ्या नियोजनामुळे सुमारे ८,००० किलो भात उघड्यावर पडून राहिला.',
-      },
-      {
-        date: 'मे २०२६',
-        state: 'मध्य प्रदेश',
-        title: 'संसाधनांची कमतरता व गोंधळामुळे मध्य प्रदेशातील केंद्रांवर शेतकऱ्यांना ३ ते ५ दिवस थांबावे लागले.',
-      },
-      {
-        date: '०५ जुलै २०२६',
-        state: 'पंजाब',
-        title: 'अवकाळी पावसामुळे केंद्रातील १२००+ क्विंटल खरेदी केलेला गहू भिजून मोठे नुकसान झाले.',
-      },
-      {
-        date: '१२ ऑगस्ट २०२६',
-        state: 'उत्तर प्रदेश',
-        title: 'शेतकऱ्यांच्या पेमेंटला झालेल्या विलंबामुळे आर्थिक ताण निर्माण झाला आणि विश्वासाला तडा गेला.',
-      },
-    ],
-    solutionsSectionTitle: 'क्रयम या समस्या कशा सोडवते',
-    solutions: [
-      {
-        title: 'पूर्व-नोंदणी व स्लॉट व्यवस्थापन',
-        desc: 'केंद्रानिहाय उपलब्धता तपासा, आधीच स्लॉट बुक करा आणि लांब रांगा टाळा.',
-      },
-      {
-        title: 'डिजिटल टोकन व थेट रांग ट्रॅकिंग',
-        desc: 'QR टोकन मिळवा, रीअल-टाइममध्ये रांगेतील क्रमांक पहा आणि आपली पाळी केव्हा येईल ते अचूक जाणा.',
-      },
-      {
-        title: 'पारदर्शक वजन व गुणवत्ता तपासणी',
-        desc: 'अचूक इलेक्ट्रॉनिक वजन, गुणवत्ता पडताळणी आणि शेतमालाचे थेट अपडेट मिळवा.',
-      },
-      {
-        title: 'थेट डीबीटी (DBT) बँक खात्यात पैसे',
-        desc: 'थेट आपल्या बँक खात्यात जलद, सुरक्षित आणि विनाअडथळा शासकीय रक्कम जमा.',
-      },
-      {
-        title: 'रीअल-टाइम सूचना व अपडेट्स',
-        desc: 'बुकिंग, रांगेची स्थिती, वजन आणि पेमेंट संबंधी त्वरित एसएमएस मिळवा.',
-      },
-    ],
-    closingCallout: 'क्रयममुळे शेतमाल खरेदी होते सोपी, जलद आणि न्याय्य — प्रत्येक शेतकऱ्यासाठी.',
-    footerAbout: 'माहिती',
-    footerPrivacy: 'गोपनीयता धोरण',
-    footerTerms: 'नियम व अटी',
-  },
-
-  te: {
-    appTitle: 'క్రయం (KRAYAM)',
-    appSubtitle: 'పారదర్శక సేకరణ. దృఢమైన రైతులు.',
-    registerLogin: 'రిజిస్టర్ / లాగిన్',
-    goToDashboard: 'డాష్‌బోర్డ్‌కి వెళ్లండి',
-    heroTitleLine1: 'రైతుల కోసం',
-    heroTitleLine2: 'ఏకీకృత డిజిటల్',
-    heroTitleLine3: 'సేకరణ వేదిక',
-    heroSubtitleTag: 'పారదర్శకం. సమర్థవంతం. రైతు-కేంద్రకం.',
-    heroSubtitleDesc: 'క్రయం రైతులను సేకరణ కేంద్రాలతో అనుసంధానిస్తుంది, సరసమైన ధరలు, సకాలంలో చెల్లింపులు మరియు సులభమైన అనుభవాన్ని అందిస్తుంది.',
-    digitalTodayLine1: 'డిజిటల్',
-    digitalTodayLine2: 'నేడు,',
-    digitalTodayLine3: 'మెరుగైన రేపు',
-    newsSectionTitle: 'తాజా వార్తలు & నవీకరణలు',
-    newsItems: [
-      {
-        date: '16 సెప్టెంబర్ 2026',
-        state: 'హర్యానా',
-        title: 'హర్యానాలోని సేకరణ కేంద్రాల్లో సమయానికి సమాచారం లేకపోవడంతో దాదాపు 8,000 కిలోల వరి ధాన్యం నిరుపయోగంగా పడి ఉంది.',
-      },
-      {
-        date: 'మే 2026',
-        state: 'మధ్యప్రదేశ్',
-        title: 'వనరుల కొరత మరియు సరిగ్గా లేని క్యూ నిర్వహణ కారణంగా మధ్యప్రదేశ్‌లోని కేంద్రాలలో రైతులు 3 నుండి 5 రోజులు వేచి ఉన్నారు.',
-      },
-      {
-        date: '05 జూలై 2026',
-        state: 'పంజాబ్',
-        title: 'అకాల వర్షాల వల్ల కేంద్రంలో కొనుగోలు చేసిన 1200+ క్వింటాళ్ల గోధుమలు పాడై భారీ నష్టం వాటిల్లింది.',
-      },
-      {
-        date: '12 ఆగస్టు 2026',
-        state: 'ఉత్తరప్రదేశ్',
-        title: 'రైతులకు చెల్లింపులలో ఆలస్యం వల్ల ఆర్థిక ఇబ్బందులు పెరిగి సేకరణ వ్యవస్థపై నమ్మకం తగ్గింది.',
-      },
-    ],
-    solutionsSectionTitle: 'క్రయం ఈ సమస్యలను ఎలా పరిష్కరిస్తుంది',
-    solutions: [
-      {
-        title: 'ముందస్తు బుకింగ్ & స్లాట్ నిర్వహణ',
-        desc: 'కేంద్రం వారీగా లభ్యతను తనిఖీ చేయండి, ముందస్తుగా స్లాట్ బుక్ చేసుకోండి మరియు పొడవైన క్యూలను నివారించండి.',
-      },
-      {
-        title: 'డిజిటల్ టోకెన్ & లైవ్ క్యూ ట్రాకింగ్',
-        desc: 'QR టోకెన్ పొందండి, రియల్ టైమ్‌లో మీ క్యూ స్థానాన్ని ట్రాక్ చేయండి మరియు మీ వంతు ఎప్పుడు వస్తుందో తెలుసుకోండి.',
-      },
-      {
-        title: 'పారదర్శక తూకం & నాణ్యత తనిఖీ',
-        desc: 'ఖచ్చితమైన తూకం, నాణ్యత ధృవీకరణ మరియు మీ పంటపై రియల్ టైమ్ నవీకరణలు పొందండి.',
-      },
-      {
-        title: 'నేరుగా డీబీటీ (DBT) బ్యాంక్ చెల్లింపులు',
-        desc: 'మీ బ్యాంక్ ఖాతాకు నేరుగా వేగవంతమైన, సురక్షితమైన మరియు సులభమైన చెల్లింపులు.',
-      },
-      {
-        title: 'రియల్ టైమ్ హెచ్చరికలు & నోటిఫికేషన్లు',
-        desc: 'బుకింగ్, క్యూ స్థితి, తూకం మరియు చెల్లింపు గురించి తక్షణ సందేశాలను పొందండి.',
-      },
-    ],
-    closingCallout: 'క్రయంతో పంట సేకరణ మరింత సులభం, వేగవంతం మరియు న్యాయబద్ధం — ప్రతి రైతుకూ.',
-    footerAbout: 'మా గురించి',
-    footerPrivacy: 'గోప్యతా విధానం',
-    footerTerms: 'నిబంధనలు & షరతులు',
-  },
-
-  ta: {
-    appTitle: 'கிரயம் (KRAYAM)',
-    appSubtitle: 'வெளிப்படையான கொள்முதல். வலிமையான விவசாயிகள்.',
-    registerLogin: 'பதிவு / உள்நுழைக',
-    goToDashboard: 'முகப்பு பலகைக்குச் செல்',
-    heroTitleLine1: 'விவசாயிகளுக்கான',
-    heroTitleLine2: 'ஒருங்கிணைந்த டிஜிட்டல்',
-    heroTitleLine3: 'கொள்முதல் தளம்',
-    heroSubtitleTag: 'வெளிப்படையானது. திறமையானது. விவசாயிகளுக்கு முன்னுரிமை.',
-    heroSubtitleDesc: 'கிரயம் விவசாயிகளை கொள்முதல் மையங்களுடன் இணைக்கிறது, நியாயமான விலை, சரியான நேரப் பணம் மற்றும் எளிய அனுபவத்தை உறுதி செய்கிறது.',
-    digitalTodayLine1: 'டிஜிட்டல்',
-    digitalTodayLine2: 'இன்று,',
-    digitalTodayLine3: 'சிறந்த நாளை',
-    newsSectionTitle: 'சமீபத்திய செய்திகள் & அறிவிப்புகள்',
-    newsItems: [
-      {
-        date: '16 செப் 2026',
-        state: 'ஹரியானா',
-        title: 'தகவல் பற்றாக்குறை மற்றும் மோசமான நிர்வாகத்தால் ஹரியானாவில் 8,000 கிலோ நெல் மழையில் வீணானது.',
-      },
-      {
-        date: 'மே 2026',
-        state: 'மத்திய பிரதேசம்',
-        title: 'போதிய வசதிகள் இன்மையால் மத்தியப் பிரதேச மையங்களில் விவசாயிகள் 3 முதல் 5 நாட்கள் காத்திருக்க நேரிட்டது.',
-      },
-      {
-        date: '05 ஜூலை 2026',
-        state: 'பஞ்சாப்',
-        title: 'பருவம் தவறிய மழையால் மையத்தில் கொள்முதல் செய்யப்பட்ட 1200+ குவிண்டால் கோதுமை நனைந்து சேதமடைந்தது.',
-      },
-      {
-        date: '12 ஆக 2026',
-        state: 'உத்தரப் பிரதேசம்',
-        title: 'பணம் வழங்குவதில் ஏற்பட்ட தாமதம் விவசாயிகளுக்கு நிதிச் சுமையை ஏற்படுத்தி நம்பிக்கையைக் குறைத்தது.',
-      },
-    ],
-    solutionsSectionTitle: 'கிரயம் இந்த சிக்கல்களை எவ்வாறு தீர்க்கிறது',
-    solutions: [
-      {
-        title: 'முன்பதிவு & நேர ஒதுக்கீடு மேலாண்மை',
-        desc: 'மையத்தின் கிடைக்கும் தன்மையை சரிபார்த்து, முன்கூட்டியே நேரத்தை பதிவு செய்து நீண்ட வரிசைகளைத் தவிர்க்கவும்.',
-      },
-      {
-        title: 'டிஜிட்டல் டோக்கன் & நேரலை வரிசை கண்காணிப்பு',
-        desc: 'QR டோக்கன் பெற்று, நிகழ்நேரத்தில் வரிசை நிலையை அறிந்து உங்கள் முறை எப்போது வரும் என்பதை அறியவும்.',
-      },
-      {
-        title: 'வெளிப்படையான எடை & தரப் பரிசோதனை',
-        desc: 'துல்லியமான மின்னணு எடை, தரச் சரிபார்ப்பு மற்றும் உடனடி புதுப்பிப்புகளைப் பெறுங்கள்.',
-      },
-      {
-        title: 'நேரடி டிபிடி (DBT) வங்கிப் பணம்',
-        desc: 'உங்கள் வங்கிக் கணக்கில் நேரடியாக விரைவான, பாதுகாப்பான மற்றும் தடையற்ற பணம் செலுத்துதல்.',
-      },
-      {
-        title: 'உடனடி அறிவிப்புகள் & புதுப்பிப்புகள்',
-        desc: 'பதிவு, வரிசை நிலை, எடை மற்றும் கட்டணம் பற்றிய உடனடி SMS தகவல்களைப் பெறுங்கள்.',
-      },
-    ],
-    closingCallout: 'கிரயம் மூலம் கொள்முதல் எளியதாகவும், விரைவாகவும், நியாயமாகவும் மாறுகிறது — ஒவ்வொரு விவசாயிக்கும்.',
-    footerAbout: 'எங்களைப் பற்றி',
-    footerPrivacy: 'தனியுரிமைக் கொள்கை',
-    footerTerms: 'விதிமுறைகள் & நிபந்தனைகள்',
-  },
-
-  gu: {
-    appTitle: 'ક્રયમ (KRAYAM)',
-    appSubtitle: 'પારદર્શક ખરીદી. સક્ષમ ખેડૂત.',
-    registerLogin: 'નોંધણી / લૉગિન',
-    goToDashboard: 'ડેશબોર્ડ પર જાઓ',
-    heroTitleLine1: 'ખેડૂતો માટે',
-    heroTitleLine2: 'એકીકૃત ડિજિટલ',
-    heroTitleLine3: 'ખરીદી પ્લેટફોર્મ',
-    heroSubtitleTag: 'પારદર્શક. કાર્યક્ષમ. ખેડૂત-કેન્દ્રિત.',
-    heroSubtitleDesc: 'ક્રયમ ખેડૂતોને ખરીદ કેન્દ્રો સાથે જોડે છે, યોગ્ય ભાવ, સમયસર ચૂકવણી અને સરળ અનુભવ સુનિશ્ચિત કરે છે.',
-    digitalTodayLine1: 'ડિજિટલ',
-    digitalTodayLine2: 'આજ,',
-    digitalTodayLine3: 'બહેતર આવતીકાલ',
-    newsSectionTitle: 'તાજા સમાચાર અને અપડેટ્સ',
-    newsItems: [
-      {
-        date: '16 સપ્ટેમ્બર 2026',
-        state: 'હરિયાણા',
-        title: 'હરિયાણાના ખરીદ કેન્દ્રો પર માહિતીના અભાવને લીધે આશરે 8,000 કિલો ડાંગર ખુલ્લામાં પડી રહી.',
-      },
-      {
-        date: 'મે 2026',
-        state: 'મધ્ય પ્રદેશ',
-        title: 'સાધનોની અછત અને નબળા કતાર સંચાલનને કારણે મધ્ય પ્રદેશમાં ખેડૂતોએ 3 થી 5 દિવસ રાહ જોવી પડી.',
-      },
-      {
-        date: '05 જુલાઈ 2026',
-        state: 'પંજાબ',
-        title: 'અણધાર્યા વરસાદથી કેન્દ્ર પર ખરીદાયેલ 1200+ ક્વિન્ટલ ઘઉં પલળી જતાં મોટું નુકસાન થયું.',
-      },
-      {
-        date: '12 ઓગસ્ટ 2026',
-        state: 'ઉત્તર પ્રદેશ',
-        title: 'ખેડૂતોને ચુકવણીમાં વિલંબથી નાણાકીય મુશ્કેલી ઊભી થઈ અને વ્યવસ્થામાં વિશ્વાસ ઘટ્યો.',
-      },
-    ],
-    solutionsSectionTitle: 'ક્રયમ આ સમસ્યાઓનું નિવારણ કેવી રીતે કરે છે',
-    solutions: [
-      {
-        title: 'પૂર્વ બુકિંગ અને સ્લોટ સંચાલન',
-        desc: 'કેન્દ્ર મુજબ ઉપલબ્ધતા ચકાસો, અગાઉથી સ્લોટ બુક કરો અને લાંબી કતારો ટાળો.',
-      },
-      {
-        title: 'ડિજિટલ ટોકન અને લાઈવ કતાર ટ્રેકિંગ',
-        desc: 'QR ટોકન મેળવો, લાઈવ કતાર સ્થિતિ ટ્રેક કરો અને તમારો વારો ક્યારે આવશે તે ચોક્કસ જાણો.',
-      },
-      {
-        title: 'પારદર્શક વજન અને ગુણવત્તા તપાસ',
-        desc: 'ચોક્કસ ઇલેક્ટ્રોનિક વજન, ગુણવત્તા ચકાસણી અને પાક અંગે રીઅલ-ટાઇમ અપડેટ્સ મેળવો.',
-      },
-      {
-        title: 'સીધા ડીબીટી (DBT) બેંક ખાતામાં નાણાં',
-        desc: 'સીધા તમારા બેંક ખાતામાં ઝડપી, સુરક્ષિત અને મુશ્કેલી વગરની ચુકવણી.',
-      },
-      {
-        title: 'રીઅલ-ટાઇમ એલર્ટ્સ અને અપડેટ્સ',
-        desc: 'બુકિંગ, કતાર સ્થિતિ, વજન અને ચુકવણી અંગે તાત્કાલિક એસએમએસ મેળવો.',
-      },
-    ],
-    closingCallout: 'ક્રયમ સાથે અનાજ ખરીદી બને છે સરળ, ઝડપી અને ન્યાયી — દરેક ખેડૂત માટે.',
-    footerAbout: 'અમારા વિશે',
-    footerPrivacy: 'ગોપનીયતા નીતિ',
-    footerTerms: 'નિયમો અને શરતો',
-  },
-
-  ur: {
-    appTitle: 'کریئم (KRAYAM)',
-    appSubtitle: 'شفاف خریداری۔ خود مختار کسان۔',
-    registerLogin: 'رجسٹریشن / لاگ ان',
-    goToDashboard: 'ڈیش بورڈ پر جائیں',
-    heroTitleLine1: 'کسانوں کے لیے ایک',
-    heroTitleLine2: 'متحدہ ڈیجیٹل',
-    heroTitleLine3: 'خریداری پلیٹ فارم',
-    heroSubtitleTag: 'شفاف۔ موثر۔ کسان دوست۔',
-    heroSubtitleDesc: 'کریئم کسانوں کو خریداری مراکز سے جوڑتا ہے، منصفانہ قیمتوں، بروقت ادائیگی اور پرسکون تجربے کو یقینی بناتا ہے۔',
-    digitalTodayLine1: 'ڈیجیٹل',
-    digitalTodayLine2: 'آج،',
-    digitalTodayLine3: 'بہتر کل',
-    newsSectionTitle: 'تازہ ترین خبریں اور اپڈیٹس',
-    newsItems: [
-      {
-        date: '16 ستمبر 2026',
-        state: 'ہریانہ',
-        title: 'ہریانہ کے مراکز پر معلومات کی کمی اور ناقص انتظام کی وجہ سے تقریباً 8,000 کلو دھان کھلے میں پڑا رہا۔',
-      },
-      {
-        date: 'مئی 2026',
-        state: 'مدھیہ پردیش',
-        title: 'وسائل کی کمی کی وجہ سے مدھیہ پردیش کے مراکز پر کسانوں کو 3 سے 5 دن انتظار کرنا پڑا۔',
-      },
-      {
-        date: '05 جولائی 2026',
-        state: 'پنجاب',
-        title: 'بے موسم بارش سے مرکز پر خریدی گئی 1200+ کوئنٹل گندم خراب ہو گئی، جس سے بھاری نقصان ہوا۔',
-      },
-      {
-        date: '12 اگست 2026',
-        state: 'اتر پردیش',
-        title: 'کسانوں کو ادائیگی میں تاخیر سے مالی بحران پیدا ہوا اور خریداری کے نظام پر اعتماد کم ہوا۔',
-      },
-    ],
-    solutionsSectionTitle: 'کریئم ان مسائل کا حل کیسے پیش کرتا ہے',
-    solutions: [
-      {
-        title: 'پیشگی سلاٹ بکنگ اور انتظام',
-        desc: 'مراکز کی دستیابی چیک کریں، پہلے سے سلاٹ بک کریں اور لمبی قطاروں سے بچیں۔',
-      },
-      {
-        title: 'ڈیجیٹل ٹوکن اور براہ راست قطار ٹریکنگ',
-        desc: 'QR ٹوکن حاصل کریں، قطار کی پوزیشن معلوم کریں اور اپنی باری کا صحیح وقت جانیں۔',
-      },
-      {
-        title: 'شفاف وزن اور معیار کی جانچ',
-        desc: 'درست الیکٹرانک وزن، تصدیق اور اپنی پیداوار کی فوری اپڈیٹس حاصل کریں۔',
-      },
-      {
-        title: 'براہ راست ڈی بی ٹی (DBT) بینک ادائیگی',
-        desc: 'براہ راست آپ کے بینک اکاؤنٹ میں تیز، محفوظ اور آسان سرکاری ادائیگی۔',
-      },
-      {
-        title: 'بروقت الرٹس اور اطلاعات',
-        desc: 'بکنگ، قطار، وزن اور ادائیگی کے متعلق فوری پیغامات موصول کریں۔',
-      },
-    ],
-    closingCallout: 'کریئم کے ساتھ خریداری بنتی ہے آسان، تیز اور شفاف — ہر کسان کے لیے۔',
-    footerAbout: 'ہمارے متعلق',
-    footerPrivacy: 'رازداری کی پالیسی',
-    footerTerms: 'شرائط و ضوابط',
-  },
-
-  kn: {
-    appTitle: 'ಕ್ರಯಮ್ (KRAYAM)',
-    appSubtitle: 'ಪಾರದರ್ಶಕ ಖರೀದಿ. ಸಶಕ್ತ ರೈತರು.',
-    registerLogin: 'ನೋಂದಣಿ / ಲಾಗಿನ್',
-    goToDashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ',
-    heroTitleLine1: 'ರೈತರಿಗಾಗಿ ಒಂದು',
-    heroTitleLine2: 'ಏಕೀಕೃತ ಡಿಜಿಟಲ್',
-    heroTitleLine3: 'ಖರೀದಿ ವೇದಿಕೆ',
-    heroSubtitleTag: 'ಪಾರದರ್ಶಕ. ದಕ್ಷ. ರೈತ-ಸ್ನೇಹಿ.',
-    heroSubtitleDesc: 'ಕ್ರಯಮ್ ರೈತರನ್ನು ಖರೀದಿ ಕೇಂದ್ರಗಳೊಂದಿಗೆ ಸಂಪರ್ಕಿಸುತ್ತದೆ, ನ್ಯಾಯಯುತ ಬೆಲೆಗಳು, ಸಕಾಲಿಕ ಪಾವತಿ ಮತ್ತು ಸರಳ ಅನುಭವವನ್ನು ಖಚಿತಪಡಿಸುತ್ತದೆ.',
-    digitalTodayLine1: 'ಡಿಜಿಟಲ್',
-    digitalTodayLine2: 'ಇಂದು,',
-    digitalTodayLine3: 'ಉತ್ತಮ ನಾಳೆ',
-    newsSectionTitle: 'ಇತ್ತೀಚಿನ ಸುದ್ದಿ ಮತ್ತು ನವೀಕರಣಗಳು',
-    newsItems: [
-      {
-        date: '16 ಸೆಪ್ಟೆಂಬರ್ 2026',
-        state: 'ಹರಿಯಾಣ',
-        title: 'ಮಾಹಿತಿ ಕೊರತೆ ಮತ್ತು ಅವ್ಯವಸ್ಥೆಯಿಂದಾಗಿ ಹರಿಯಾಣದ ಕೇಂದ್ರಗಳಲ್ಲಿ ಸುಮಾರು 8,000 ಕೆಜಿ ಭತ್ತ ತೆರೆದ ಜಾಗದಲ್ಲಿ ಉಳಿದುಕೊಂಡಿದೆ.',
-      },
-      {
-        date: 'ಮೇ 2026',
-        state: 'ಮಧ್ಯಪ್ರದೇಶ',
-        title: 'ಸಂಪನ್ಮೂಲಗಳ ಕೊರತೆಯಿಂದಾಗಿ ಮಧ್ಯಪ್ರದೇಶದ ಕೇಂದ್ರಗಳಲ್ಲಿ ರೈತರು 3 ರಿಂದ 5 ದಿನಗಳ ಕಾಲ ಕಾಯಬೇಕಾಯಿತು.',
-      },
-      {
-        date: '05 ಜುಲೈ 2026',
-        state: 'ಪಂಜಾಬ್',
-        title: 'ಅಕಾಲಿಕ ಮಳೆಯಿಂದಾಗಿ ಕೇಂದ್ರದಲ್ಲಿ ಖರೀದಿಸಿದ 1200+ ಕ್ವಿಂಟಾಲ್ ಗೋಧಿ ಹಾನಿಗೊಳಗಾಗಿ ಭಾರಿ ನಷ್ಟ ಉಂಟಾಯಿತು.',
-      },
-      {
-        date: '12 ಆಗಸ್ಟ್ 2026',
-        state: 'ಉತ್ತರ ಪ್ರದೇಶ',
-        title: 'ರೈತರಿಗೆ ಪಾವತಿ ವಿಳಂಬವಾಗಿದ್ದರಿಂದ ಆರ್ಥಿಕ ಸಂಕಷ್ಟ ಉಂಟಾಗಿ ವ್ಯವಸ್ಥೆಯ ಮೇಲಿನ ನಂಬಿಕೆ ಕಡಿಮೆಯಾಯಿತು.',
-      },
-    ],
-    solutionsSectionTitle: 'ಕ್ರಯಮ್ ಈ ಸಮಸ್ಯೆಗಳನ್ನು ಹೇಗೆ ಪರಿಹರಿಸುತ್ತದೆ',
-    solutions: [
-      {
-        title: 'ಮುಂಗಡ ಬುಕಿಂಗ್ ಮತ್ತು ಸ್ಲಾಟ್ ನಿರ್ವಹಣೆ',
-        desc: 'ಕೇಂದ್ರವಾರು ಲಭ್ಯತೆಯನ್ನು ಪರಿಶೀಲಿಸಿ, ಮೊದಲೇ ಸ್ಲಾಟ್ ಬುಕ್ ಮಾಡಿ ಮತ್ತು ಉದ್ದನೆಯ ಸಾಲುಗಳನ್ನು ತಪ್ಪಿಸಿ.',
-      },
-      {
-        title: 'ಡಿಜಿಟಲ್ ಟೋಕನ್ ಮತ್ತು ಲೈವ್ ಕ್ಯೂ ಟ್ರ್ಯಾಕಿಂಗ್',
-        desc: 'QR ಟೋಕನ್ ಪಡೆಯಿರಿ, ನಿಮ್ಮ ಸಾಲಿನ ಸ್ಥಾನವನ್ನು ನೈಜ ಸಮಯದಲ್ಲಿ ಟ್ರ್ಯಾಕ್ ಮಾಡಿ ಮತ್ತು ನಿಮ್ಮ ಸರದಿಯನ್ನು ತಿಳಿಯಿರಿ.',
-      },
-      {
-        title: 'ಪಾರದರ್ಶಕ ತೂಕ ಮತ್ತು ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ',
-        desc: 'ನಿಖರವಾದ ಎಲೆಕ್ಟ್ರಾನಿಕ್ ತೂಕ, ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ ಮತ್ತು ನೈಜ ಸಮಯದ ನವೀಕರಣಗಳನ್ನು ಪಡೆಯಿರಿ.',
-      },
-      {
-        title: 'ನೇರ ಡಿಬಿಟಿ (DBT) ಬ್ಯಾಂಕ್ ಪಾವತಿಗಳು',
-        desc: 'ನೇರವಾಗಿ ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆಗೆ ವೇಗವಾದ, ಸುರಕ್ಷಿತ ಮತ್ತು ತೊಂದರೆ ರಹಿತ ಹಣ ವರ್ಗಾವಣೆ.',
-      },
-      {
-        title: 'ನೈಜ ಸಮಯದ ಎಚ್ಚರಿಕೆಗಳು ಮತ್ತು ನವೀಕರಣಗಳು',
-        desc: 'ಬುಕಿಂಗ್, ಸರದಿಯ ಸ್ಥಿತಿ, ತೂಕ ಮತ್ತು ಪಾವತಿಯ ಕುರಿತು ತಕ್ಷಣದ ಸಂದೇಶಗಳನ್ನು ಪಡೆಯಿರಿ.',
-      },
-    ],
-    closingCallout: 'ಕ್ರಯಮ್‌ನೊಂದಿಗೆ ಧಾನ್ಯ ಖರೀದಿ ಸುಲಭ, ವೇಗ ಮತ್ತು ನ್ಯಾಯಯುತ — ಪ್ರತಿಯೊಬ್ಬ ರೈತರಿಗೂ.',
-    footerAbout: 'ನಮ್ಮ ಬಗ್ಗೆ',
-    footerPrivacy: 'ಗೌಪ್ಯತೆ ನೀತಿ',
-    footerTerms: 'ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು',
-  },
-
-  or: {
-    appTitle: 'କ୍ରୟମ୍ (KRAYAM)',
-    appSubtitle: 'ସ୍ୱଚ୍ଛ ସଂଗ୍ରହ। ସମୃଦ୍ଧ କୃଷକ।',
-    registerLogin: 'ପଞ୍ଜୀକରଣ / ଲଗଇନ୍',
-    goToDashboard: 'ଡ୍ୟାସବୋର୍ଡକୁ ଯାଆନ୍ତୁ',
-    heroTitleLine1: 'କୃଷକମାନଙ୍କ ପାଇଁ ଏକ',
-    heroTitleLine2: 'ଏକୀକୃତ ଡିଜିଟାଲ',
-    heroTitleLine3: 'ସଂଗ୍ରହ ମଞ୍ଚ',
-    heroSubtitleTag: 'ସ୍ୱଚ୍ଛ। ଦକ୍ଷ। କୃଷକ-ଅନୁକୂଳ।',
-    heroSubtitleDesc: 'କ୍ରୟମ୍ କୃଷକମାନଙ୍କୁ କ୍ରୟ କେନ୍ଦ୍ର ସହିତ ସଂଯୋଗ କରେ, ଉଚିତ ମୂଲ୍ୟ, ଠିକ୍ ସମୟରେ ପେମେଣ୍ଟ ଏବଂ ସହଜ ଅନୁଭୂତି ସୁନିଶ୍ଚିତ କରେ।',
-    digitalTodayLine1: 'ଡିଜିଟାଲ',
-    digitalTodayLine2: 'ଆଜି,',
-    digitalTodayLine3: 'ଉତ୍ତମ ଆଗାମୀ କାଲି',
-    newsSectionTitle: 'ତାଜା ଖବର ଏବଂ ଅପଡେଟ୍',
-    newsItems: [
-      {
-        date: '16 ସେପ୍ଟେମ୍ବର 2026',
-        state: 'ହରିୟାଣା',
-        title: 'ସୂଚନାର ଅଭାବ ଯୋଗୁଁ ହରିୟାଣାର କେନ୍ଦ୍ରରେ ପ୍ରାୟ 8,000 କିଲୋ ଧାନ ଖୋଲାରେ ପଡ଼ି ରହିଥିଲା।',
-      },
-      {
-        date: 'ମେ 2026',
-        state: 'ମଧ୍ୟପ୍ରଦେଶ',
-        title: 'ସମ୍ବଳ ଅଭାବରୁ ମଧ୍ୟପ୍ରଦେଶର କେନ୍ଦ୍ରଗୁଡ଼ିକରେ ଚାଷୀମାନଙ୍କୁ 3 ରୁ 5 ଦିନ ଅପେକ୍ଷା କରିବାକୁ ପଡ଼ିଥିଲା।',
-      },
-      {
-        date: '05 ଜୁଲାଇ 2026',
-        state: 'ପଞ୍ଜାବ',
-        title: 'ଅଦିନିଆ ବର୍ଷାରେ କେନ୍ଦ୍ରରେ କିଣାଯାଇଥିବା 1200+ କ୍ୱିଣ୍ଟାଲ ଗହମ ନଷ୍ଟ ହୋଇ ବଡ଼ କ୍ଷତି ହୋଇଛି।',
-      },
-      {
-        date: '12 ଅଗଷ୍ଟ 2026',
-        state: 'ଉତ୍ତର ପ୍ରଦେଶ',
-        title: 'ଚାଷୀମାନଙ୍କୁ ପେମେଣ୍ଟ ମିଳିବାରେ ବିଳମ୍ବ ଆର୍ଥିକ ସମସ୍ୟା ସୃଷ୍ଟି କରିଛି ଏବଂ ଭରସା କମାଇଛି।',
-      },
-    ],
-    solutionsSectionTitle: 'କ୍ରୟମ୍ କିପରି ଏହି ସମସ୍ୟାର ସମାଧାନ କରେ',
-    solutions: [
-      {
-        title: 'ଅଗ୍ରିମ ବୁକିଂ ଏବଂ ସ୍ଲଟ୍ ପରିଚାଳନା',
-        desc: 'କେନ୍ଦ୍ର ଅନୁଯାୟୀ ଉପଲବ୍ଧତା ଯାଞ୍ଚ କରନ୍ତୁ, ଆଗୁଆ ସ୍ଲଟ୍ ବୁକ୍ କରନ୍ତୁ ଏବଂ ଲମ୍ବା ଧାଡ଼ି ଏଡ଼ାନ୍ତୁ।',
-      },
-      {
-        title: 'ଡିଜିଟାଲ ଟୋକନ୍ ଏବଂ ଲାଇଭ୍ ଧାଡ଼ି ଟ୍ରାକିଂ',
-        desc: 'QR ଟୋକନ୍ ପାଆନ୍ତୁ, ରିଅଲ୍ ଟାଇମରେ ନିଜ ଧାଡ଼ିର ସ୍ଥିତି ଜାଣନ୍ତୁ ଏବଂ ପାଳି କେବେ ଆସିବ ଦେଖନ୍ତୁ।',
-      },
-      {
-        title: 'ସ୍ୱଚ୍ଛ ଓଜନ ଏବଂ ଗୁଣବତ୍ତା ଯାଞ୍ଚ',
-        desc: 'ସଠିକ୍ ଇଲେକ୍ଟ୍ରୋନିକ୍ ଓଜନ, ଗୁଣବତ୍ତା ପରୀକ୍ଷା ଏବଂ ନିଜ ଫସଲର ତୁରନ୍ତ ଅପଡେଟ୍ ପାଆନ୍ତୁ।',
-      },
-      {
-        title: 'ସିଧାସଳଖ ଡିବିଟି (DBT) ବ୍ୟାଙ୍କ ପେମେଣ୍ଟ',
-        desc: 'ନିଜ ବ୍ୟାଙ୍କ ଖାତାକୁ ସିଧାସଳଖ ଦ୍ରୁତ, ସୁରକ୍ଷିତ ଏବଂ ନିରାପଦ ସରକାରୀ ପେମେଣ୍ଟ।',
-      },
-      {
-        title: 'ରିଅଲ୍-ଟାଇମ୍ ସତର୍କତା ଏବଂ ଅପଡେଟ୍',
-        desc: 'ବୁକିଂ, ଧାଡ଼ି ସ୍ଥିତି, ଓଜନ ଏବଂ ପେମେଣ୍ଟ ବିଷୟରେ ତୁରନ୍ତ SMS ପାଆନ୍ତୁ।',
-      },
-    ],
-    closingCallout: 'କ୍ରୟମ୍ ସହିତ ଫସଲ ବିକ୍ରି ହୁଏ ସହଜ, ଦ୍ରୁତ ଏବଂ ନ୍ୟାୟପୂର୍ଣ୍ଣ — ପ୍ରତ୍ୟେକ ଚାଷୀଙ୍କ ପାଇଁ।',
-    footerAbout: 'ଆମ ବିଷୟରେ',
-    footerPrivacy: 'ଗୋପନୀୟତା ନୀତି',
-    footerTerms: 'ନିୟମ ଓ ସର୍ତ୍ତାବଳୀ',
+    footerTerms: 'सेवा की शर्तें',
   },
 
   pa: {
-    appTitle: 'ਕ੍ਰਯਮ (KRAYAM)',
-    appSubtitle: 'ਪਾਰਦਰਸ਼ੀ ਖਰੀਦ। ਮਜ਼ਬੂਤ ਕਿਸਾਨ।',
-    registerLogin: 'ਰਜਿਸਟ੍ਰੇਸ਼ਨ / ਲੌਗਇਨ',
+    appTitle: 'KRAYAM',
+    appSubtitle: 'ਨਿਰਪੱਖ ਖਰੀਦ। ਮਜ਼ਬੂਤ ਕਿਸਾਨ।',
+    registerLogin: 'ਰਜਿਸਟਰ / ਲੌਗ ਇਨ',
     goToDashboard: 'ਡੈਸ਼ਬੋਰਡ ਤੇ ਜਾਓ',
-    heroTitleLine1: 'ਕਿਸਾਨਾਂ ਲਈ ਇੱਕ',
-    heroTitleLine2: 'ਏਕੀਕ੍ਰਿਤ ਡਿਜੀਟਲ',
-    heroTitleLine3: 'ਖਰੀਦ ਪਲੇਟਫਾਰਮ',
-    heroSubtitleTag: 'ਪਾਰਦਰਸ਼ੀ। ਕੁਸ਼ਲ। ਕਿਸਾਨ-ਪੱਖੀ।',
-    heroSubtitleDesc: 'ਕ੍ਰਯਮ ਕਿਸਾਨਾਂ ਨੂੰ ਖਰੀਦ ਕੇਂਦਰਾਂ ਨਾਲ ਜੋੜਦਾ ਹੈ, ਜਿਸ ਨਾਲ ਸਹੀ ਮੁੱਲ, ਸਮੇਂ ਸਿਰ ਅਦਾਇਗੀ ਅਤੇ ਸੁਖਾਵਾਂ ਤਜ਼ਰਬਾ ਯਕੀਨੀ ਬਣਦਾ ਹੈ।',
-    digitalTodayLine1: 'ਡਿਜੀਟਲ',
-    digitalTodayLine2: 'ਅੱਜ,',
-    digitalTodayLine3: 'ਬਿਹਤਰ ਕੱਲ੍ਹ',
-    newsSectionTitle: 'ਤਾਜ਼ਾ ਖ਼ਬਰਾਂ ਅਤੇ ਅਪਡੇਟਸ',
-    newsItems: [
-      {
-        date: '16 ਸਤੰਬਰ 2026',
-        state: 'ਹਰਿਆਣਾ',
-        title: 'ਅਪਡੇਟ ਦੀ ਘਾਟ ਅਤੇ ਨਾਕਾਫ਼ੀ ਪ੍ਰਬੰਧਾਂ ਕਾਰਨ ਹਰਿਆਣਾ ਦੀਆਂ ਮੰਡੀਆਂ ਵਿੱਚ ਲਗਭਗ 8,000 ਕਿੱਲੋ ਝੋਨਾ ਖੁੱਲ੍ਹੇ ਵਿੱਚ ਪਿਆ ਰਿਹਾ।',
-      },
-      {
-        date: 'ਮਈ 2026',
-        state: 'ਮੱਧ ਪ੍ਰਦੇਸ਼',
-        title: 'ਸਾਧਨਾਂ ਦੀ ਘਾਟ ਕਾਰਨ ਮੱਧ ਪ੍ਰਦੇਸ਼ ਦੇ ਖਰੀਦ ਕੇਂਦਰਾਂ ਤੇ ਕਿਸਾਨਾਂ ਨੂੰ 3 ਤੋਂ 5 ਦਿਨ ਇੰਤਜ਼ਾਰ ਕਰਨਾ ਪਿਆ।',
-      },
-      {
-        date: '05 ਜੁਲਾਈ 2026',
-        state: 'ਪੰਜਾਬ',
-        title: 'ਕੇਂਦਰ ਵਿੱਚ ਬੇਮੌਸਮੀ ਬਾਰਸ਼ ਕਾਰਨ 1200+ ਕੁਇੰਟਲ ਖਰੀਦੀ ਗਈ ਕਣਕ ਖ਼ਰਾਬ ਹੋ ਗਈ, ਜਿਸ ਨਾਲ ਭਾਰੀ ਨੁਕਸਾਨ ਹੋਇਆ।',
-      },
-      {
-        date: '12 ਅਗਸਤ 2026',
-        state: 'ਉੱਤਰ ਪ੍ਰਦੇਸ਼',
-        title: 'ਕਿਸਾਨਾਂ ਨੂੰ ਭੁਗਤਾਨ ਵਿੱਚ ਦੇਰੀ ਕਾਰਨ ਵਿੱਤੀ ਤੰਗੀ ਆਈ ਅਤੇ ਖਰੀਦ ਪ੍ਰਣਾਲੀ ਵਿੱਚ ਵਿਸ਼ਵਾਸ ਘਟਿਆ।',
-      },
-    ],
-    solutionsSectionTitle: 'ਕ੍ਰਯਮ ਇਹਨਾਂ ਸਮੱਸਿਆਵਾਂ ਦਾ ਹੱਲ ਕਿਵੇਂ ਕਰਦਾ ਹੈ',
-    solutions: [
-      {
-        title: 'ਪਹਿਲਾਂ ਤੋਂ ਸਲਾਟ ਬੁਕਿੰਗ ਪ੍ਰਬੰਧਨ',
-        desc: 'ਕੇਂਦਰ-ਵਾਰ ਉਪਲਬਧਤਾ ਦੇਖੋ, ਪਹਿਲਾਂ ਤੋਂ ਸਲਾਟ ਬੁੱਕ ਕਰੋ ਅਤੇ ਲੰਬੀਆਂ ਕਤਾਰਾਂ ਤੋਂ ਬਚੋ।',
-      },
-      {
-        title: 'ਡਿਜੀਟਲ ਟੋਕਨ ਅਤੇ ਲਾਈਵ ਲਾਈਨ ਟ੍ਰੈਕਿੰਗ',
-        desc: 'QR ਟੋਕਨ ਪ੍ਰਾਪਤ ਕਰੋ, ਲਾਈਵ ਲਾਈਨ ਸਥਿਤੀ ਵੇਖੋ ਅਤੇ ਆਪਣੀ ਵਾਰੀ ਦਾ ਸਹੀ ਸਮਾਂ ਜਾਣੋ।',
-      },
-      {
-        title: 'ਪਾਰਦਰਸ਼ੀ ਤੋਲ ਅਤੇ ਗੁਣਵੱਤਾ ਜਾਂਚ',
-        desc: 'ਸਹੀ ਇਲੈਕਟ੍ਰਾਨਿਕ ਤੋਲ, ਗੁਣਵੱਤਾ ਦੀ ਤਸਦੀਕ ਅਤੇ ਆਪਣੀ ਫ਼ਸਲ ਦੇ ਤੁਰੰਤ ਅਪਡੇਟ ਪ੍ਰਾਪਤ ਕਰੋ।',
-      },
-      {
-        title: 'ਸਿੱਧੇ ਡੀਬੀਟੀ (DBT) ਬੈਂਕ ਖਾਤੇ ਵਿੱਚ ਭੁਗਤਾਨ',
-        desc: 'ਸਿੱਧਾ ਤੁਹਾਡੇ ਬੈਂਕ ਖਾਤੇ ਵਿੱਚ ਤੇਜ਼, ਸੁਰੱਖਿਅਤ ਅਤੇ ਬਿਨਾਂ ਕਿਸੇ ਪਰੇਸ਼ਾਨੀ ਦੇ ਸਰਕਾਰੀ ਰਕਮ।',
-      },
-      {
-        title: 'ਰੀਅਲ-ਟਾਈਮ ਅਲਰਟ ਅਤੇ ਸੂਚਨਾਵਾਂ',
-        desc: 'ਬੁਕਿੰਗ, ਕਤਾਰ ਸਥਿਤੀ, ਤੋਲ ਅਤੇ ਭੁਗਤਾਨ ਸੰਬੰਧੀ ਤੁਰੰਤ ਸੁਨੇਹੇ ਪ੍ਰਾਪਤ ਕਰੋ।',
-      },
-    ],
-    closingCallout: 'ਕ੍ਰਯਮ ਨਾਲ ਖਰੀਦ ਬਣਦੀ ਹੈ ਆਸਾਨ, ਤੇਜ਼ ਅਤੇ ਪਾਰਦਰਸ਼ੀ — ਹਰ ਕਿਸਾਨ ਲਈ।',
-    footerAbout: 'ਸਾਡੇ ਬਾਰੇ',
-    footerPrivacy: 'ਪਰਦੇਦਾਰੀ ਨੀਤੀ',
-    footerTerms: 'ਨਿਯਮ ਅਤੇ ਸ਼ਰਤਾਂ',
+
+    heroBadge: 'ਡਿਜੀਟਲ ਖੇਤੀਬਾੜੀ  |  ਪਾਰਦਰਸ਼ੀ ਮੰਡੀਆਂ  |  ਮਜ਼ਬੂਤ ਕਿਸਾਨ',
+    heroTitleLine1: 'ਖੇਤੀਬਾੜੀ ਉਪਜ ਦੀ ਖਰੀਦ ਅਤੇ',
+    heroTitleLine2: 'ਪ੍ਰਬੰਧਨ ਲਈ ਇੱਕ',
+    heroTitleLine3: 'ਸਾਂਝਾ ਮੰਚ',
+    heroDescription: 'ਡਿਜੀਟਲ ਤਕਨਾਲੋਜੀ ਰਾਹੀਂ ਕਿਸਾਨਾਂ, ਖਰੀਦ ਕੇਂਦਰਾਂ ਅਤੇ ਮੰਡੀਆਂ ਨੂੰ ਜੋੜਨਾ — ਸਹੀ ਮੁੱਲ, ਪਾਰਦਰਸ਼ੀ ਪ੍ਰਕਿਰਿਆ ਅਤੇ ਇੱਕ ਮਜ਼ਬੂਤ ਖੇਤੀਬਾੜੀ ਵਾਤਾਵਰਣ ਯਕੀਨੀ ਬਣਾਉਣਾ।',
+    digitalTodayLine1: 'ਅੱਜ ਡਿਜੀਟਲ,',
+    digitalTodayLine2: 'ਕੱਲ੍ਹ ਬਿਹਤਰ',
+
+    benefit1Title: 'ਸਹੀ ਮੁੱਲ',
+    benefit1Desc: 'ਪਾਰਦਰਸ਼ੀ ਖਰੀਦ ਪ੍ਰਕਿਰਿਆ',
+    benefit2Title: 'ਘੱਟ ਉਡੀਕ',
+    benefit2Desc: 'ਸਮਾਰਟ ਕਤਾਰ ਪ੍ਰਬੰਧਨ',
+    benefit3Title: 'ਗੁਣਵੱਤਾ ਭਰੋਸਾ',
+    benefit3Desc: 'ਸਹੀ ਤੋਲ ਅਤੇ ਗ੍ਰੇਡਿੰਗ',
+    benefit4Title: 'ਸਿੱਧੀ ਅਦਾਇਗੀ',
+    benefit4Desc: 'ਸੁਰੱਖਿਅਤ ਬੈਂਕ ਲੈਣ-ਦੇਣ',
+
+    stat1Value: '50,000+',
+    stat1Label: 'ਜੁੜੇ ਕਿਸਾਨ',
+    stat2Value: '250+',
+    stat2Label: 'ਖਰੀਦ ਕੇਂਦਰ',
+    stat3Value: '20+',
+    stat3Label: 'ਸਮਰਥਿਤ ਫ਼ਸਲਾਂ',
+    stat4Value: '12 ਲੱਖ+ ਟਨ',
+    stat4Label: 'ਕੁੱਲ ਖਰੀਦ ਉਪਜ',
+    stat5Value: '₹ 1,800+ ਕਰੋੜ',
+    stat5Label: 'ਕੁੱਲ ਭੁਗਤਾਨ',
+    stat6Value: '98%',
+    stat6Label: 'ਕਿਸਾਨ ਸੰਤੁਸ਼ਟੀ',
+
+    featuresTitle: 'ਇੱਕੋ ਪਲੇਟਫਾਰਮ ਤੇ ਹਰ ਸਹੂਲਤ',
+    featuresSubtitle: 'ਬੁਕਿੰਗ ਤੋਂ ਭੁਗਤਾਨ ਅਤੇ ਉਪਜ ਪ੍ਰਬੰਧਨ ਤੱਕ — KRAYAM ਖਰੀਦ ਪ੍ਰਕਿਰਿਆ ਨੂੰ ਸਰਲ ਬਣਾਉਂਦਾ ਹੈ।',
+
+    feature1Title: 'ਸੌਖੀ ਬੁਕਿੰਗ',
+    feature1Desc: 'ਨੇੜਲੇ ਖਰੀਦ ਕੇਂਦਰ ਤੇ ਆਪਣਾ ਸਲਾਟ ਬੁੱਕ ਕਰੋ',
+    feature2Title: 'ਲਾਈਵ ਕਤਾਰ ਟ੍ਰੈਕਿੰਗ',
+    feature2Desc: 'ਰੀਅਲ-ਟਾਈਮ ਵਿੱਚ ਕਤਾਰ ਦੀ ਸਥਿਤੀ ਅਤੇ ਉਡੀਕ ਸਮਾਂ ਜਾਣੋ',
+    feature3Title: 'ਸਹੀ ਤੋਲ',
+    feature3Desc: 'ਪਾਰਦਰਸ਼ੀ ਤੋਲ ਅਤੇ ਗੁਣਵੱਤਾ ਤਸਦੀਕ',
+    feature4Title: 'ਸਿੱਧੀ ਅਦਾਇਗੀ',
+    feature4Desc: 'ਸਿੱਧੇ ਆਪਣੇ ਬੈਂਕ ਖਾਤੇ ਵਿੱਚ ਭੁਗਤਾਨ ਪ੍ਰਾਪਤ ਕਰੋ',
+    feature5Title: 'ਉਪਜ ਪ੍ਰਬੰਧਨ',
+    feature5Desc: 'ਸਟੋਰੇਜ, ਡਿਸਪੈਚ ਅਤੇ ਉਪਜ ਦੀ ਨਿਗਰਾਨੀ ਕਰੋ',
+    feature6Title: 'AI ਇਨਸਾਈਟਸ (KAI)',
+    feature6Desc: 'ਮੰਗ ਦੀ ਭਵਿੱਖਬਾਣੀ, ਕਤਾਰ ਅਨੁਮਾਨ ਅਤੇ ਸਮਾਰਟ ਸਿਫ਼ਾਰਸ਼ਾਂ',
+    feature7Title: 'ਰੀਅਲ-ਟਾਈਮ ਅੱਪਡੇਟ',
+    feature7Desc: 'ਹਰੇਕ ਪੜਾਅ ਤੇ ਤੁਰੰਤ ਸੂਚਨਾਵਾਂ ਪ੍ਰਾਪਤ ਕਰੋ',
+    feature8Title: 'ਬਹੁ-ਫ਼ਸਲ ਸਹਿਯੋਗ',
+    feature8Desc: 'ਸਾਰੀਆਂ ਪ੍ਰਮੁੱਖ ਖੇਤੀਬਾੜੀ ਫ਼ਸਲਾਂ ਲਈ ਸਮਰਥਨ',
+
+    produceCardTitle: 'ਖੇਤ ਤੋਂ ਮੰਡੀ ਤੱਕ',
+    produceCardSubtitle: 'ਇੱਕ ਮਜ਼ਬੂਤ ਕੱਲ੍ਹ',
+    footerAbout: 'KRAYAM ਬਾਰੇ',
+    footerPrivacy: 'ਗੋਪਨੀਯਤਾ ਨੀਤੀ',
+    footerTerms: 'ਸੇਵਾ ਦੀਆਂ ਸ਼ਰਤਾਂ',
+  },
+
+  bn: {
+    appTitle: 'KRAYAM',
+    appSubtitle: 'ন্যায্য সংগ্রহ। শক্তিশালী কৃষক।',
+    registerLogin: 'নিবন্ধন / লগ ইন',
+    goToDashboard: 'ড্যাশবোর্ডে যান',
+
+    heroBadge: 'ডিজিটাল কৃষি  |  স্বচ্ছ বাজার  |  শক্তিশালী কৃষক',
+    heroTitleLine1: 'কৃষি পণ্য সংগ্রহ এবং',
+    heroTitleLine2: 'ব্যবস্থাপনার জন্য একটি',
+    heroTitleLine3: 'একত্রিত ডিজিটাল প্ল্যাটফর্ম',
+    heroDescription: 'ডিজিটাল প্রযুক্তির মাধ্যমে কৃষক, সংগ্রহ কেন্দ্র এবং বাজারকে সংযুক্ত করা — ন্যায্য মূল্য, স্বচ্ছ প্রক্রিয়া এবং একটি শক্তিশালী কৃষি ব্যবস্থা নিশ্চিত করা।',
+    digitalTodayLine1: 'আজ ডিজিটাল,',
+    digitalTodayLine2: 'আগামীকাল সুন্দর',
+
+    benefit1Title: 'ন্যায্য মূল্য',
+    benefit1Desc: 'স্বচ্ছ সংগ্রহ ব্যবস্থা',
+    benefit2Title: 'কম অপেক্ষা',
+    benefit2Desc: 'স্মার্ট লাইন ব্যবস্থাপনা',
+    benefit3Title: 'গুণমান নিশ্চয়তা',
+    benefit3Desc: 'সঠিক ওজন ও গ্রেডিং',
+    benefit4Title: 'সরাসরি অর্থ প্রদান',
+    benefit4Desc: 'নিরাপদ ব্যাংক লেনদেন',
+
+    stat1Value: '৫০,০০০+',
+    stat1Label: 'সংযুক্ত কৃষক',
+    stat2Value: '২৫০+',
+    stat2Label: 'সংগ্রহ কেন্দ্র',
+    stat3Value: '২০+',
+    stat3Label: 'সমর্থিত ফসল',
+    stat4Value: '১.২M+ টন',
+    stat4Label: 'সংগৃহীত পণ্য',
+    stat5Value: '₹ ১,৮০০+ কোটি',
+    stat5Label: 'প্রক্রিয়াকৃত অর্থ',
+    stat6Value: '৯৮%',
+    stat6Label: 'কৃষক সন্তুষ্টি',
+
+    featuresTitle: 'এক প্ল্যাটফর্মে আপনার প্রয়োজনীয় সবকিছু',
+    featuresSubtitle: 'স্লট বুকিং থেকে অর্থপ্রদান এবং পণ্য ব্যবস্থাপনা — KRAYAM সংগ্রহ প্রক্রিয়াকে সহজ করে তোলে।',
+
+    feature1Title: 'সহজ বুকিং',
+    feature1Desc: 'কাছের সংগ্রহ কেন্দ্রে আপনার স্লট বুক করুন',
+    feature2Title: 'লাইভ লাইন ট্র্যাকিং',
+    feature2Desc: 'রিয়েল-টাইমে আপনার অবস্থান এবং অপেক্ষার সময় জানুন',
+    feature3Title: 'সঠিক ওজন',
+    feature3Desc: 'স্বচ্ছ ওজন এবং মান যাচাইকরণ',
+    feature4Title: 'সরাসরি অর্থ প্রদান',
+    feature4Desc: 'সরাসরি আপনার ব্যাংক অ্যাকাউন্টে অর্থ গ্রহণ করুন',
+    feature5Title: 'পণ্য ব্যবস্থাপনা',
+    feature5Desc: 'মজুদ, প্রেরণ এবং পণ্যের প্রবাহ ট্র্যাক করুন',
+    feature6Title: 'AI অন্তর্দৃষ্টি (KAI)',
+    feature6Desc: 'চাহিদা পূর্বাভাস, লাইন অনুমান এবং স্মার্ট পরামর্শ',
+    feature7Title: 'রিয়েল-টাইম আপডেট',
+    feature7Desc: 'প্রতিটি ধাপে তাৎক্ষণিক বিজ্ঞপ্তি পান',
+    feature8Title: 'বহু-ফসল সহায়তা',
+    feature8Desc: 'সমস্ত প্রধান কৃষি পণ্যের সমর্থন',
+
+    produceCardTitle: 'খামার থেকে বাজারে',
+    produceCardSubtitle: 'একটি শক্তিশালী আগামী',
+    footerAbout: 'KRAYAM সম্পর্কে',
+    footerPrivacy: 'গোপনীয়তা নীতি',
+    footerTerms: 'পরিষেবার শর্তাবলী',
+  },
+
+  mr: {
+    appTitle: 'KRAYAM',
+    appSubtitle: 'रास्त खरेदी. सक्षम शेतकरी.',
+    registerLogin: 'नोंदणी / लॉगिन',
+    goToDashboard: 'डॅशबोर्डवर जा',
+
+    heroBadge: 'डिजिटल शेती  |  पारदर्शक बाजार  |  सक्षम शेतकरी',
+    heroTitleLine1: 'कृषी मालाची खरेदी आणि',
+    heroTitleLine2: 'व्यवस्थापनासाठी एक',
+    heroTitleLine3: 'एकसंध व्यासपीठ',
+    heroDescription: 'डिजिटल तंत्रज्ञानाद्वारे शेतकरी, खरेदी केंद्र आणि बाजारपेठांना जोडणे — योग्य दर, पारदर्शक प्रक्रिया आणि सक्षम कृषी परिसंस्था सुनिश्चित करणे.',
+    digitalTodayLine1: 'आज डिजिटल,',
+    digitalTodayLine2: 'उद्या प्रगतीशील',
+
+    benefit1Title: 'योग्य दर',
+    benefit1Desc: 'पारदर्शक खरेदी प्रक्रिया',
+    benefit2Title: 'कमी प्रतीक्षा',
+    benefit2Desc: 'स्मार्ट रांग व्यवस्थापन',
+    benefit3Title: 'गुणवत्ता हमी',
+    benefit3Desc: 'अचूक वजन आणि प्रतवारी',
+    benefit4Title: 'थेट खात्यात पैसे',
+    benefit4Desc: 'सुरक्षित बँक व्यवहार',
+
+    stat1Value: '५०,०००+',
+    stat1Label: 'जोडले गेलेले शेतकरी',
+    stat2Value: '२५०+',
+    stat2Label: 'खरेदी केंद्रे',
+    stat3Value: '२०+',
+    stat3Label: 'समाविष्ट पिके',
+    stat4Value: '१२ लाख+ टन',
+    stat4Label: 'एकूण खरेदी',
+    stat5Value: '₹ १,८००+ कोटी',
+    stat5Label: 'थेट वितरित रक्कम',
+    stat6Value: '९८%',
+    stat6Label: 'शेतकरी समाधान',
+
+    featuresTitle: 'सर्व सुविधा एकाच व्यासपीठावर',
+    featuresSubtitle: 'नोंदणी, वजन ते थेट पेमेंट आणि शेतमाल व्यवस्थापन — KRAYAM संपूर्ण खरेदी प्रक्रिया सुलभ करते.',
+
+    feature1Title: 'सुलभ बुकिंग',
+    feature1Desc: 'जवळच्या खरेदी केंद्रावर तुमचा स्लॉट बुक करा',
+    feature2Title: 'थेट रांग ट्रॅकिंग',
+    feature2Desc: 'रिअल-टाइममध्ये तुमचा रांगेतील क्रमांक आणि प्रतीक्षा वेळ जाणा',
+    feature3Title: 'अचूक वजन',
+    feature3Desc: 'पारदर्शक वजन आणि गुणवत्ता पडताळणी',
+    feature4Title: 'थेट पेमेंट',
+    feature4Desc: 'थेट तुमच्या बँक खात्यात सुरक्षित पेमेंट मिळवा',
+    feature5Title: 'शेतमाल व्यवस्थापन',
+    feature5Desc: 'साठवणूक, पाठवणी आणि माल प्रवाह ट्रॅक करा',
+    feature6Title: 'AI विश्लेषण (KAI)',
+    feature6Desc: 'मागणी अंदाज, रांग अंदाज आणि स्मार्ट शिफारसी',
+    feature7Title: 'झटपट नोटिफिकेशन्स',
+    feature7Desc: 'प्रत्येक टप्प्यावर त्वरित अपडेट्स मिळवा',
+    feature8Title: 'विविध पिकांचे समर्थन',
+    feature8Desc: 'सर्व प्रमुख कृषी उत्पादनांना पूर्ण पाठिंबा',
+
+    produceCardTitle: 'शेतातून थेट बाजारात',
+    produceCardSubtitle: 'एक समर्थ उद्या',
+    footerAbout: 'KRAYAM बद्दल',
+    footerPrivacy: 'गोपनीयता धोरण',
+    footerTerms: 'सेवा अटी',
+  },
+
+  te: {
+    appTitle: 'KRAYAM',
+    appSubtitle: 'న్యాయమైన కొనుగోలు. బలమైన రైతులు.',
+    registerLogin: 'నమోదు / లాగిన్',
+    goToDashboard: 'డ్యాష్‌బోర్డ్‌కి వెళ్లండి',
+
+    heroBadge: 'డిజిటల్ వ్యవసాయం  |  పారదర్శక మార్కెట్లు  |  బలమైన రైతులు',
+    heroTitleLine1: 'వ్యవసాయ ఉత్పత్తుల కొనుగోలు మరియు',
+    heroTitleLine2: 'నిర్వహణ కోసం ఒకే',
+    heroTitleLine3: 'ఏకీకృత వేదిక',
+    heroDescription: 'డిజిటల్ సాంకేతికత ద్వారా రైతులు, కొనుగోలు కేంద్రాలు మరియు మార్కెట్లను అనుసంధానించడం — సరసమైన ధరలు, పారదర్శక ప్రక్రియలు మరియు బలమైన వ్యవసాయ వ్యవస్థను నిర్ధారించడం.',
+    digitalTodayLine1: 'నేడు డిజిటల్,',
+    digitalTodayLine2: 'రేపు ఉజ్వలం',
+
+    benefit1Title: 'సరసమైన ధరలు',
+    benefit1Desc: 'పారదర్శక సేకరణ',
+    benefit2Title: 'తక్కువ వేచి ఉండే సమయం',
+    benefit2Desc: 'స్మార్ట్ క్యూ నిర్వహణ',
+    benefit3Title: 'నాణ్యత హామీ',
+    benefit3Desc: 'ఖచ్చితమైన తూకం & గ్రేడింగ్',
+    benefit4Title: 'నేరుగా చెల్లింపులు',
+    benefit4Desc: 'సురక్షితమైన లావాదేవీలు',
+
+    stat1Value: '50,000+',
+    stat1Label: 'కనెక్ట్ అయిన రైతులు',
+    stat2Value: '250+',
+    stat2Label: 'కొనుగోలు కేంద్రాలు',
+    stat3Value: '20+',
+    stat3Label: 'మద్దతు ఉన్న పంటలు',
+    stat4Value: '1.2M+ టన్నులు',
+    stat4Label: 'సేకరించిన పంట',
+    stat5Value: '₹ 1,800+ కోట్లు',
+    stat5Label: 'చెల్లించిన మొత్తం',
+    stat6Value: '98%',
+    stat6Label: 'రైతుల సంతృప్తి',
+
+    featuresTitle: 'ఒకే వేదికపై మీకు కావలసినవన్నీ',
+    featuresSubtitle: 'స్లాట్ బుకింగ్ నుండి చెల్లింపులు మరియు నిల్వ నిర్వహణ వరకు — KRAYAM ప్రక్రియను సులభతరం చేస్తుంది.',
+
+    feature1Title: 'సులభమైన బుకింగ్',
+    feature1Desc: 'సమీపంలోని కొనుగోలు కేంద్రాలలో మీ స్లాట్‌ను బుక్ చేసుకోండి',
+    feature2Title: 'లైవ్ క్యూ ట్రాకింగ్',
+    feature2Desc: 'రియల్-టైమ్‌లో మీ క్యూ స్థానం మరియు నిరీక్షణ సమయం తెలుసుకోండి',
+    feature3Title: 'ఖచ్చితమైన తూకం',
+    feature3Desc: 'పారదర్శక తూకం మరియు నాణ్యత ధృవీకరణ',
+    feature4Title: 'నేరుగా చెల్లింపులు',
+    feature4Desc: 'మీ బ్యాంక్ ఖాతాకు నేరుగా చెల్లింపులు పొందండి',
+    feature5Title: 'ఉత్పత్తి నిర్వహణ',
+    feature5Desc: 'నిల్వ, రవాణా మరియు ఉత్పత్తుల ప్రవాహాన్ని పర్యవేక్షించండి',
+    feature6Title: 'AI సూచనలు (KAI)',
+    feature6Desc: 'గిరాకీ అంచనా, క్యూ అంచనా మరియు స్మార్ట్ సిఫార్సులు',
+    feature7Title: 'రియల్-టైమ్ అప్‌డేట్స్',
+    feature7Desc: 'ప్రతి దశలో తక్షణ నోటిఫికేషన్‌లను పొందండి',
+    feature8Title: 'వివిధ పంటల మద్దతు',
+    feature8Desc: 'అన్ని ప్రధాన వ్యవసాయ ఉత్పత్తులకు మద్దతు',
+
+    produceCardTitle: 'పొలం నుండి మార్కెట్‌కు',
+    produceCardSubtitle: 'బలమైన భవిష్యత్తు',
+    footerAbout: 'KRAYAM గురించి',
+    footerPrivacy: 'గోప్యతా విధానం',
+    footerTerms: 'సేవా నిబంధనలు',
+  },
+
+  ta: {
+    appTitle: 'KRAYAM',
+    appSubtitle: 'நியாயமான கொள்முதல். வலிமையான விவசாயிகள்.',
+    registerLogin: 'பதிவு / உள்நுழைக',
+    goToDashboard: 'டாஷ்போர்டுக்கு செல்க',
+
+    heroBadge: 'டிஜிட்டல் விவசாயம்  |  வெளிப்படையான சந்தைகள்  |  வலிமையான விவசாயிகள்',
+    heroTitleLine1: 'வேளாண் விளைபொருட்கள் கொள்முதல் மற்றும்',
+    heroTitleLine2: 'மேலாண்மைக்கான ஒருங்கிணைந்த',
+    heroTitleLine3: 'டிஜிட்டல் தளம்',
+    heroDescription: 'டிஜிட்டல் தொழில்நுட்பம் மூலம் விவசாயிகள், கொள்முதல் நிலையங்கள் மற்றும் சந்தைகளை இணைத்தல் — நியாயமான விலை, வெளிப்படையான செயல்முறை மற்றும் வலுவான வேளாண் சூழலை உறுதி செய்தல்.',
+    digitalTodayLine1: 'இன்று டிஜிட்டல்,',
+    digitalTodayLine2: 'நாளை சிறந்தது',
+
+    benefit1Title: 'நியாயமான விலை',
+    benefit1Desc: 'வெளிப்படையான கொள்முதல்',
+    benefit2Title: 'குறைந்த காத்திருப்பு',
+    benefit2Desc: 'திறன்மிகு வரிசை மேலாண்மை',
+    benefit3Title: 'தர உத்தரவாதம்',
+    benefit3Desc: 'துல்லியமான எடை மற்றும் தரம்',
+    benefit4Title: 'நேரடி பணப்பரிவர்த்தனை',
+    benefit4Desc: 'பாதுகாப்பான வங்கிப் பரிமாற்றம்',
+
+    stat1Value: '50,000+',
+    stat1Label: 'இணைந்த விவசாயிகள்',
+    stat2Value: '250+',
+    stat2Label: 'கொள்முதல் நிலையங்கள்',
+    stat3Value: '20+',
+    stat3Label: 'ஆதரிக்கப்படும் பயிர்கள்',
+    stat4Value: '1.2M+ டன்கள்',
+    stat4Label: 'கொள்முதல் செய்யப்பட்டவை',
+    stat5Value: '₹ 1,800+ கோடி',
+    stat5Label: 'வழங்கப்பட்ட தொகை',
+    stat6Value: '98%',
+    stat6Label: 'விவசாயிகள் திருப்தி',
+
+    featuresTitle: 'ஒரே தளத்தில் உங்களின் அனைத்து தேவைகளும்',
+    featuresSubtitle: 'முன்பதிவு முதல் பணம் செலுத்துதல் மற்றும் இருப்பு மேலாண்மை வரை — KRAYAM அனைத்தையும் எளிதாக்குகிறது.',
+
+    feature1Title: 'எளிதான முன்பதிவு',
+    feature1Desc: 'அருகிலுள்ள கொள்முதல் மையங்களில் உங்கள் நேரத்தை பதிவு செய்யுங்கள்',
+    feature2Title: 'நேரடி வரிசை கண்காணிப்பு',
+    feature2Desc: 'உங்கள் வரிசை நிலை மற்றும் காத்திருப்பு நேரத்தை உடனுக்குடன் அறியுங்கள்',
+    feature3Title: 'துல்லியமான எடை',
+    feature3Desc: 'வெளிப்படையான எடை மற்றும் தர சரிபார்ப்பு',
+    feature4Title: 'நேரடி பணப்பரிமாற்றம்',
+    feature4Desc: 'உங்கள் வங்கிக் கணக்கில் நேரடியாக பணத்தைப் பெறுங்கள்',
+    feature5Title: 'விளைபொருள் மேலாண்மை',
+    feature5Desc: 'சேமிப்பு, அனுப்புதல் மற்றும் பொருட்கள் சுழற்சியை கண்காணிக்கவும்',
+    feature6Title: 'AI நுண்ணறிவு (KAI)',
+    feature6Desc: 'தேவை முன்னறிவிப்பு, வரிசை கணிப்பு மற்றும் ஸ்மார்ட் பரிந்துரைகள்',
+    feature7Title: 'உடனடி அறிவிப்புகள்',
+    feature7Desc: 'ஒவ்வொரு கட்டத்திலும் நிகழ்நேர அறிவிப்புகளைப் பெறுங்கள்',
+    feature8Title: 'பல பயிர் ஆதரவு',
+    feature8Desc: 'அனைத்து முக்கிய விவசாய விளைபொருட்களுக்கும் ஆதரவு',
+
+    produceCardTitle: 'விளைநிலத்திலிருந்து சந்தைக்கு',
+    produceCardSubtitle: 'வலிமையான எதிர்காலம்',
+    footerAbout: 'KRAYAM பற்றி',
+    footerPrivacy: 'தனியுரிமைக் கொள்கை',
+    footerTerms: 'சேவை விதிமுறைகள்',
+  },
+
+  gu: {
+    appTitle: 'KRAYAM',
+    appSubtitle: 'વાજબી ખરીદી. સશક્ત ખેડૂત.',
+    registerLogin: 'નોંધણી / લૉગ ઇન',
+    goToDashboard: 'ડેશબોર્ડ પર જાઓ',
+
+    heroBadge: 'ડિજિટલ કૃષિ  |  પારદર્શક બજારો  |  સશક્ત ખેડૂતો',
+    heroTitleLine1: 'કૃષિ ઉપજની ખરીદી અને',
+    heroTitleLine2: 'વ્યવસ્થાપન માટે એક',
+    heroTitleLine3: 'એકીકૃત મંચ',
+    heroDescription: 'ડિજિટલ ટેક્નોલોજી દ્વારા ખેડૂતો, ખરીદ કેન્દ્રો અને બજારોને જોડવું — વાજબી ભાવ, પારદર્શક પ્રક્રિયા અને મજબૂત કૃષિ પરિવેશ સુનિશ્ચિત કરવું.',
+    digitalTodayLine1: 'આજે ડિજિટલ,',
+    digitalTodayLine2: 'આવતીકાલે સમૃદ્ધ',
+
+    benefit1Title: 'વાજબી ભાવ',
+    benefit1Desc: 'પારદર્શક ખરીદી પ્રક્રિયા',
+    benefit2Title: 'ઓછો ઇંતેજાર',
+    benefit2Desc: 'સ્માર્ટ કતાર વ્યવસ્થાપન',
+    benefit3Title: 'ગુણવત્તા ખાતરી',
+    benefit3Desc: 'સચોટ વજન અને ગ્રેડિંગ',
+    benefit4Title: 'સીધી ચુકવણી',
+    benefit4Desc: 'સુરક્ષિત બેંક ટ્રાન્સફર',
+
+    stat1Value: '50,000+',
+    stat1Label: 'જોડાયેલા ખેડૂતો',
+    stat2Value: '250+',
+    stat2Label: 'ખરીદ કેન્દ્રો',
+    stat3Value: '20+',
+    stat3Label: 'સપોર્ટેડ પાકો',
+    stat4Value: '12 લાખ+ ટન',
+    stat4Label: 'કુલ ઉપજ ખરીદી',
+    stat5Value: '₹ 1,800+ કરોડ',
+    stat5Label: 'ચુકવાયેલી રકમ',
+    stat6Value: '98%',
+    stat6Label: 'ખેડૂત સંતોષ',
+
+    featuresTitle: 'એક જ પ્લેટફોર્મ પર તમામ સુવિધાઓ',
+    featuresSubtitle: 'બુકિંગથી લઈને પેમેન્ટ અને ઉપજ વ્યવસ્થાપન સુધી — KRAYAM સમગ્ર ખરીદી પ્રક્રિયાને સરળ બનાવે છે.',
+
+    feature1Title: 'સરળ બુકિંગ',
+    feature1Desc: 'નજીકના ખરીદ કેન્દ્રો પર તમારો સ્લોટ બુક કરો',
+    feature2Title: 'લાઈવ લાઈન ટ્રેકિંગ',
+    feature2Desc: 'રીઅલ-ટાઇમમાં તમારી કતાર સ્થિતિ અને પ્રતીક્ષા સમય જાણો',
+    feature3Title: 'સચોટ વજન',
+    feature3Desc: 'પારદર્શક વજન અને ગુણવત્તા ચકાસણી',
+    feature4Title: 'સીધી ચુકવણી',
+    feature4Desc: 'સીધા તમારા બેંક ખાતામાં સુરક્ષિત નાણાં મેળવો',
+    feature5Title: 'ઉપજ વ્યવસ્થાપન',
+    feature5Desc: 'સંગ્રહ, ડિસ્પેચ અને ઉપજના પ્રવાહને ટ્રૅક કરો',
+    feature6Title: 'AI ઇનસાઇટ્સ (KAI)',
+    feature6Desc: 'માંગ આગાહી, કતાર અનુમાન અને સ્માર્ટ ભલામણો',
+    feature7Title: 'રીઅલ-ટાઇમ અપડેટ્સ',
+    feature7Desc: 'દરેક પગલા પર તાત્કાલિક સૂચનાઓ મેળવો',
+    feature8Title: 'બહુ-પાક સપોર્ટ',
+    feature8Desc: 'તમામ મુખ્ય કૃષિ ઉત્પાદનો માટે સંપૂર્ણ સમર્થન',
+
+    produceCardTitle: 'ખેતરથી બજાર સુધી',
+    produceCardSubtitle: 'એક સશક્ત આવતીકાલ',
+    footerAbout: 'KRAYAM વિશે',
+    footerPrivacy: 'ગોપનીયતા નીતિ',
+    footerTerms: 'સેવાની શરતો',
+  },
+
+  ur: {
+    appTitle: 'KRAYAM',
+    appSubtitle: 'منصفانہ خریداری۔ مضبوط کسان۔',
+    registerLogin: 'رجسٹر / لاگ ان',
+    goToDashboard: 'ڈیش بورڈ پر جائیں',
+
+    heroBadge: 'ڈیجیٹل زراعت  |  شفاف مارکیٹس  |  مضبوط کسان',
+    heroTitleLine1: 'زرعی پیداوار کی خریداری اور',
+    heroTitleLine2: 'انتظام کے لیے ایک',
+    heroTitleLine3: 'متحد پلیٹ فارم',
+    heroDescription: 'ڈیجیٹل ٹیکنالوجی کے ذریعے کسانوں، خریداری مراکز اور منڈیوں کو جوڑنا — مناسب قیمتوں، شفاف عمل اور مضبوط زرعی نظام کو یقینی بنانا۔',
+    digitalTodayLine1: 'آج ڈیجیٹل،',
+    digitalTodayLine2: 'کل بہتر',
+
+    benefit1Title: 'مناسب قیمتیں',
+    benefit1Desc: 'شفاف خریداری کا عمل',
+    benefit2Title: 'کم انتظار',
+    benefit2Desc: 'اسمارٹ قطار انتظام',
+    benefit3Title: 'معیار کی ضمانت',
+    benefit3Desc: 'درست وزن اور درجہ بندی',
+    benefit4Title: 'براہ راست ادائیگی',
+    benefit4Desc: 'محفوظ بینک ٹرانزیکشن',
+
+    stat1Value: '50,000+',
+    stat1Label: 'منسلک کسان',
+    stat2Value: '250+',
+    stat2Label: 'خریداری مراکز',
+    stat3Value: '20+',
+    stat3Label: 'معاون فصلیں',
+    stat4Value: '1.2M+ ٹن',
+    stat4Label: 'حاصل شدہ پیداوار',
+    stat5Value: '₹ 1,800+ کروڑ',
+    stat5Label: 'ادا کردہ رقم',
+    stat6Value: '98%',
+    stat6Label: 'کسانوں کا اطمینان',
+
+    featuresTitle: 'ایک ہی پلیٹ فارم پر تمام ضروریات',
+    featuresSubtitle: 'بکنگ سے ادائیگی اور اناج کے انتظام تک — KRAYAM تمام عمل کو آسان بناتا ہے۔',
+
+    feature1Title: 'آسان بکنگ',
+    feature1Desc: 'قریبی خریداری مراکز پر اپنا سلاٹ بک کریں',
+    feature2Title: 'لائیو قطار ٹریکنگ',
+    feature2Desc: 'ریئل ٹائم میں قطار کی پوزیشن اور انتظار کا وقت جانیں',
+    feature3Title: 'درست وزن',
+    feature3Desc: 'شفاف وزن اور معیار کی تصدیق',
+    feature4Title: 'براہ راست ادائیگی',
+    feature4Desc: 'براہ راست اپنے بینک اکاؤنٹ میں رقم حاصل کریں',
+    feature5Title: 'پیداوار کا انتظام',
+    feature5Desc: 'اسٹوریج، ترسیل اور اناج کے بہاؤ کو ٹریک کریں',
+    feature6Title: 'AI بصیرت (KAI)',
+    feature6Desc: 'طلب کی پیشن گوئی، قطار کا تخمینہ اور اسمارٹ تجاویز',
+    feature7Title: 'فوری اطلاعات',
+    feature7Desc: 'ہر مرحلے پر فوری نوٹیفکیشن حاصل کریں',
+    feature8Title: 'متعدد فصلوں کی معاونت',
+    feature8Desc: 'تمام اہم زرعی پیداوار کی معاونت',
+
+    produceCardTitle: 'کھیت سے منڈی تک',
+    produceCardSubtitle: 'ایک مضبوط کل',
+    footerAbout: 'KRAYAM کے بارے میں',
+    footerPrivacy: 'رازداری کی پالیسی',
+    footerTerms: 'سروس کی شرائط',
+  },
+
+  kn: {
+    appTitle: 'KRAYAM',
+    appSubtitle: 'ನ್ಯಾಯಯುತ ಖರೀದಿ. ಬಲಿಷ್ಠ ರೈತರು.',
+    registerLogin: 'ನೋಂದಣಿ / ಲಾಗಿನ್',
+    goToDashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ',
+
+    heroBadge: 'ಡಿಜಿಟಲ್ ಕೃಷಿ  |  ಪಾರದರ್ಶಕ ಮಾರುಕಟ್ಟೆಗಳು  |  ಬಲಿಷ್ಠ ರೈತರು',
+    heroTitleLine1: 'ಕೃಷಿ ಉತ್ಪನ್ನಗಳ ಖರೀದಿ ಮತ್ತು',
+    heroTitleLine2: 'ನಿರ್ವಹಣೆಗಾಗಿ ಒಂದು',
+    heroTitleLine3: 'ಏಕೀಕೃತ ವೇದಿಕೆ',
+    heroDescription: 'ಡಿಜಿಟಲ್ ತಂತ್ರಜ್ಞಾನದ ಮೂಲಕ ರೈತರು, ಖರೀದಿ ಕೇಂದ್ರಗಳು ಮತ್ತು ಮಾರುಕಟ್ಟೆಗಳನ್ನು ಸಂಪರ್ಕಿಸುವುದು — ನ್ಯಾಯಯುತ ಬೆಲೆ, ಪಾರದರ್ಶಕ ಪ್ರಕ್ರಿಯೆ ಮತ್ತು ಬಲಿಷ್ಠ ಕೃಷಿ ವ್ಯವಸ್ಥೆಯನ್ನು ಖಚಿತಪಡಿಸುವುದು.',
+    digitalTodayLine1: 'ಇಂದು ಡಿಜಿಟಲ್,',
+    digitalTodayLine2: 'ನಾಳೆ ಉಜ್ವಲ',
+
+    benefit1Title: 'ನ್ಯಾಯಯುತ ಬೆಲೆ',
+    benefit1Desc: 'ಪಾರದರ್ಶಕ ಖರೀದಿ ಪ್ರಕ್ರಿಯೆ',
+    benefit2Title: 'ಕಡಿಮೆ ಕಾಯುವಿಕೆ',
+    benefit2Desc: 'ಸ್ಮಾರ್ಟ್ ಕ್ಯೂ ನಿರ್ವಹಣೆ',
+    benefit3Title: 'ಗುಣಮಟ್ಟದ ಭರವಸೆ',
+    benefit3Desc: 'ನಿಖರ ತೂಕ ಮತ್ತು ವರ್ಗೀಕರಣ',
+    benefit4Title: 'ನೇರ ಪಾವತಿ',
+    benefit4Desc: 'ಸುರಕ್ಷಿತ ಬ್ಯಾಂಕ್ ವರ್ಗಾವಣೆ',
+
+    stat1Value: '50,000+',
+    stat1Label: 'ಸಂಪರ್ಕಿತ ರೈತರು',
+    stat2Value: '250+',
+    stat2Label: 'ಖರೀದಿ ಕೇಂದ್ರಗಳು',
+    stat3Value: '20+',
+    stat3Label: 'ಬೆಂಬಲಿತ ಬೆಳೆಗಳು',
+    stat4Value: '1.2M+ ಟನ್',
+    stat4Label: 'ಖರೀದಿಸಿದ ಉತ್ಪನ್ನ',
+    stat5Value: '₹ 1,800+ ಕೋಟಿ',
+    stat5Label: 'ಪಾವತಿಸಿದ ಮೊತ್ತ',
+    stat6Value: '98%',
+    stat6Label: 'ರೈತರ ತೃಪ್ತಿ',
+
+    featuresTitle: 'ಒಂದೇ ವೇದಿಕೆಯಲ್ಲಿ ನಿಮ್ಮೆಲ್ಲಾ ಅಗತ್ಯಗಳು',
+    featuresSubtitle: 'ಬುಕಿಂಗ್‌ನಿಂದ ಹಿಡಿದು ಪಾವತಿ ಮತ್ತು ದಾಸ್ತಾನು ನಿರ್ವಹಣೆಯವರೆಗೆ — KRAYAM ಪ್ರಕ್ರಿಯೆಯನ್ನು ಸರಳಗೊಳಿಸುತ್ತದೆ.',
+
+    feature1Title: 'ಸುಲಭ ಬುಕಿಂಗ್',
+    feature1Desc: 'ಹತ್ತಿರದ ಖರೀದಿ ಕೇಂದ್ರಗಳಲ್ಲಿ ನಿಮ್ಮ ಸ್ಲಾಟ್ ಕಾಯ್ದಿರಿಸಿ',
+    feature2Title: 'ಲೈವ್ ಕ್ಯೂ ಟ್ರ್ಯಾಕಿಂಗ್',
+    feature2Desc: 'ನೈಜ ಸಮಯದಲ್ಲಿ ನಿಮ್ಮ ಕ್ಯೂ ಸ್ಥಾನ ಮತ್ತು ಕಾಯುವ ಸಮಯ ತಿಳಿಯಿರಿ',
+    feature3Title: 'ನಿಖರ ತೂಕ',
+    feature3Desc: 'ಪಾರದರ್ಶಕ ತೂಕ ಮತ್ತು ಗುಣಮಟ್ಟ ಪರಿಶೀಲನೆ',
+    feature4Title: 'ನೇರ ಪಾವತಿ',
+    feature4Desc: 'ನೇರವಾಗಿ ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆಗೆ ಹಣ ಪಡೆಯಿರಿ',
+    feature5Title: 'ಉತ್ಪನ್ನ ನಿರ್ವಹಣೆ',
+    feature5Desc: 'ಸಂಗ್ರಹಣೆ, ರವಾನೆ ಮತ್ತು ಉತ್ಪನ್ನದ ಹರಿವನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ',
+    feature6Title: 'AI ಒಳನೋಟಗಳು (KAI)',
+    feature6Desc: 'ಬೇಡಿಕೆ ಮುನ್ಸೂಚನೆ, ಸರದಿ ಅಂದಾಜು ಮತ್ತು ಸ್ಮಾರ್ಟ್ ಶಿಫಾರಸುಗಳು',
+    feature7Title: 'ನೈಜ-ಸಮಯದ ನವೀಕರಣಗಳು',
+    feature7Desc: 'ಪ್ರತಿ ಹಂತದಲ್ಲೂ ತ್ವರಿತ ಅಧಿಸೂಚನೆಗಳನ್ನು ಪಡೆಯಿರಿ',
+    feature8Title: 'ಬಹು-ಬೆಳೆ ಬೆಂಬಲ',
+    feature8Desc: 'ಎಲ್ಲಾ ಪ್ರಮುಖ ಕೃಷಿ ಉತ್ಪನ್ನಗಳಿಗೆ ಸಂಪೂರ್ಣ ಬೆಂಬಲ',
+
+    produceCardTitle: 'ಹೊಲದಿಂದ ಮಾರುಕಟ್ಟೆಗೆ',
+    produceCardSubtitle: 'ಬಲಿಷ್ಠ ನಾಳೆ',
+    footerAbout: 'KRAYAM ಬಗ್ಗೆ',
+    footerPrivacy: 'ಗೌಪ್ಯತಾ ನೀತಿ',
+    footerTerms: 'ಸೇವಾ ನಿಯಮಗಳು',
+  },
+
+  or: {
+    appTitle: 'KRAYAM',
+    appSubtitle: 'ନ୍ୟାଯ୍ୟ ସଂଗ୍ରହ। ସଶକ୍ତ କୃଷକ।',
+    registerLogin: 'ପଞ୍ଜୀକରଣ / ଲଗ୍ ଇନ୍',
+    goToDashboard: 'ଡ୍ୟାସବୋର୍ଡକୁ ଯାଆନ୍ତୁ',
+
+    heroBadge: 'ଡିଜିଟାଲ୍ କୃଷି  |  ସ୍ୱଚ୍ଛ ବଜାର  |  ସଶକ୍ତ କୃଷକ',
+    heroTitleLine1: 'କୃଷି ଉତ୍ପାଦନ ସଂଗ୍ରହ ଏବଂ',
+    heroTitleLine2: 'ପରିଚାଳନା ପାଇଁ ଏକ',
+    heroTitleLine3: 'ଏକୀକୃତ ପ୍ଲାଟଫର୍ମ',
+    heroDescription: 'ଡିଜିଟାଲ୍ ପ୍ରଯୁକ୍ତିବିଦ୍ୟା ମାଧ୍ୟମରେ କୃଷକ, ସଂଗ୍ରହ କେନ୍ଦ୍ର ଏବଂ ବଜାରକୁ ଯୋଡ଼ିବା — ନ୍ୟାଯ୍ୟ ମୂଲ୍ୟ, ସ୍ୱଚ୍ଛ ପ୍ରକ୍ରିୟା ଏବଂ ଏକ ସଶକ୍ତ କୃଷି ବ୍ୟବସ୍ଥା ନିଶ୍ଚିତ କରିବା।',
+    digitalTodayLine1: 'ଆଜି ଡିଜିଟାଲ୍,',
+    digitalTodayLine2: 'କାଲି ଉନ୍ନତ',
+
+    benefit1Title: 'ନ୍ୟାଯ୍ୟ ମୂଲ୍ୟ',
+    benefit1Desc: 'ସ୍ୱଚ୍ଛ ସଂଗ୍ରହ ପ୍ରକ୍ରିୟା',
+    benefit2Title: 'କମ୍ ଅପେକ୍ଷା',
+    benefit2Desc: 'ସ୍ମାର୍ଟ ଧାଡ଼ି ପରିଚାଳନା',
+    benefit3Title: 'ଗୁଣବତ୍ତା ନିଶ୍ଚିତତା',
+    benefit3Desc: 'ସଠିକ୍ ଓଜନ ଏବଂ ଗ୍ରେଡିଂ',
+    benefit4Title: 'ସିଧାସଳଖ ପୈଠ',
+    benefit4Desc: 'ସୁରକ୍ଷିତ ବ୍ୟାଙ୍କ କାରବାର',
+
+    stat1Value: '୫୦,୦୦୦+',
+    stat1Label: 'ସଂଯୁକ୍ତ କୃଷକ',
+    stat2Value: '୨୫୦+',
+    stat2Label: 'ସଂଗ୍ରହ କେନ୍ଦ୍ର',
+    stat3Value: '୨୦+',
+    stat3Label: 'ସମର୍ଥିତ ଫସଲ',
+    stat4Value: '୧.୨M+ ଟନ୍',
+    stat4Label: 'ସଂଗୃହୀତ ଉତ୍ପାଦନ',
+    stat5Value: '₹ ୧,୮୦୦+ କୋଟି',
+    stat5Label: 'ପ୍ରଦାନ କରାଯାଇଥିବା ଅର୍ଥ',
+    stat6Value: '୯୮%',
+    stat6Label: 'କୃଷକ ସନ୍ତୋଷ',
+
+    featuresTitle: 'ଗୋଟିଏ ପ୍ଲାଟଫର୍ମରେ ଆପଣଙ୍କର ସମସ୍ତ ଆବଶ୍ୟକତା',
+    featuresSubtitle: 'ବୁକିଂ ଠାରୁ ପୈଠ ଏବଂ ଉତ୍ପାଦ ପରିଚାଳନା ପର୍ଯ୍ୟନ୍ତ — KRAYAM ସମସ୍ତ କାର୍ଯ୍ୟକୁ ସରଳ କରିଥାଏ।',
+
+    feature1Title: 'ସହଜ ବୁକିଂ',
+    feature1Desc: 'ନିକଟସ୍ଥ ସଂଗ୍ରହ କେନ୍ଦ୍ରରେ ନିଜର ସ୍ଲଟ୍ ବୁକ୍ କରନ୍ତୁ',
+    feature2Title: 'ଲାଇଭ୍ ଧାଡ଼ି ଟ୍ରାକିଂ',
+    feature2Desc: 'ନିଜର ଧାଡ଼ି ସ୍ଥିତି ଏବଂ ଅପେକ୍ଷା ସମୟ ବିଷୟରେ ଜାଣନ୍ତୁ',
+    feature3Title: 'ସଠିକ୍ ଓଜନ',
+    feature3Desc: 'ସ୍ୱଚ୍ଛ ଓଜନ ଏବଂ ଗୁଣବତ୍ତା ଯାଞ୍ଚ',
+    feature4Title: 'ସିଧାସଳଖ ପୈଠ',
+    feature4Desc: 'ସିଧା ନିଜ ବ୍ୟାଙ୍କ ଖାତାରେ ଟଙ୍କା ପାଆନ୍ତୁ',
+    feature5Title: 'ଉତ୍ପାଦନ ପରିଚାଳନା',
+    feature5Desc: 'ଭଣ୍ଡାରଣ, ପ୍ରେରଣ ଏବଂ ଉତ୍ପାଦ ପ୍ରବାହ ଟ୍ରାକ୍ କରନ୍ତୁ',
+    feature6Title: 'AI ଅନ୍ତର୍ଦୃଷ୍ଟି (KAI)',
+    feature6Desc: 'ଚାହିଦା ପୂର୍ବାନୁମାନ, ଧାଡ଼ି ଆକଳନ ଏବଂ ସ୍ମାର୍ଟ ପରାମର୍ଶ',
+    feature7Title: 'ରିଅଲ-ଟାଇମ୍ ଅପଡେଟ୍',
+    feature7Desc: 'ପ୍ରତ୍ୟେକ ପଦକ୍ଷେପରେ ତୁରନ୍ତ ବିଜ୍ଞପ୍ତି ପାଆନ୍ତୁ',
+    feature8Title: 'ବହୁ-ଫସଲ ସମର୍ଥନ',
+    feature8Desc: 'ସମସ୍ତ ପ୍ରମୁଖ କୃଷି ଉତ୍ପାଦନ ପାଇଁ ସମ୍ପୂର୍ଣ୍ଣ ସମର୍ଥନ',
+
+    produceCardTitle: 'ଜମିରୁ ସିଧା ବଜାରକୁ',
+    produceCardSubtitle: 'ଏକ ସଶକ୍ତ ଆଗାମୀ କାଲି',
+    footerAbout: 'KRAYAM ବିଷୟରେ',
+    footerPrivacy: 'ଗୋପନୀୟତା ନୀତି',
+    footerTerms: 'ସେବା ସର୍ତ୍ତାବଳୀ',
   },
 };
 
 export const getHomeText = (lang: Language): HomeTranslations => {
-  return homeTranslations[lang] || homeTranslations['en'];
+  return homeTranslations[lang] || homeTranslations.en;
 };

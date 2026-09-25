@@ -258,8 +258,10 @@ export type OperatorView =
   | 'bookings' 
   | 'queue' 
   | 'procurement' 
+  | 'produce'
   | 'payments' 
   | 'analytics' 
+  | 'aiInsights'
   | 'offline';
 
 export interface OperatorProfile {
@@ -278,12 +280,14 @@ export interface SyncOperation {
     | 'CHECK_IN' 
     | 'CALL_NEXT' 
     | 'START_PROCESSING' 
-    | 'COMPLETE_PROCESSING'
+    | 'COMPLETE_PROCESSING' 
     | 'COMPLETE_PROCUREMENT' 
     | 'CONFIRM_PAYMENT' 
     | 'MARK_NO_SHOW' 
     | 'CANCEL_BOOKING' 
-    | 'RESCHEDULE';
+    | 'RESCHEDULE'
+    | 'PRODUCE_STORAGE'
+    | 'PRODUCE_DISPATCH';
   timestamp: string;
   bookingId: string;
   details: string;
@@ -302,3 +306,154 @@ export interface AiCenterInsight {
   slotRecommendations: { slot: string; recommendation: string; loadLevel: string }[];
   anomalies: { id: string; type: string; message: string; severity: 'low' | 'medium' | 'high' }[];
 }
+
+// ============================================================
+// PRODUCE MANAGEMENT DATA MODELS (Phase 9 & 10)
+// ============================================================
+
+export type StorageStatus = 'Awaiting Storage' | 'Stored' | 'Storage Issue';
+export type DispatchStatus = 'Awaiting Dispatch' | 'Dispatch Scheduled' | 'Dispatched';
+
+export type ProduceFlowStage = 
+  | 'PROCURED'
+  | 'QUALITY_VERIFIED'
+  | 'LOT_CREATED'
+  | 'AWAITING_STORAGE'
+  | 'STORED'
+  | 'AWAITING_DISPATCH'
+  | 'DISPATCHED';
+
+export interface ProduceLot {
+  lotId: string; // e.g. KRM-WHT-2026-00125
+  procurementId: string;
+  bookingId: string;
+  farmerId: string;
+  farmerName: string;
+  farmerMobile?: string;
+  crop: string;
+  procurementCentreId: string;
+  procurementCentreName: string;
+  procurementDate: string; // YYYY-MM-DD
+  grossQuantityQuintals: number;
+  acceptedQuantityQuintals: number;
+  qualityGrade: string; // Grade A, Grade B, Standard
+  qualityStatus: 'Verified' | 'Pending Verification' | 'Rejected';
+  qualityNotes?: string;
+  moisturePercent?: number;
+  verifiedAt: string;
+  operatorName: string;
+
+  // 4. Storage Tracking
+  storageStatus: StorageStatus;
+  storageLocationBay?: string; // e.g. Bay 3, Central Silo A
+  storedAt?: string;
+  storageNotes?: string;
+
+  // 5. Dispatch Tracking
+  dispatchStatus: DispatchStatus;
+  dispatchDestination?: string; // e.g. FCI Depot Khanna
+  scheduledDispatchDate?: string;
+  dispatchedAt?: string;
+  transportVehicleNumber?: string;
+  dispatchQuantityQuintals?: number;
+
+  // 6. Flow Tracking & Lifecycle
+  currentFlowStatus: ProduceFlowStage;
+  syncStatus: 'SYNCED' | 'PENDING_SYNC' | 'LOCAL_ONLY';
+  dataSource: 'LIVE / BACKEND' | 'DEMO / SIMULATED' | 'LOCAL STORAGE';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================================
+// KAI — KRAYAM AGRICULTURAL INTELLIGENCE MODELS (Phase 2 - 8, 11 - 12)
+// ============================================================
+
+export type KaiDataSource = 'LIVE / BACKEND' | 'DEMO / SIMULATED' | 'LAST SYNCHRONIZED';
+
+export interface KaiDemandPrediction {
+  crop: string;
+  centreId: string;
+  centreName: string;
+  date: string;
+  expectedProduceInflowTonnes: number; // e.g. 18.5 tonnes
+  expectedProduceArrivalQuintals: number;
+  expectedFarmerCount: number;
+  projectedCentreLoadPercent: number;
+  seasonalTrend: 'Rising Inflow' | 'Peak Harvest' | 'Steady Volume' | 'Tapering';
+  confidenceScorePercent: number; // e.g. 94%
+  historicalBaselineQuintals: number;
+  source: KaiDataSource;
+  updatedAt: string;
+}
+
+export interface KaiQueuePrediction {
+  centreId: string;
+  currentPosition?: number;
+  farmersAhead?: number;
+  predictedWaitMinutes: number;
+  predictedPeakPeriod: string; // e.g. "11:00 AM – 01:00 PM"
+  queueRiskLevel: 'Low' | 'Medium' | 'High';
+  queueStatus: 'Normal Flow' | 'Moderate Density' | 'Congested' | 'Turn Approaching';
+  processingRatePerHour: number; // e.g. 6 vehicles/hr
+  activeWeighbridgeGates: number;
+  delayProbabilityPercent: number;
+  source: KaiDataSource;
+  updatedAt: string;
+}
+
+export interface KaiCapacityForecast {
+  centreId: string;
+  centreName: string;
+  dailyCapacityQuintals: number;
+  expectedInflowQuintals: number;
+  capacityUtilizationPercent: number;
+  capacityStatus: 'Optimal' | 'Normal' | 'Moderate Load' | 'Near Limit' | 'Over Capacity';
+  queueRisk: 'Low' | 'Medium' | 'High';
+  pressureWarning?: string;
+  actionableRecommendation: string; // e.g. "Consider adding weighing capacity or redistributing appointments."
+  source: KaiDataSource;
+  updatedAt: string;
+}
+
+export interface KaiProduceFlowPrediction {
+  centreId: string;
+  centreName: string;
+  expectedProduceInflowTonnes: number; // e.g. 18.5 tonnes
+  expectedAccumulationTonnes: number; // e.g. 12.4 tonnes
+  storageRequirementLevel: 'Normal' | 'High' | 'Critical';
+  storageBayUtilizationPercent: number;
+  dispatchRequirementText: string; // e.g. "2 trucks / day"
+  dispatchTrucksNeeded: number;
+  source: KaiDataSource;
+  updatedAt: string;
+}
+
+export interface KaiSmartRecommendation {
+  id: string;
+  category: 'SLOT_RECOMMENDATION' | 'OPERATIONAL_ALERT' | 'RESOURCE_ALLOCATION' | 'PRODUCE_MANAGEMENT';
+  title: string;
+  description: string;
+  severity: 'info' | 'warning' | 'critical' | 'success';
+  suggestedAction: string;
+  impact: string;
+  timestamp: string;
+  source: KaiDataSource;
+}
+
+export interface KaiFarmerSlotRecommendation {
+  slotId?: string;
+  slotWindow: string; // e.g. "02:00 PM – 03:00 PM"
+  expectedWaitingMinutes: number;
+  centreLoadLevel: 'Low' | 'Medium' | 'High';
+  isRecommended: boolean;
+  reason: string;
+  alternativeSlots: {
+    slotId?: string;
+    slotWindow: string;
+    expectedWaitMinutes: number;
+    centreLoadLevel: 'Low' | 'Medium' | 'High';
+  }[];
+  source: KaiDataSource;
+}
+

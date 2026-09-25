@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
-import { CropInfo, ProcurementCentre, SlotTimeWindow, Booking, TimeSlot, RecommendedCentreItem } from '../../types';
+import { CropInfo, ProcurementCentre, SlotTimeWindow, Booking, TimeSlot, RecommendedCentreItem, KaiFarmerSlotRecommendation } from '../../types';
 import { api } from '../../services/api';
+import kaiService from '../../services/kaiService';
 import { calculateDistanceKm, formatDistance } from '../../utils/geo';
 import { 
   Calendar, 
@@ -20,7 +21,9 @@ import {
   AlertCircle,
   Award,
   SlidersHorizontal,
-  RefreshCw
+  RefreshCw,
+  Sparkles,
+  AlertTriangle
 } from 'lucide-react';
 import { RescheduleModal } from './RescheduleModal';
 import { CentreComparisonModal } from './CentreComparisonModal';
@@ -69,6 +72,7 @@ export const CreateBookingFlow: React.FC = () => {
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState<boolean>(false);
   const [slotsError, setSlotsError] = useState<string | null>(null);
+  const [kaiSlotRec, setKaiSlotRec] = useState<KaiFarmerSlotRecommendation | null>(null);
 
   // Modals & submission state
   const [isComparisonOpen, setIsComparisonOpen] = useState<boolean>(false);
@@ -247,7 +251,14 @@ export const CreateBookingFlow: React.FC = () => {
         if (isMounted) {
           setSlots(liveSlots);
           const available = liveSlots.filter((s) => s.isAvailable);
-          if (available.length > 0) {
+          const centreLoadPct = (selectedCentre?.currentQueue?.loadLevel as string) === 'High' ? 85 : (selectedCentre?.currentQueue?.loadLevel as string) === 'Moderate' ? 60 : 35;
+          const rec = kaiService.getFarmerSlotRecommendation(liveSlots, centreLoadPct);
+          setKaiSlotRec(rec);
+
+          if (rec.slotId) {
+            setSelectedSlotId(rec.slotId);
+            setSelectedSlotWindow(rec.slotWindow);
+          } else if (available.length > 0) {
             setSelectedSlotId(available[0].id);
             setSelectedSlotWindow(available[0].formattedTimeWindow || available[0].timeWindow || '');
           } else {
@@ -806,6 +817,76 @@ export const CreateBookingFlow: React.FC = () => {
               />
             </div>
 
+            {/* KAI AI-Assisted Slot Recommendation Banner */}
+            {kaiSlotRec && (
+              <div className="bg-[#063B2A] text-white p-4 rounded-[8px] border border-[#0B6B4F] shadow-sm space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#85E1A9]" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#85E1A9]">
+                      KAI AI-Assisted Slot Recommendation
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#04261B] text-[#85E1A9] border border-[#0B4734]">
+                    {kaiSlotRec.source}
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                  <div>
+                    <div className="text-sm font-bold text-[#FFFFFF] flex items-center gap-2">
+                      <span>{kaiSlotRec.slotWindow}</span>
+                      <span className="text-[10px] bg-[#85E1A9] text-[#063B2A] px-2 py-0.5 rounded font-bold">
+                        Optimal Throughput
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#CBD8D1] mt-0.5 leading-relaxed">
+                      {kaiSlotRec.reason}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
+                    <div className="bg-[#04261B] px-3 py-1.5 rounded border border-[#0B4734] text-center">
+                      <div className="text-[10px] text-[#CBD8D1] uppercase">Est. Wait</div>
+                      <div className="text-sm font-bold text-[#85E1A9] font-mono">~{kaiSlotRec.expectedWaitingMinutes}m</div>
+                    </div>
+                    <div className="bg-[#04261B] px-3 py-1.5 rounded border border-[#0B4734] text-center">
+                      <div className="text-[10px] text-[#CBD8D1] uppercase">Centre Load</div>
+                      <div className="text-sm font-bold text-[#FFFFFF]">{kaiSlotRec.centreLoadLevel}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Auto-Select Button if not already selected */}
+                {selectedSlotId !== kaiSlotRec.slotId && kaiSlotRec.slotId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (kaiSlotRec.slotId) {
+                        setSelectedSlotId(kaiSlotRec.slotId);
+                        setSelectedSlotWindow(kaiSlotRec.slotWindow);
+                      }
+                    }}
+                    className="w-full mt-2 py-1.5 px-3 bg-[#0B6B4F] hover:bg-[#075E43] text-[#FFFFFF] text-xs font-bold rounded flex items-center justify-center gap-1.5 transition-colors border border-[#85E1A9]/40"
+                  >
+                    <Check className="w-3.5 h-3.5 text-[#85E1A9]" />
+                    <span>Select Recommended Window ({kaiSlotRec.slotWindow})</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Congestion Advisory if load is high */}
+            {selectedCentre?.currentQueue?.loadLevel === 'High' && (
+              <div className="p-3 bg-[#FFF3DC] border border-[#F0D7A7] rounded-[6px] flex items-start gap-2.5 text-xs text-[#B45309]">
+                <AlertTriangle className="w-4 h-4 text-[#D97706] shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold">Mandi Congestion Advisory: </span>
+                  <span>Heavy vehicle arrival volume anticipated at this centre. Choose early morning or late afternoon slots to minimize scale delays.</span>
+                </div>
+              </div>
+            )}
+
             {/* Available Backend Slots */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -841,6 +922,7 @@ export const CreateBookingFlow: React.FC = () => {
                     const isFull = !s.isAvailable || s.currentBookings >= s.maxBookings;
                     const remaining = Math.max(0, s.maxBookings - s.currentBookings);
                     const labelText = s.formattedTimeWindow || s.timeWindow || `${s.startTime} - ${s.endTime}`;
+                    const isKaiRecommended = kaiSlotRec?.slotId === s.id;
 
                     return (
                       <label
@@ -849,7 +931,9 @@ export const CreateBookingFlow: React.FC = () => {
                           isFull
                             ? 'bg-[#F9FAFB] border-[#E5E7EB] opacity-60 cursor-not-allowed'
                             : isSelected
-                            ? 'border-[#075E43] bg-[#E7F3EC]'
+                            ? 'border-[#075E43] bg-[#E7F3EC] ring-1 ring-[#075E43]'
+                            : isKaiRecommended
+                            ? 'border-[#85E1A9] bg-[#F4FAF6] hover:bg-[#E7F3EC]'
                             : 'border-[#CBD8D1] bg-[#FFFFFF] hover:bg-[#F3F9F5]'
                         }`}
                       >
@@ -867,19 +951,34 @@ export const CreateBookingFlow: React.FC = () => {
                           />
                           <div className="flex-1 flex items-center justify-between text-xs">
                             <div>
-                              <span className="font-bold text-sm text-[#17231F]">{labelText}</span>
-                              <div className="text-[11px] text-[#66736D] mt-0.5">
-                                {isFull ? 'Capacity Reached' : `${remaining} slots remaining (Cap: ${s.maxBookings})`}
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-sm text-[#17231F]">{labelText}</span>
+                                {isKaiRecommended && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#063B2A] bg-[#85E1A9] px-2 py-0.5 rounded">
+                                    <Sparkles className="w-3 h-3 text-[#063B2A]" />
+                                    KAI Recommended
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-[#66736D] mt-0.5 flex items-center gap-3">
+                                <span>{isFull ? 'Capacity Reached' : `${remaining} slots remaining (Cap: ${s.maxBookings})`}</span>
+                                {isKaiRecommended && (
+                                  <span className="text-[#075E43] font-semibold">
+                                    ~{kaiSlotRec?.expectedWaitingMinutes || 18}m predicted wait
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <span
                               className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                                 isFull
                                   ? 'bg-[#FEE2E2] text-[#B91C1C]'
+                                  : isKaiRecommended
+                                  ? 'bg-[#063B2A] text-white'
                                   : 'bg-[#DCFCE7] text-[#15803D]'
                               }`}
                             >
-                              {isFull ? 'Closed' : 'Available'}
+                              {isFull ? 'Closed' : isKaiRecommended ? 'Fastest' : 'Available'}
                             </span>
                           </div>
                         </div>
@@ -889,6 +988,24 @@ export const CreateBookingFlow: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Alternative Slots Advice */}
+            {kaiSlotRec && kaiSlotRec.alternativeSlots && kaiSlotRec.alternativeSlots.length > 0 && selectedSlotId !== kaiSlotRec.slotId && (
+              <div className="p-3 bg-[#F5F8F6] border border-[#CBD8D1] rounded-[6px] text-xs text-[#34443D] space-y-1.5">
+                <div className="font-bold text-[#063B2A] flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[#075E43]" />
+                  <span>KAI Alternative Slot Suggestions</span>
+                </div>
+                <div className="space-y-1">
+                  {kaiSlotRec.alternativeSlots.map((alt, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-[11px]">
+                      <span>{alt.slotWindow} ({alt.centreLoadLevel} Load)</span>
+                      <span className="font-semibold text-[#075E43]">~{alt.expectedWaitMinutes}m wait</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <button

@@ -16,7 +16,9 @@ import {
   RefreshCw, 
   PhoneCall, 
   TrendingUp,
-  Sparkles
+  Sparkles,
+  Package,
+  BrainCircuit
 } from 'lucide-react';
 
 export const OperatorDashboardTab: React.FC = () => {
@@ -440,11 +442,27 @@ export const OperatorDashboardTab: React.FC = () => {
             </button>
             <button
               type="button"
+              onClick={() => setOperatorActiveTab('produce')}
+              className="w-full bg-[#EDF3EF] hover:bg-[#CBD8D1] text-[#063B2A] font-bold py-2 rounded-[6px] border border-[#CBD8D1] transition-colors flex items-center justify-center gap-1"
+            >
+              <Package className="w-3.5 h-3.5" />
+              <span>{ot.tabProduce}</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setOperatorActiveTab('payments')}
               className="w-full bg-[#EDF3EF] hover:bg-[#CBD8D1] text-[#063B2A] font-bold py-2 rounded-[6px] border border-[#CBD8D1] transition-colors flex items-center justify-center gap-1"
             >
               <CreditCard className="w-3.5 h-3.5" />
               <span>{ot.tabPayments}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setOperatorActiveTab('aiInsights')}
+              className="w-full bg-[#063B2A] hover:bg-[#075E43] text-white font-bold py-2 rounded-[6px] transition-colors flex items-center justify-center gap-1 shadow-sm"
+            >
+              <BrainCircuit className="w-3.5 h-3.5 text-[#85E1A9]" />
+              <span>{ot.tabAiInsights || 'KAI Intelligence'}</span>
             </button>
           </div>
         </div>

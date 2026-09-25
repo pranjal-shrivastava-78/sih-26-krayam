@@ -13,7 +13,8 @@ import {
   Clock,
   ShieldCheck,
   Building2,
-  FileText
+  FileText,
+  Sparkles
 } from 'lucide-react';
 
 export const DashboardView: React.FC = () => {
@@ -233,6 +234,19 @@ export const DashboardView: React.FC = () => {
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
+            </div>
+
+            {/* KAI Advisory Banner */}
+            <div className="mt-4 pt-3 border-t border-[#EDF3EF] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs bg-[#F4FAF6] p-3 rounded-[6px] border border-[#B7DCC5]">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#075E43] shrink-0" />
+                <span className="font-semibold text-[#063B2A]">
+                  KAI Turn Intelligence: Scale intake velocity is ~6 vehicles/hr. Arrive 15 mins prior to your scheduled slot for priority electronic gate scan.
+                </span>
+              </div>
+              <span className="text-[10px] font-mono text-[#075E43] bg-white px-2 py-0.5 rounded font-bold border border-[#85E1A9] shrink-0">
+                LIVE / BACKEND
+              </span>
             </div>
           </div>
         </div>

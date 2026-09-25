@@ -15,7 +15,9 @@ import {
   Scale, 
   CreditCard, 
   BarChart3, 
-  HardDrive
+  HardDrive,
+  Package,
+  BrainCircuit
 } from 'lucide-react';
 
 export const OperatorHeader: React.FC = () => {
@@ -240,6 +242,19 @@ export const OperatorHeader: React.FC = () => {
 
         <button
           type="button"
+          onClick={() => setOperatorActiveTab('produce')}
+          className={`px-3 py-2 rounded-t-[6px] font-bold flex items-center gap-1.5 border-b-2 transition-colors whitespace-nowrap ${
+            operatorActiveTab === 'produce'
+              ? 'bg-[#075E43] text-[#FFFFFF] border-[#85E1A9]'
+              : 'text-[#CBD8D1] hover:text-[#FFFFFF] hover:bg-[#075E43]/40 border-transparent'
+          }`}
+        >
+          <Package className="w-3.5 h-3.5" />
+          <span>{ot.tabProduce || (language === 'hi' ? 'उपज प्रबंधन' : 'Produce Management')}</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setOperatorActiveTab('payments')}
           className={`px-3 py-2 rounded-t-[6px] font-bold flex items-center gap-1.5 border-b-2 transition-colors whitespace-nowrap ${
             operatorActiveTab === 'payments'
@@ -262,6 +277,19 @@ export const OperatorHeader: React.FC = () => {
         >
           <BarChart3 className="w-3.5 h-3.5" />
           <span>{ot.tabAnalytics}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setOperatorActiveTab('aiInsights')}
+          className={`px-3 py-2 rounded-t-[6px] font-bold flex items-center gap-1.5 border-b-2 transition-colors whitespace-nowrap ${
+            operatorActiveTab === 'aiInsights'
+              ? 'bg-[#075E43] text-[#FFFFFF] border-[#85E1A9]'
+              : 'text-[#CBD8D1] hover:text-[#FFFFFF] hover:bg-[#075E43]/40 border-transparent'
+          }`}
+        >
+          <BrainCircuit className="w-3.5 h-3.5 text-[#85E1A9]" />
+          <span>{ot.tabAiInsights || 'KAI Intelligence'}</span>
         </button>
 
         <button
