@@ -487,7 +487,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
           {/* Top Branding Section (Subtle Soft Greenish Background #F4F7F5) */}
           <div className="bg-[#F4F7F5] pt-6 pb-4 px-5 sm:px-6 text-center">
             {/* Sprout Squircle Icon */}
-            <div className="flex justify-center mb-2.5">
+            <div className="flex justify-center mb-2">
               <img 
                 src="/logo.png" 
                 alt="KRAYAM Logo" 
@@ -495,14 +495,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
               />
             </div>
 
-            {/* Portal Titles */}
-            <div className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold text-[#075E43]">
-              {at.portalBadge}
-            </div>
-            <h1 className="text-xl sm:text-[22px] font-extrabold text-[#17231F] leading-tight mt-0.5">
-              {at.portalTitle}
+            {/* Portal Title & Subtitle */}
+            <h1 className="text-2xl sm:text-[25px] font-black text-[#0B402E] tracking-tight leading-none mt-1">
+              KRAYAM
             </h1>
-            <p className="text-[10px] sm:text-[11px] text-[#66736D] leading-snug mt-1 max-w-[320px] mx-auto">
+            <p className="text-[10px] sm:text-[11px] text-[#66736D] leading-snug mt-1.5 max-w-[320px] mx-auto">
               {at.portalSubtitle}
             </p>
 
@@ -1165,7 +1162,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
       <footer className="bg-[#FFFFFF]/90 backdrop-blur-md border-t border-[#CBD8D1] py-2.5 px-4 text-center text-[11px] text-[#66736D] relative z-10">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
           <div>
-            KRAYAM National Farmer Procurement Grid • Designed for Mandi Centers Across India
+            KRAYAM • Designed for Mandi Centers Across India
           </div>
           <div className="flex items-center gap-4">
             <button

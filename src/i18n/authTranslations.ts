@@ -63,8 +63,8 @@ export interface AuthTranslations {
 export const authTranslations: Record<Language, AuthTranslations> = {
   // 1. English
   en: {
-    portalBadge: 'National Farmer Procurement Grid',
-    portalTitle: 'KRAYAM — Procurement Portal',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'Mandi Slot Reservation, Live Queue Telemetry, and Direct Benefit Transfer (DBT)',
     tabFarmerLogin: 'Farmer Login',
     tabOperatorLogin: 'Operator Login',
@@ -123,8 +123,8 @@ export const authTranslations: Record<Language, AuthTranslations> = {
 
   // 2. Hindi (हिन्दी)
   hi: {
-    portalBadge: 'राष्ट्रीय किसान उपज क्रय ग्रिड',
-    portalTitle: 'क्रयम — किसान क्रय पोर्टल',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'मंडी स्लॉट आरक्षण, लाइव कतार ट्रैकिंग एवं प्रत्यक्ष लाभ अंतरण (DBT)',
     tabFarmerLogin: 'किसान लॉगिन',
     tabOperatorLogin: 'केंद्र संचालक लॉगिन',
@@ -183,8 +183,8 @@ export const authTranslations: Record<Language, AuthTranslations> = {
 
   // 3. Bengali (বাংলা)
   bn: {
-    portalBadge: 'জাতীয় কৃষক ক্রয় গ্রিড',
-    portalTitle: 'ক্রয়ম — কৃষক ক্রয় পোর্টাল',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'মান্ডি স্লট বুকিং, লাইভ কিউ ট্র্যাকিং এবং সরাসরি ব্যাংক ট্রান্সফার (DBT)',
     tabFarmerLogin: 'কৃষক লগইন',
     tabOperatorLogin: 'অপারেটর লগইন',
@@ -243,8 +243,8 @@ export const authTranslations: Record<Language, AuthTranslations> = {
 
   // 4. Marathi (मराठी)
   mr: {
-    portalBadge: 'राष्ट्रीय शेतकरी खरेदी ग्रिड',
-    portalTitle: 'क्रयम — शेतकरी खरेदी पोर्टल',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'मंडी स्लॉट बुकिंग, थेट रांग ट्रॅकिंग आणि थेट लाभ हस्तांतरण (DBT)',
     tabFarmerLogin: 'शेतकरी लॉगिन',
     tabOperatorLogin: 'ऑपरेटर लॉगिन',
@@ -303,8 +303,8 @@ export const authTranslations: Record<Language, AuthTranslations> = {
 
   // 5. Telugu (తెలుగు)
   te: {
-    portalBadge: 'జాతీయ రైతు సేకరణ గ్రిడ్',
-    portalTitle: 'క్రయం — రైతు సేకరణ పోర్టల్',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'మార్కెట్ స్లాట్ బుకింగ్, లైవ్ క్యూ ట్రాకింగ్ మరియు ప్రత్యక్ష ప్రయోజన బదిలీ (DBT)',
     tabFarmerLogin: 'రైతు లాగిన్',
     tabOperatorLogin: 'ఆపరేటర్ లాగిన్',
@@ -363,8 +363,8 @@ export const authTranslations: Record<Language, AuthTranslations> = {
 
   // 6. Tamil (தமிழ்)
   ta: {
-    portalBadge: 'தேசிய உழவர் கொள்முதல் தளம்',
-    portalTitle: 'க்ரயம் — உழவர் கொள்முதல் தளம்',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'மண்டி முன்பதிவு, நேரலை வரிசை கண்காணிப்பு மற்றும் நேரடி வங்கி பரிமாற்றம் (DBT)',
     tabFarmerLogin: 'விவசாயி உள்நுழைவு',
     tabOperatorLogin: 'ஆபரேட்டர் உள்நுழைவு',
@@ -423,8 +423,8 @@ export const authTranslations: Record<Language, AuthTranslations> = {
 
   // 7. Gujarati (ગુજરાતી)
   gu: {
-    portalBadge: 'રાષ્ટ્રીય ખેડૂત પ્રાપ્તિ ગ્રિડ',
-    portalTitle: 'ક્રયમ — ખેડૂત પ્રાપ્તિ પોર્ટલ',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'મંડી સ્લોટ બુકિંગ, લાઈવ કતાર ટ્રેકિંગ અને સીધો લાભ ટ્રાન્સફર (DBT)',
     tabFarmerLogin: 'ખેડૂત લૉગિન',
     tabOperatorLogin: 'ઓપરેટર લૉગિન',
@@ -483,8 +483,8 @@ export const authTranslations: Record<Language, AuthTranslations> = {
 
   // 8. Urdu (اردو)
   ur: {
-    portalBadge: 'قومی کسان پروکیورمنٹ گرڈ',
-    portalTitle: 'کریام — کسان خریداری پورٹل',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'منڈی سلاٹ بکنگ، لائیو قطار کی نگرانی اور براہ راست مالی منتقلی (DBT)',
     tabFarmerLogin: 'کسان لاگ اِن',
     tabOperatorLogin: 'آپریٹر لاگ اِن',
@@ -543,8 +543,8 @@ export const authTranslations: Record<Language, AuthTranslations> = {
 
   // 9. Kannada (ಕನ್ನಡ)
   kn: {
-    portalBadge: 'ರಾಷ್ಟ್ರೀಯ ರೈತ ಖರೀದಿ ಗ್ರಿಡ್',
-    portalTitle: 'ಕ್ರಯಮ್ — ರೈತ ಖರೀದಿ ಪೋರ್ಟಲ್',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'ಮಂಡಿ ಸ್ಲಾಟ್ ಕಾಯ್ದಿರಿಸುವಿಕೆ, ನೇರ ಸರದಿ ಟ್ರ್ಯಾಕಿಂಗ್ ಮತ್ತು ನೇರ ನಗದು ವರ್ಗಾವಣೆ (DBT)',
     tabFarmerLogin: 'ರೈತರ ಲಾಗಿನ್',
     tabOperatorLogin: 'ಆಪರೇಟರ್ ಲಾಗಿನ್',
@@ -603,8 +603,8 @@ export const authTranslations: Record<Language, AuthTranslations> = {
 
   // 10. Odia (ଓଡ଼ିଆ)
   or: {
-    portalBadge: 'ଜାତୀୟ କୃଷକ କ୍ରୟ ଗ୍ରିଡ୍',
-    portalTitle: 'କ୍ରୟମ୍ — କୃଷକ କ୍ରୟ ପୋର୍ଟାଲ',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'ମଣ୍ଡି ସ୍ଲଟ୍ ବୁକିଂ, ଲାଇଭ୍ ଧାଡ଼ି ଟ୍ରାକିଂ ଏବଂ ପ୍ରତ୍ୟକ୍ଷ ଲାଭ ହସ୍ତାନ୍ତରଣ (DBT)',
     tabFarmerLogin: 'କୃଷକ ଲଗଇନ୍',
     tabOperatorLogin: 'ଅପରେଟର ଲଗଇନ୍',
@@ -663,8 +663,8 @@ export const authTranslations: Record<Language, AuthTranslations> = {
 
   // 11. Punjabi (ਪੰਜਾਬੀ)
   pa: {
-    portalBadge: 'ਕੌਮੀ ਕਿਸਾਨ ਖ਼ਰੀਦ ਗਰਿੱਡ',
-    portalTitle: 'ਕ੍ਰਯਮ — ਕਿਸਾਨ ਖ਼ਰੀਦ ਪੋਰਟਲ',
+    portalBadge: '',
+    portalTitle: 'KRAYAM',
     portalSubtitle: 'ਮੰਡੀ ਸਲਾਟ ਬੁਕਿੰਗ, ਲਾਈਵ ਕਤਾਰ ਟਰੈਕਿੰਗ ਅਤੇ ਸਿੱਧਾ ਲਾਭ ਤਬਾਦਲਾ (DBT)',
     tabFarmerLogin: 'ਕਿਸਾਨ ਲਾਗਇਨ',
     tabOperatorLogin: 'ਕੇਂਦਰ ਸੰਚਾਲਕ ਲਾਗਇਨ',

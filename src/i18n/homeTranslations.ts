@@ -75,7 +75,7 @@ export interface HomeTranslations {
 export const homeTranslations: Record<Language, HomeTranslations> = {
   en: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'Fair Procurement. Stronger Farmers.',
+    appSubtitle: 'Smarter Procurement. Stronger Agriculture',
     registerLogin: 'Register / Log In',
     goToDashboard: 'Go to Dashboard',
 
@@ -138,7 +138,7 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
 
   hi: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'उचित खरीद। सशक्त किसान।',
+    appSubtitle: 'स्मार्ट खरीद। सशक्त कृषि।',
     registerLogin: 'पंजीकरण / लॉग इन',
     goToDashboard: 'डैशबोर्ड पर जाएं',
 
@@ -201,7 +201,7 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
 
   pa: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'ਨਿਰਪੱਖ ਖਰੀਦ। ਮਜ਼ਬੂਤ ਕਿਸਾਨ।',
+    appSubtitle: 'ਸਮਾਰਟ ਖਰੀਦ। ਮਜ਼ਬੂਤ ਖੇਤੀਬਾੜੀ।',
     registerLogin: 'ਰਜਿਸਟਰ / ਲੌਗ ਇਨ',
     goToDashboard: 'ਡੈਸ਼ਬੋਰਡ ਤੇ ਜਾਓ',
 
@@ -264,7 +264,7 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
 
   bn: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'ন্যায্য সংগ্রহ। শক্তিশালী কৃষক।',
+    appSubtitle: 'স্মার্ট সংগ্রহ। শক্তিশালী কৃষি।',
     registerLogin: 'নিবন্ধন / লগ ইন',
     goToDashboard: 'ড্যাশবোর্ডে যান',
 
@@ -327,7 +327,7 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
 
   mr: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'रास्त खरेदी. सक्षम शेतकरी.',
+    appSubtitle: 'स्मार्ट खरेदी. सक्षम शेती.',
     registerLogin: 'नोंदणी / लॉगिन',
     goToDashboard: 'डॅशबोर्डवर जा',
 
@@ -390,7 +390,7 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
 
   te: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'న్యాయమైన కొనుగోలు. బలమైన రైతులు.',
+    appSubtitle: 'స్మార్ట్ సేకరణ. బలమైన వ్యవసాయం.',
     registerLogin: 'నమోదు / లాగిన్',
     goToDashboard: 'డ్యాష్‌బోర్డ్‌కి వెళ్లండి',
 
@@ -453,7 +453,7 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
 
   ta: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'நியாயமான கொள்முதல். வலிமையான விவசாயிகள்.',
+    appSubtitle: 'திறன்மிகு கொள்முதல். வலிமையான விவசாயம்.',
     registerLogin: 'பதிவு / உள்நுழைக',
     goToDashboard: 'டாஷ்போர்டுக்கு செல்க',
 
@@ -516,7 +516,7 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
 
   gu: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'વાજબી ખરીદી. સશક્ત ખેડૂત.',
+    appSubtitle: 'સ્માર્ટ ખરીદી. સશક્ત કૃષિ.',
     registerLogin: 'નોંધણી / લૉગ ઇન',
     goToDashboard: 'ડેશબોર્ડ પર જાઓ',
 
@@ -579,7 +579,7 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
 
   ur: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'منصفانہ خریداری۔ مضبوط کسان۔',
+    appSubtitle: 'اسمارٹ خریداری۔ مضبوط زراعت۔',
     registerLogin: 'رجسٹر / لاگ ان',
     goToDashboard: 'ڈیش بورڈ پر جائیں',
 
@@ -642,7 +642,7 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
 
   kn: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'ನ್ಯಾಯಯುತ ಖರೀದಿ. ಬಲಿಷ್ಠ ರೈತರು.',
+    appSubtitle: 'ಸ್ಮಾರ್ಟ್ ಖರೀದಿ. ಬಲಿಷ್ಠ ಕೃಷಿ.',
     registerLogin: 'ನೋಂದಣಿ / ಲಾಗಿನ್',
     goToDashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ',
 
@@ -705,7 +705,7 @@ export const homeTranslations: Record<Language, HomeTranslations> = {
 
   or: {
     appTitle: 'KRAYAM',
-    appSubtitle: 'ନ୍ୟାଯ୍ୟ ସଂଗ୍ରହ। ସଶକ୍ତ କୃଷକ।',
+    appSubtitle: 'ସ୍ମାର୍ଟ ସଂଗ୍ରହ। ସଶକ୍ତ କୃଷି।',
     registerLogin: 'ପଞ୍ଜୀକରଣ / ଲଗ୍ ଇନ୍',
     goToDashboard: 'ଡ୍ୟାସବୋର୍ଡକୁ ଯାଆନ୍ତୁ',
 
