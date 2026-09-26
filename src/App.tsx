@@ -7,7 +7,7 @@ import { AnnouncementBanner } from './components/layout/AnnouncementBanner';
 import { GovernmentHeader } from './components/layout/GovernmentHeader';
 import { Breadcrumb } from './components/layout/Breadcrumb';
 import { Sidebar } from './components/layout/Sidebar';
-import { GovernmentFooter } from './components/layout/GovernmentFooter';
+import { KrayamFooter } from './components/common/KrayamFooter';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { CreateBookingFlow } from './components/booking/CreateBookingFlow';
@@ -85,9 +85,9 @@ const MainAppContent: React.FC = () => {
               {activeView === 'profile' && <ProfileView />}
             </main>
 
-            {/* Official Government Footer */}
-            <div className="mb-16 lg:mb-0">
-              <GovernmentFooter />
+            {/* Unified KRAYAM Footer */}
+            <div className="mb-16 lg:mb-0 mt-auto">
+              <KrayamFooter />
             </div>
           </div>
         </div>

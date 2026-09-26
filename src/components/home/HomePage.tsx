@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { LanguageDropdown } from '../common/LanguageDropdown';
+import { KrayamFooter } from '../common/KrayamFooter';
 import { getHomeText } from '../../i18n/homeTranslations';
 import {
   User,
@@ -9,9 +10,6 @@ import {
   ShieldCheck,
   IndianRupee,
   Users,
-  Building2,
-  Truck,
-  TrendingUp,
   Calendar,
   Scale,
   Warehouse,
@@ -35,39 +33,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToAuth }) => {
       onNavigateToAuth();
     }
   };
-
-  const stats = [
-    {
-      icon: Users,
-      value: ht.stat1Value,
-      label: ht.stat1Label,
-    },
-    {
-      icon: Building2,
-      value: ht.stat2Value,
-      label: ht.stat2Label,
-    },
-    {
-      icon: Sprout,
-      value: ht.stat3Value,
-      label: ht.stat3Label,
-    },
-    {
-      icon: Truck,
-      value: ht.stat4Value,
-      label: ht.stat4Label,
-    },
-    {
-      icon: IndianRupee,
-      value: ht.stat5Value,
-      label: ht.stat5Label,
-    },
-    {
-      icon: TrendingUp,
-      value: ht.stat6Value,
-      label: ht.stat6Label,
-    },
-  ];
 
   const features = [
     {
@@ -293,36 +258,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToAuth }) => {
       </section>
 
       {/* ============================================================ */}
-      {/* 3. STATISTICS STRIP */}
-      {/* ============================================================ */}
-      <section className="w-full bg-white border-b border-[#E1ECE5] py-4 sm:py-5 px-4 sm:px-6 lg:px-8 shrink-0 shadow-2xs">
-        <div className="max-w-[1440px] mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 divide-y sm:divide-y-0 lg:divide-x divide-[#EDF3EF]">
-          {stats.map((stat, idx) => {
-            const Icon = stat.icon;
-            return (
-              <div 
-                key={idx} 
-                className={`flex items-center gap-3 pt-3 sm:pt-0 ${idx > 0 ? 'lg:pl-6' : ''}`}
-              >
-                <div className="w-10 h-10 rounded-full bg-[#EAF6EF] flex items-center justify-center text-[#0A573A] shrink-0 shadow-2xs">
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-sm sm:text-base font-extrabold text-[#0B3827] leading-tight">
-                    {stat.value}
-                  </div>
-                  <div className="text-[11px] sm:text-xs text-[#527063] font-medium leading-tight mt-0.5 truncate">
-                    {stat.label}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 4. FEATURES SECTION + PRODUCE IMAGE CARD */}
+      {/* 3. FEATURES SECTION + PRODUCE IMAGE CARD */}
       {/* ============================================================ */}
       <section className="w-full bg-[#F2F8F4] py-8 sm:py-10 lg:py-12 px-4 sm:px-6 lg:px-8 flex-1">
         <div className="max-w-[1440px] mx-auto">
@@ -395,6 +331,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigateToAuth }) => {
 
         </div>
       </section>
+
+      {/* Unified KRAYAM Footer */}
+      <KrayamFooter />
 
     </div>
   );

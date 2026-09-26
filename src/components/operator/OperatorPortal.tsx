@@ -10,7 +10,7 @@ import { OperatorAnalyticsTab } from './OperatorAnalyticsTab';
 import { OperatorProduceTab } from './OperatorProduceTab';
 import { OperatorAiInsightsTab } from './OperatorAiInsightsTab';
 import { OperatorOfflineTab } from './OperatorOfflineTab';
-import { ShieldCheck, Phone } from 'lucide-react';
+import { KrayamFooter } from '../common/KrayamFooter';
 
 export const OperatorPortal: React.FC = () => {
   const { operatorActiveTab, operator, isOffline } = useApp();
@@ -33,30 +33,8 @@ export const OperatorPortal: React.FC = () => {
         {operatorActiveTab === 'offline' && <OperatorOfflineTab />}
       </main>
 
-      {/* Official Government Mandi Footer */}
-      <footer className="bg-[#FFFFFF] border-t border-[#CBD8D1] py-4 px-4 sm:px-6 lg:px-8 text-xs text-[#66736D] mt-8">
-        <div className="max-w-[1500px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-[#063B2A]">KRAYAM Centre Operator System</span>
-            <span>•</span>
-            <span>{operator?.centreName || 'Samrala Main Grain Mandi'}</span>
-            <span>•</span>
-            <span className="font-mono text-[#075E43] font-semibold">APMC-PB-SAM-01</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1 text-[#16803C]">
-              <ShieldCheck className="w-4 h-4" /> State Grid Online
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1">
-              <Phone className="w-3.5 h-3.5 text-[#075E43]" /> Mandi Tech Support: 01628-234199
-            </span>
-            <span>•</span>
-            <span>Version 2.4.0 (Govt Build)</span>
-          </div>
-        </div>
-      </footer>
+      {/* Unified KRAYAM Footer */}
+      <KrayamFooter className="mt-8" />
     </div>
   );
 };

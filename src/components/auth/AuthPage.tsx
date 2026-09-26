@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Language } from '../../types';
 import { LanguageDropdown } from '../common/LanguageDropdown';
+import { KrayamFooter } from '../common/KrayamFooter';
 import { getAuthText } from '../../i18n/authTranslations';
 import { 
   User, 
@@ -1158,31 +1159,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
         </div>
       </main>
 
-      {/* Official Government Footer */}
-      <footer className="bg-[#FFFFFF]/90 backdrop-blur-md border-t border-[#CBD8D1] py-2.5 px-4 text-center text-[11px] text-[#66736D] relative z-10">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
-          <div>
-            KRAYAM • Designed for Mandi Centers Across India
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => setIsTcModalOpen(true)}
-              className="hover:text-[#075E43] transition-colors underline"
-            >
-              Terms & Conditions
-            </button>
-            <span className="text-[#CBD8D1]">•</span>
-            <button
-              type="button"
-              onClick={() => setIsTcModalOpen(true)}
-              className="hover:text-[#075E43] transition-colors underline"
-            >
-              Privacy Policy
-            </button>
-          </div>
-        </div>
-      </footer>
+      {/* Unified KRAYAM Footer */}
+      <KrayamFooter />
     </div>
   );
 };
